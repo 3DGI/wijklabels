@@ -2,7 +2,6 @@
 
 Copyright 2023 3DGI
 """
-import json
 from os import PathLike
 from pathlib import Path
 
