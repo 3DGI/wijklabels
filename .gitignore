@@ -1,0 +1,11 @@
+.idea
+.run
+.tox
+*.egg-info
+tests/data/*.json
+tests/__pycache__
+/build/
+/dist/
+/logs/
+/.pytest_cache/
+venv
