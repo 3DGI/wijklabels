@@ -1,4 +1,4 @@
-from wijklabels.load import CityJSONLoader
+from wijklabels.load import CityJSONLoader, VBOLoader
 
 
 def test_cityjsonloader_files(data_dir):
@@ -16,3 +16,11 @@ def test_cityjsonloader_files_bbox(data_dir):
     cmloader = CityJSONLoader()
     cm = cmloader.load(files=[path_1, path_2], bbox=bbox)
     print(cm)
+
+
+def test_vbo_load_file(data_dir):
+    path_csv = data_dir / "vbo.csv"
+    vboloader = VBOLoader(file=path_csv)
+    vbo_df = vboloader.load()
+    print(vbo_df.head())
+    assert len(vbo_df) > 0

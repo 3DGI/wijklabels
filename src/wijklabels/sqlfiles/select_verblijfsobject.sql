@@ -28,7 +28,8 @@ WITH vbo AS (SELECT identificatie AS vbo_identificatie
                     FROM vbo_nma
                              LEFT JOIN lvbag.pandactueelbestaand AS pd
                                        ON vbo_nma.pandref[1] = pd.identificatie
-                    WHERE vbo_nma.hoofdadresnummeraanduidingref IS NOT NULL)
+                    WHERE vbo_nma.hoofdadresnummeraanduidingref IS NOT NULL
+                      AND pd.geometrie && st_makeenvelope(92593.338, 444890.404, 93593.338, 446890.404, 28992))
 SELECT *
 FROM vbo_nma_pd
 WHERE pd_identificatie IS NOT NULL
