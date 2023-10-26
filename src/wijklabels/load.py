@@ -6,6 +6,7 @@ import inspect
 from importlib import resources
 from os import PathLike
 from pathlib import Path
+from copy import deepcopy
 
 from cjio.cityjson import CityJSON
 import pandas as pd
@@ -16,18 +17,23 @@ from . import Bbox
 class CityJSONLoader:
     """Load CityJSON data from local files or download them directly from 3dbag.nl."""
 
-    def load(self, files: list[PathLike] = None, tiles: list[str] = None,
-             bbox: Bbox = None) -> CityJSON:
-        if files:
-            return self.__load_files(files, bbox)
-        elif tiles:
-            return self.__load_tiles(tiles, bbox)
+    def __init__(self, files: list[PathLike] = None, tiles: list[str] = None,
+                 bbox: Bbox = None):
+        self.files = files
+        self.tiles = tiles
+        self.bbox = bbox
+
+    def load(self) -> CityJSON:
+        if self.files:
+            return self.__load_files()
+        elif self.tiles:
+            return self.__load_tiles()
         else:
             raise ValueError("Either files or tiles must be provided")
 
-    @staticmethod
-    def __load_files(files: list[PathLike], bbox: Bbox = None) -> CityJSON:
+    def __load_files(self) -> CityJSON:
         """Load from CityJSON files on the filesystem"""
+        files = deepcopy(self.files)
         path_base = Path(files.pop())
         if not path_base.exists():
             raise FileNotFoundError(path_base)
@@ -42,12 +48,11 @@ class CityJSONLoader:
                 with p.open("r") as fo:
                     cmls.append(CityJSON(file=fo))
             cm.merge(cmls)
-        if bbox:
-            cm = cm.get_subset_bbox(bbox)
+        if self.bbox:
+            cm = cm.get_subset_bbox(self.bbox)
         return cm
 
-    @staticmethod
-    def __load_tiles(tiles: list[str], bbox: Bbox = None) -> CityJSON:
+    def __load_tiles(self) -> CityJSON:
         """Download tile from 3dbag.nl"""
         raise NotImplementedError
 
