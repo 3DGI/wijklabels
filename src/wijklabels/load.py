@@ -10,6 +10,7 @@ from copy import deepcopy
 
 from cjio.cityjson import CityJSON
 import pandas as pd
+from openpyxl import load_workbook, Workbook
 
 from . import Bbox
 
@@ -114,3 +115,12 @@ def load_sql(filename: str = None,
     _pysql = _sql.replace("${", "{")
     # return inject_parameters(_pysql, query_params)
     return _pysql
+
+
+class ExcelLoader:
+    def __init__(self, file: PathLike = None):
+        self.file = file
+
+    def load(self) -> Workbook:
+        return load_workbook(filename=self.file, read_only=True, data_only=True,
+                             keep_vba=False, keep_links=True)

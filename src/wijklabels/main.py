@@ -1,13 +1,19 @@
 import logging
 from wijklabels import load, vormfactor
+from labels import parse_energylabel_ditributions
+
+log = logging.getLogger()
 
 if __name__ == "__main__":
-    files = ["../../tests/data/9-316-552.city.json",]
+    files = ["../../tests/data/9-316-552.city.json", ]
     vbo_csv = "../../tests/data/vbo.csv"
+    label_distributions_path = "../../resources/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
     cmloader = load.CityJSONLoader(files=files)
     cm = cmloader.load()
     vboloader = load.VBOLoader(file=vbo_csv)
     vbo_df = vboloader.load()
+    excelloader = load.ExcelLoader(file=label_distributions_path)
+    label_distributions_excel = excelloader.load()
 
     # We select only those Pand that have a single VBO, which means that they are
     # houses, not appartaments
@@ -19,19 +25,23 @@ if __name__ == "__main__":
         try:
             co = cm.j["CityObjects"][h_id]
         except KeyError:
-            logging.error(f"Did not find {h_id} in the city model")
+            log.error(f"Did not find {h_id} in the city model")
             continue
         vbo_single = vbo_df.loc[vbo_df["pd_identificatie"] == h_id]
         if vbo_single.empty:
-            logging.error(f"Did not find {h_id} in the VBO data frame")
+            log.error(f"Did not find {h_id} in the VBO data frame")
             continue
         elif len(vbo_single) > 1:
-            logging.error(f"VBO data frame subset for {h_id} returned multiple rows, but there should be on one")
+            log.error(
+                f"VBO data frame subset for {h_id} returned multiple rows, but there should be on one")
             continue
         vf = vormfactor.vormfactor(cityobject_id=h_id, cityobject=co, vbo_df=vbo_df)
         vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "vormfactor"] = vf
 
-    print(vbo_df.head())
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
+
+    distributions = parse_energylabel_ditributions(
+        label_distributions_excel=label_distributions_excel,
+        label_distributions_path=label_distributions_path)
 
     print("done")
