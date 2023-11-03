@@ -1,0 +1,10 @@
+services:
+  baseregisters:
+    image: "postgis/postgis:15-3.4-alpine"
+    ports:
+      - "8001:5432"
+    environment:
+      POSTGRES_PASSWORD: "password"
+    volumes:
+      - "../tests/data/create_bag_pand_table.sql.gz:/docker-entrypoint-initdb.d/create_bag_pand_table.sql.gz"
+      - "../tests/data/insert_bag_pand_test_area.sql.gz:/docker-entrypoint-initdb.d/insert_bag_pand_test_area.sql.gz"
