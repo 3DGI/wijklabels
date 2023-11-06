@@ -124,3 +124,11 @@ class ExcelLoader:
     def load(self) -> Workbook:
         return load_workbook(filename=self.file, read_only=True, data_only=True,
                              keep_vba=False, keep_links=True)
+
+
+class WoningtypeLoader:
+    def __init__(self, file: PathLike = None):
+        self.file = file
+
+    def load(self) -> pd.DataFrame:
+        return pd.read_csv(self.file, header=0, usecols=[0, 3])

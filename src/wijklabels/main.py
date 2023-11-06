@@ -1,6 +1,6 @@
 import logging
 from wijklabels import load, vormfactor
-from labels import parse_energylabel_ditributions
+from wijklabels.labels import parse_energylabel_ditributions
 
 log = logging.getLogger()
 
@@ -8,12 +8,16 @@ if __name__ == "__main__":
     files = ["../../tests/data/9-316-552.city.json", ]
     vbo_csv = "../../tests/data/vbo.csv"
     label_distributions_path = "../../resources/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
+    woningtype_path = "../../tests/data/tmp_clusters.csv"
     cmloader = load.CityJSONLoader(files=files)
     cm = cmloader.load()
     vboloader = load.VBOLoader(file=vbo_csv)
     vbo_df = vboloader.load()
     excelloader = load.ExcelLoader(file=label_distributions_path)
     label_distributions_excel = excelloader.load()
+    woningtypeloader = load.WoningtypeLoader(file=woningtype_path)
+    woningtype = woningtypeloader.load()
+    woningtype.rename(columns={"identificatie": "pd_identificatie"}, inplace=True)
 
     # We select only those Pand that have a single VBO, which means that they are
     # houses, not appartaments
@@ -43,5 +47,8 @@ if __name__ == "__main__":
     distributions = parse_energylabel_ditributions(
         label_distributions_excel=label_distributions_excel,
         label_distributions_path=label_distributions_path)
+
+    # match data
+    panden = vbo_df.merge(woningtype, on="pd_identificatie", how="left")
 
     print("done")

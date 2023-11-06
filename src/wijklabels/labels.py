@@ -1,3 +1,7 @@
+"""Energy label data parsing and statistics
+
+Copyright 2023 3DGI
+"""
 import os
 import re
 import logging
