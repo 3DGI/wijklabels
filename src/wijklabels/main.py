@@ -1,4 +1,7 @@
 import logging
+
+import pandas as pd
+
 from wijklabels import load, vormfactor
 from wijklabels.labels import parse_energylabel_ditributions
 
@@ -24,7 +27,6 @@ if __name__ == "__main__":
     pdcnt = vbo_df.groupby("pd_identificatie").count()
     houses = pdcnt[pdcnt["huisnummer"] == 1].index
 
-    vbo_df["vormfactor"] = None
     for h_id in houses:
         try:
             co = cm.j["CityObjects"][h_id]
@@ -41,6 +43,9 @@ if __name__ == "__main__":
             continue
         vf = vormfactor.vormfactor(cityobject_id=h_id, cityobject=co, vbo_df=vbo_df)
         vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "vormfactor"] = vf
+        bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
+        vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "oorspronkelijkbouwjaar"] = int(bouwjaar)
+    vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
 
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
 
@@ -50,5 +55,7 @@ if __name__ == "__main__":
 
     # match data
     panden = vbo_df.merge(woningtype, on="pd_identificatie", how="left")
+
+    panden.groupby(by=["woningtype", "oorspronkelijkbouwjaar"]).count()
 
     print("done")
