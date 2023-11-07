@@ -32,25 +32,20 @@ if __name__ == "__main__":
     pdcnt = vbo_df.groupby("pd_identificatie").count()
     houses = pdcnt[pdcnt["huisnummer"] == 1].index
 
-    for h_id in houses:
-        try:
-            co = cm.j["CityObjects"][h_id]
-        except KeyError:
-            log.error(f"Did not find {h_id} in the city model")
-            continue
-        vbo_single = vbo_df.loc[vbo_df["pd_identificatie"] == h_id]
-        if vbo_single.empty:
-            log.error(f"Did not find {h_id} in the VBO data frame")
-            continue
-        elif len(vbo_single) > 1:
-            log.error(
-                f"VBO data frame subset for {h_id} returned multiple rows, but there should be on one")
-            continue
-        vf = vormfactor.vormfactor(cityobject_id=h_id, cityobject=co, vbo_df=vbo_df)
-        vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "vormfactor"] = vf
-        bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
-        vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "oorspronkelijkbouwjaar"] = int(
-            bouwjaar)
+    for coid, co in cm.j["CityObjects"].items():
+        if co["type"] == "Building":
+            vbo_single = vbo_df.loc[vbo_df["pd_identificatie"] == coid]
+            if vbo_single.empty:
+                log.error(f"Did not find {coid} in the VBO data")
+                continue
+            elif len(vbo_single) > 1:
+                log.error(
+                    f"VBO data frame subset for {coid} returned multiple rows, but there should be only one")
+                continue
+            vf = vormfactor.vormfactor(co)
+            vbo_df.loc[vbo_df["pd_identificatie"] == coid, "vormfactor"] = vf
+            bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
+            vbo_df.loc[vbo_df["pd_identificatie"] == coid, "oorspronkelijkbouwjaar"] = bouwjaar
     vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
 
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
