@@ -13,6 +13,7 @@ import pandas as pd
 from openpyxl import load_workbook, Workbook
 
 from . import Bbox
+from wijklabels.woningtype import Woningtype
 
 
 class CityJSONLoader:
@@ -131,4 +132,6 @@ class WoningtypeLoader:
         self.file = file
 
     def load(self) -> pd.DataFrame:
-        return pd.read_csv(self.file, header=0, usecols=[0, 3])
+        df = pd.read_csv(self.file, header=0, usecols=[0, 3])
+        df["woningtype"] = df.apply(lambda row: Woningtype(row["woningtype"]), axis=1)
+        return df

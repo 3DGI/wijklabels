@@ -4,8 +4,13 @@ import pandas as pd
 
 from wijklabels import load, vormfactor
 from wijklabels.labels import parse_energylabel_ditributions
+from wijklabels.woningtype import Bouwperiode, Woningtype
 
 log = logging.getLogger()
+
+# DEBUG
+import os
+os.chdir("/home/balazs/Development/wijklabels/src/wijklabels")
 
 if __name__ == "__main__":
     files = ["../../tests/data/9-316-552.city.json", ]
@@ -44,7 +49,8 @@ if __name__ == "__main__":
         vf = vormfactor.vormfactor(cityobject_id=h_id, cityobject=co, vbo_df=vbo_df)
         vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "vormfactor"] = vf
         bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
-        vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "oorspronkelijkbouwjaar"] = int(bouwjaar)
+        vbo_df.loc[vbo_df["pd_identificatie"] == h_id, "oorspronkelijkbouwjaar"] = int(
+            bouwjaar)
     vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
 
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
@@ -55,7 +61,12 @@ if __name__ == "__main__":
 
     # match data
     panden = vbo_df.merge(woningtype, on="pd_identificatie", how="left")
+    bouwperiode = panden[["pd_identificatie", "oorspronkelijkbouwjaar", "woningtype"]].dropna()
+    bouwperiode["bouwperiode"] = bouwperiode.apply(
+        lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
+                                               row["woningtype"]),
+        axis=1)
 
-    panden.groupby(by=["woningtype", "oorspronkelijkbouwjaar"]).count()
+    bouwperiode.groupby(by=["woningtype", "bouwperiode"]).count()
 
     print("done")
