@@ -12,11 +12,11 @@ def test_verliesoppervlakte(data_dir):
         print(res)
 
 
-def test_vormfactor(data_dir, vbo_df):
+def test_vormfactor(data_dir):
     p = data_dir / "one.city.json"
     cmloader = CityJSONLoader()
     cm = cmloader.load(files=[p, ])
     for coid, co in cm.j["CityObjects"].items():
         print(f"Computing vormfactor of {coid}")
-        res = vormfactor(cityobject_id=coid, cityobject=co, vbo_df=vbo_df)
+        res = vormfactor(co)
         print(res)
