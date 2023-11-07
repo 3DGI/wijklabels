@@ -4,6 +4,7 @@
 *.egg-info
 tests/data/*.json
 tests/__pycache__
+src/wijklabels/__pycache__
 /build/
 /dist/
 /logs/
