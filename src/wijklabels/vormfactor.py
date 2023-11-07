@@ -3,6 +3,7 @@
 Copyright 2023 3DGI
 """
 import logging
+from pandas import DataFrame
 from wijklabels import OrderedEnum
 
 
@@ -23,13 +24,17 @@ class VormfactorClass(OrderedEnum):
         return list(filter(lambda c: c.value[0] <= vormfactor < c.value[1], cls))[0]
 
 
-def vormfactor(cityobject: dict) -> float | None:
+def vormfactor(cityobject_id: str, cityobject: dict, vbo_df: DataFrame,
+               floor_area=True) -> float | None:
     """Calculate the vormfactor for a single CityObject.
 
     The vormfactor is calculated as `verliesoppervlakte / oppervlakte`.
     """
     vopp = verliesoppervlakte(cityobject)
-    opp = oppervlakte(cityobject)
+    if floor_area:
+        opp = gebruiksoppervlakte(cityobject_id, vbo_df)
+    else:
+        opp = oppervlakte(cityobject)
     if vopp is None or opp is None:
         return None
     else:
@@ -91,3 +96,12 @@ def oppervlakte(cityobject: dict) -> float | None:
     except KeyError as e:
         logging.error(e)
         return None
+
+
+def gebruiksoppervlakte(cityobject_id: str, vbo_df: DataFrame) -> float | None:
+    """Calculate the total floor area of a dwelling.
+
+    The total surface area is also abbreviated as `A_g` in the Dutch terminology,
+    see https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/standaard-streefwaarden-woningisolatie
+    """
+    return vbo_df.loc[vbo_df['pd_identificatie'] == cityobject_id]["oppervlakte"]
