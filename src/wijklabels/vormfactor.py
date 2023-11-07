@@ -3,6 +3,24 @@
 Copyright 2023 3DGI
 """
 import logging
+from wijklabels import OrderedEnum
+
+
+class VormfactorClass(OrderedEnum):
+    UNDER_050 = (-99.0, 0.5)
+    FROM_050_UNTIL_100 = (0.5, 1.0)
+    FROM_100_UNTIL_150 = (1.0, 1.5)
+    FROM_150_UNTIL_200 = (1.5, 2.0)
+    FROM_200_UNTIL_250 = (2.0, 2.5)
+    FROM_250_UNTIL_300 = (2.5, 3.0)
+    FROM_300_UNTIL_350 = (3.0, 3.5)
+    ABOVE_350 = (3.5, 99.0)
+
+    @classmethod
+    def from_vormfactor(cls, vormfactor):
+        """Classify the vormfactor into into one of the bins defined in the energy
+        label distributions study."""
+        return list(filter(lambda c: c.value[0] <= vormfactor < c.value[1], cls))[0]
 
 
 def vormfactor(cityobject: dict) -> float | None:

@@ -2,7 +2,9 @@
 
 Copyright 2023 3DGI
 """
-from enum import Enum, StrEnum
+from enum import StrEnum
+
+from wijklabels import OrderedEnum
 
 
 class Woningtype(StrEnum):
@@ -10,37 +12,6 @@ class Woningtype(StrEnum):
     TWEE_ONDER_EEN_KAP = "2 onder 1 kap"
     RIJWONING_TUSSEN = "rijwoning tussen"
     RIJWONING_HOEK = "rijwoning hoek"
-
-
-class OrderedEnum(Enum):
-
-    def __ge__(self, other):
-
-        if self.__class__ is other.__class__:
-            return self.value >= other.value
-
-        return NotImplemented
-
-    def __gt__(self, other):
-
-        if self.__class__ is other.__class__:
-            return self.value > other.value
-
-        return NotImplemented
-
-    def __le__(self, other):
-
-        if self.__class__ is other.__class__:
-            return self.value <= other.value
-
-        return NotImplemented
-
-    def __lt__(self, other):
-
-        if self.__class__ is other.__class__:
-            return self.value < other.value
-
-        return NotImplemented
 
 
 class Bouwperiode(OrderedEnum):
