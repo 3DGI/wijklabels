@@ -6,9 +6,11 @@ import re
 import logging
 
 import pandas as pd
+from numpy import nan
 
 from wijklabels.load import ExcelLoader
 from wijklabels.woningtype import Woningtype, Bouwperiode
+from wijklabels.vormfactor import VormfactorClass
 
 log = logging.getLogger()
 
@@ -21,7 +23,7 @@ LabelDistributions = dict[tuple[Woningtype, Bouwperiode], pd.DataFrame]
 def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributions:
     """Parse the energy label distributions from the excel file.
     The distribution tables are parsed into a DataFrame and they are indexed by
-    (min. construciton year, max. construction year, dwelling type).
+    (Woningtype, Bouwperiode).
     """
     label_distributions_excel = excelloader.load()
     # Assuming that we need the first sheet that has 'spreiding' in its name
@@ -66,6 +68,10 @@ def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributio
                 skiprows=i, nrows=10,
                 decimal=","
             )
+            df.drop(columns=["Unnamed: 2"], inplace=True)
+            vfc = list(VormfactorClass)
+            vfc.append(nan)
+            df["vormfactor"] = vfc
             label_distributions[(woningtype, bouwperiode)] = df
     sorted(label_distributions)
     return label_distributions
