@@ -16,7 +16,7 @@ if __name__ == "__main__":
     files = ["../../tests/data/9-316-552.city.json", ]
     vbo_csv = "../../tests/data/vbo.csv"
     label_distributions_path = "../../resources/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
-    woningtype_path = "../../tests/data/tmp_clusters.csv"
+    woningtype_path = "../../tests/data/woningtypen.csv"
     cmloader = load.CityJSONLoader(files=files)
     cm = cmloader.load()
     vboloader = load.VBOLoader(file=vbo_csv)
@@ -56,9 +56,7 @@ if __name__ == "__main__":
 
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
 
-    distributions = parse_energylabel_ditributions(
-        label_distributions_excel=label_distributions_excel,
-        label_distributions_path=label_distributions_path)
+    distributions = parse_energylabel_ditributions(excelloader)
 
     # match data
     panden = vbo_df.merge(woningtype, on="pd_identificatie", how="left")

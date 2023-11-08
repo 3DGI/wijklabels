@@ -8,10 +8,14 @@ from wijklabels import OrderedEnum
 
 
 class Woningtype(StrEnum):
-    VRIJSTAAND = "vrijstaand"
+    VRIJSTAAND = "vrijstaande woning"
     TWEE_ONDER_EEN_KAP = "2 onder 1 kap"
     RIJWONING_TUSSEN = "rijwoning tussen"
     RIJWONING_HOEK = "rijwoning hoek"
+    MAISONNETTE = "maisonnette"
+    GALERIJ = "galerij"
+    PORTIEK = "portiek"
+    OVERIG = "overig"
 
 
 class Bouwperiode(OrderedEnum):

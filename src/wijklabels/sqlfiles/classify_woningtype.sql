@@ -12,7 +12,7 @@ WITH sub AS (SELECT *
                                 , geometrie
                                 , cluster
                                 , CASE
-                                      WHEN count = 1 THEN 'vrijstaand'
+                                      WHEN count = 1 THEN 'vrijstaande woning'
                                       WHEN count = 2 THEN '2 onder 1 kap'
                                       WHEN count > 2 THEN 'rijwoning' END AS wt
                            FROM counts)

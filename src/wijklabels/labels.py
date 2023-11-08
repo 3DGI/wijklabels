@@ -2,26 +2,28 @@
 
 Copyright 2023 3DGI
 """
-import os
 import re
 import logging
 
 import pandas as pd
-from openpyxl import Workbook
+
+from wijklabels.load import ExcelLoader
+from wijklabels.woningtype import Woningtype, Bouwperiode
 
 log = logging.getLogger()
 
 # label_distributions_path = '/home/balazs/Development/wijklabels/resources/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx'
 # excelloader = load.ExcelLoader(file=label_distributions_path)
 
+LabelDistributions = dict[tuple[Woningtype, Bouwperiode], pd.DataFrame]
 
-def parse_energylabel_ditributions(label_distributions_excel: Workbook,
-                                   label_distributions_path: os.PathLike) -> dict[
-    tuple[int, int, str], pd.DataFrame]:
+
+def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributions:
     """Parse the energy label distributions from the excel file.
     The distribution tables are parsed into a DataFrame and they are indexed by
     (min. construciton year, max. construction year, dwelling type).
     """
+    label_distributions_excel = excelloader.load()
     # Assuming that we need the first sheet that has 'spreiding' in its name
     sheet_name = [sheet_name for sheet_name in label_distributions_excel.sheetnames if
                   "spreiding" in sheet_name][0]
@@ -30,7 +32,7 @@ def parse_energylabel_ditributions(label_distributions_excel: Workbook,
     # starting in row 5, in every 15th row
     expected_max_woningtype = 60
     re_year = re.compile(r"(\d{4})")
-    woningtype_df = {}
+    label_distributions = {}
     for i in list(range(5, 15 * expected_max_woningtype, 15)):
         wt = sheet[f"B{i}"].value
         if wt is None or wt == "":
@@ -39,6 +41,7 @@ def parse_energylabel_ditributions(label_distributions_excel: Workbook,
             search_result = re_year.search(wt)
             construction_year_min, construction_year_max = None, None
             woningtype = None
+            bouwperiode = None
             if search_result is None:
                 log.error(f"Did not find any years in {wt}")
             else:
@@ -52,14 +55,24 @@ def parse_energylabel_ditributions(label_distributions_excel: Workbook,
                 elif wt[startpos - 1] == ">":
                     construction_year_min = int(search_result.group())
                     construction_year_max = 9999
-                woningtype = wt[:startpos - 1]
+                _wt = wt[:startpos - 1].strip().lower()
+                woningtype = Woningtype(_wt)
+                bouwperiode = Bouwperiode.from_year_type(
+                    oorspronkelijkbouwjaar=construction_year_min + 1,
+                    woningtype=woningtype)
             df = pd.read_excel(
-                io=label_distributions_path,
+                io=excelloader.file,
                 usecols="B:O",
                 skiprows=i, nrows=10,
                 decimal=","
             )
-            woningtype_df[
-                (construction_year_min, construction_year_max, woningtype)] = df
-    sorted(woningtype_df)
-    return woningtype_df
+            label_distributions[(woningtype, bouwperiode)] = df
+    sorted(label_distributions)
+    return label_distributions
+
+
+def normalize_distributions(distributions_df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize the percentages so that they total to 100% per vormfactor class, per
+    woningtype. Because in the input excel tables, the percentages total across all
+    vormfactors per woningtype."""
+    pass
