@@ -6,6 +6,7 @@ import logging
 from pandas import DataFrame
 from wijklabels import OrderedEnum
 
+log = logging.getLogger()
 
 class VormfactorClass(OrderedEnum):
     UNDER_050 = (-99.0, 0.5)
@@ -59,7 +60,7 @@ def verliesoppervlakte(cityobject: dict) -> float | None:
         - b3_opp_dak_schuin
     """
     if "attributes" not in cityobject:
-        logging.error("CityObject does not have attributes")
+        log.error("CityObject does not have attributes")
         return None
     try:
         return cityobject["attributes"]["b3_opp_buitenmuur"] + \
@@ -67,7 +68,7 @@ def verliesoppervlakte(cityobject: dict) -> float | None:
             cityobject["attributes"]["b3_opp_dak_schuin"] + \
             cityobject["attributes"]["b3_opp_grond"]
     except KeyError as e:
-        logging.error(e)
+        log.error(e)
         return None
 
 
@@ -85,7 +86,7 @@ def oppervlakte(cityobject: dict) -> float | None:
         - b3_opp_dak_schuin
     """
     if "attributes" not in cityobject:
-        logging.error("CityObject does not have attributes")
+        log.error("CityObject does not have attributes")
         return None
     try:
         return cityobject["attributes"]["b3_opp_buitenmuur"] + \
@@ -94,7 +95,7 @@ def oppervlakte(cityobject: dict) -> float | None:
             cityobject["attributes"]["b3_opp_grond"] + \
             cityobject["attributes"]["b3_opp_scheidingsmuur"]
     except KeyError as e:
-        logging.error(e)
+        log.error(e)
         return None
 
 
@@ -104,4 +105,9 @@ def gebruiksoppervlakte(cityobject_id: str, vbo_df: DataFrame) -> float | None:
     The total surface area is also abbreviated as `A_g` in the Dutch terminology,
     see https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/standaard-streefwaarden-woningisolatie
     """
-    return vbo_df.loc[vbo_df['pd_identificatie'] == cityobject_id]["oppervlakte"]
+    opp = vbo_df.loc[vbo_df['pd_identificatie'] == cityobject_id]["oppervlakte"]
+    try:
+        return opp.item()
+    except ValueError:
+        log.error(f"Multiple rows returned when subsetting VBO with {cityobject_id}")
+        return None

@@ -1,10 +1,9 @@
 import logging
 
-import pandas as pd
-
-from wijklabels import load, vormfactor
+from wijklabels import load
+from wijklabels.vormfactor import VormfactorClass, vormfactor
 from wijklabels.labels import parse_energylabel_ditributions
-from wijklabels.woningtype import Bouwperiode, Woningtype
+from wijklabels.woningtype import Bouwperiode
 
 log = logging.getLogger()
 
@@ -43,9 +42,13 @@ if __name__ == "__main__":
                 log.error(
                     f"VBO data frame subset for {coid} returned multiple rows, but there should be only one")
                 continue
-            vf = vormfactor.vormfactor(cityobject_id=coid, cityobject=co, vbo_df=vbo_df,
-                                       floor_area=True)
+            vf = vormfactor(cityobject_id=coid, cityobject=co, vbo_df=vbo_df,
+                            floor_area=True)
             vbo_df.loc[vbo_df["pd_identificatie"] == coid, "vormfactor"] = vf
+            try:
+                vbo_df.loc[vbo_df["pd_identificatie"] == coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(vf)
+            except ValueError as e:
+                pass
             bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
             vbo_df.loc[
                 vbo_df["pd_identificatie"] == coid, "oorspronkelijkbouwjaar"] = bouwjaar
@@ -60,13 +63,16 @@ if __name__ == "__main__":
     # match data
     panden = vbo_df.merge(woningtype, on="pd_identificatie", how="left")
     bouwperiode = panden[
-        ["pd_identificatie", "oorspronkelijkbouwjaar", "woningtype"]].dropna()
+        ["pd_identificatie", "oorspronkelijkbouwjaar", "woningtype",
+         "vormfactorclass"]].dropna()
     bouwperiode["bouwperiode"] = bouwperiode.apply(
         lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
                                                row["woningtype"]),
         axis=1)
 
-    gb = bouwperiode.groupby(by=["woningtype", "bouwperiode"]).count()
+    group = bouwperiode.groupby(by=["woningtype", "bouwperiode", "vormfactorclass"])
+    group.first()
+    gb = group.count()
     print(gb)
 
     print("done")
