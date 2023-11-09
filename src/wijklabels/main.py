@@ -22,6 +22,8 @@ if __name__ == "__main__":
     woningtype_path = "../../tests/data/woningtypen.csv"
     cmloader = load.CityJSONLoader(files=files)
     cm = cmloader.load()
+    # We select only those Pand that have a single VBO, which means that they are
+    # houses, not appartaments
     vboloader = load.VBOLoader(file=vbo_csv)
     vbo_df = vboloader.load()
     excelloader = load.ExcelLoader(file=label_distributions_path)
@@ -30,31 +32,26 @@ if __name__ == "__main__":
     woningtype = woningtypeloader.load()
     woningtype.rename(columns={"identificatie": "pd_identificatie"}, inplace=True)
 
-    # We select only those Pand that have a single VBO, which means that they are
-    # houses, not appartaments
-    pdcnt = vbo_df.groupby("pd_identificatie").count()
-    houses = pdcnt[pdcnt["huisnummer"] == 1].index
-
+    coid_notfound = []
     for coid, co in cm.j["CityObjects"].items():
         if co["type"] == "Building":
-            vbo_single = vbo_df.loc[vbo_df["pd_identificatie"] == coid]
+            try:
+                vbo_single = vbo_df.loc[coid]
+            except KeyError:
+                coid_notfound.append(coid)
+                continue
             if vbo_single.empty:
                 log.error(f"Did not find {coid} in the VBO data")
                 continue
-            elif len(vbo_single) > 1:
-                log.error(
-                    f"VBO data frame subset for {coid} returned multiple rows, but there should be only one")
-                continue
             vf = vormfactor(cityobject_id=coid, cityobject=co, vbo_df=vbo_df,
                             floor_area=True)
-            vbo_df.loc[vbo_df["pd_identificatie"] == coid, "vormfactor"] = vf
+            vbo_df.loc[coid, "vormfactor"] = vf
             try:
-                vbo_df.loc[vbo_df["pd_identificatie"] == coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(vf)
+                vbo_df.loc[coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(vf)
             except ValueError as e:
                 pass
             bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
-            vbo_df.loc[
-                vbo_df["pd_identificatie"] == coid, "oorspronkelijkbouwjaar"] = bouwjaar
+            vbo_df.loc[coid, "oorspronkelijkbouwjaar"] = bouwjaar
     vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
 
     vbo_df.to_csv("../../tests/data/vormfactor.csv")

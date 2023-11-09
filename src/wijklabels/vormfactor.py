@@ -105,7 +105,7 @@ def gebruiksoppervlakte(cityobject_id: str, vbo_df: DataFrame) -> float | None:
     The total surface area is also abbreviated as `A_g` in the Dutch terminology,
     see https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/standaard-streefwaarden-woningisolatie
     """
-    opp = vbo_df.loc[vbo_df['pd_identificatie'] == cityobject_id]["oppervlakte"]
+    opp = vbo_df.loc[cityobject_id, "oppervlakte"]
     try:
         return opp.item()
     except ValueError:
