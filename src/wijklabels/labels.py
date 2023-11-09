@@ -19,6 +19,7 @@ log = logging.getLogger()
 # excelloader = load.ExcelLoader(file=label_distributions_path)
 
 LabelDistributions = dict[tuple[Woningtype, Bouwperiode], pd.DataFrame]
+LongLabels = pd.DataFrame
 
 
 class EnergyLabel(OrderedEnum):
@@ -102,10 +103,15 @@ def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributio
     return label_distributions
 
 
-def reshape_for_classification(label_distributions: LabelDistributions) -> pd.DataFrame:
+def reshape_for_classification(label_distributions: LabelDistributions) -> LongLabels:
     """Normalize the percentages so that they total to 100% per vormfactor class, per
     woningtype. Because in the input excel tables, the percentages total across all
-    vormfactors per woningtype."""
+    vormfactors per woningtype.
+
+    Returns a Dataframe that has the following structure:
+        index: ['woningtype', 'bouwperiode', 'vormfactor']
+        columns: ['energylabel', 'probability', 'bin_min', 'bin_max']
+    """
     dfs = []
     for (woningtype, bouwperiode), df in label_distributions.items():
         # Drop the last row that contains the totals per label
@@ -147,3 +153,18 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> pd.Da
          "bin_min", "bin_max"]]
     result_df.set_index(["woningtype", "bouwperiode", "vormfactor"], inplace=True)
     return result_df
+
+
+def classify(df: LongLabels, woningtype: Woningtype, bouwperiode: Bouwperiode,
+             vormfactor: VormfactorClass, random_number: float) -> EnergyLabel:
+    """Assign an energy label to the provided properties (woningtype, bouwperiode,
+    vormfactor) and the computed random number.
+    For the given woningtype, bouwperiode and vormfactor, the energy labels have the
+     distribution that is described in the Voorbeeldwoningen 2022 study. This
+    distribution is described with bins, which are expressed as percentages in the
+    original study, and here they are cumulative ranges on the range of (0,1).
+    Then the input `random_number` is assigned the energy label which bin the
+    `random_number` falls into.
+    """
+    return df.loc[(woningtype, bouwperiode, vormfactor), :].query(
+        f"bin_min <= {random_number} < bin_max").energylabel.item()
