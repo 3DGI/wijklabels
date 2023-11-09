@@ -1,11 +1,14 @@
 import logging
+import random
 
 from wijklabels import load
 from wijklabels.vormfactor import VormfactorClass, vormfactor
-from wijklabels.labels import parse_energylabel_ditributions
+from wijklabels.labels import parse_energylabel_ditributions, reshape_for_classification, classify
 from wijklabels.woningtype import Bouwperiode
 
 log = logging.getLogger()
+# Do we need reproducible randomness?
+SEED = 1
 
 # DEBUG
 import os
@@ -15,7 +18,7 @@ os.chdir("/home/balazs/Development/wijklabels/src/wijklabels")
 if __name__ == "__main__":
     files = ["../../tests/data/9-316-552.city.json", ]
     vbo_csv = "../../tests/data/vbo.csv"
-    label_distributions_path = "../../resources/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
+    label_distributions_path = "../../tests/data/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
     woningtype_path = "../../tests/data/woningtypen.csv"
     cmloader = load.CityJSONLoader(files=files)
     cm = cmloader.load()
@@ -56,7 +59,8 @@ if __name__ == "__main__":
 
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
 
-    distributions = parse_energylabel_ditributions(excelloader)
+    _d = parse_energylabel_ditributions(excelloader)
+    distributions = reshape_for_classification(_d)
 
     # match data
     panden = vbo_df.merge(woningtype, on="pd_identificatie", how="left")
@@ -67,10 +71,12 @@ if __name__ == "__main__":
         lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
                                                row["woningtype"]),
         axis=1)
-
-    group = bouwperiode.groupby(by=["woningtype", "bouwperiode", "vormfactorclass"])
-    group.first()
-    gb = group.count()
-    print(gb)
-
-    print("done")
+    bouwperiode["energylabel"] = bouwperiode.apply(
+        lambda row: classify(df=distributions,
+                             woningtype=row["woningtype"],
+                             bouwperiode=row["bouwperiode"],
+                             vormfactor=row["vormfactorclass"],
+                             random_number=random.random()),
+        axis=1
+    )
+    bouwperiode.to_csv("../../tests/data/results.csv")

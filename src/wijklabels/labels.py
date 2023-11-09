@@ -156,7 +156,7 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
 
 
 def classify(df: LongLabels, woningtype: Woningtype, bouwperiode: Bouwperiode,
-             vormfactor: VormfactorClass, random_number: float) -> EnergyLabel:
+             vormfactor: VormfactorClass, random_number: float) -> EnergyLabel | None:
     """Assign an energy label to the provided properties (woningtype, bouwperiode,
     vormfactor) and the computed random number.
     For the given woningtype, bouwperiode and vormfactor, the energy labels have the
@@ -166,5 +166,6 @@ def classify(df: LongLabels, woningtype: Woningtype, bouwperiode: Bouwperiode,
     Then the input `random_number` is assigned the energy label which bin the
     `random_number` falls into.
     """
-    return df.loc[(woningtype, bouwperiode, vormfactor), :].query(
-        f"bin_min <= {random_number} < bin_max").energylabel.item()
+    label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(
+        f"bin_min <= {random_number} < bin_max").energylabel
+    return label.item() if len(label) == 1 else None
