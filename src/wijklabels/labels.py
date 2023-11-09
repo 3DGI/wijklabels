@@ -8,6 +8,7 @@ import logging
 import pandas as pd
 from numpy import nan
 
+from wijklabels import OrderedEnum
 from wijklabels.load import ExcelLoader
 from wijklabels.woningtype import Woningtype, Bouwperiode
 from wijklabels.vormfactor import VormfactorClass
@@ -18,6 +19,26 @@ log = logging.getLogger()
 # excelloader = load.ExcelLoader(file=label_distributions_path)
 
 LabelDistributions = dict[tuple[Woningtype, Bouwperiode], pd.DataFrame]
+
+
+class EnergyLabel(OrderedEnum):
+    APPPP = "A++++"
+    APPP = "A+++"
+    APP = "A++"
+    AP = "A+"
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
+    E = "E"
+    F = "F"
+    G = "G"
+
+    def __str__(self):
+        return self.value
+
+    def __repr__(self):
+        return self.__str__()
 
 
 def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributions:
@@ -68,7 +89,11 @@ def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributio
                 skiprows=i, nrows=10,
                 decimal=","
             )
+            # Drop the second column that contains the end of the vormfactor range
             df.drop(columns=["Unnamed: 2"], inplace=True)
+            df.rename(columns=dict((c, EnergyLabel(c)) for c in df.columns[1:-1]),
+                      inplace=True)
+            # Cast the vormfactor range to our enum
             vfc = list(VormfactorClass)
             vfc.append(nan)
             df["vormfactor"] = vfc
@@ -77,8 +102,48 @@ def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributio
     return label_distributions
 
 
-def normalize_distributions(distributions_df: pd.DataFrame) -> pd.DataFrame:
+def reshape_for_classification(label_distributions: LabelDistributions) -> pd.DataFrame:
     """Normalize the percentages so that they total to 100% per vormfactor class, per
     woningtype. Because in the input excel tables, the percentages total across all
     vormfactors per woningtype."""
-    pass
+    dfs = []
+    for (woningtype, bouwperiode), df in label_distributions.items():
+        # Drop the last row that contains the totals per label
+        df.drop(df.tail(1).index, inplace=True)
+        df.set_index("vormfactor", inplace=True)
+        totals = df["TOTAAL"]
+        # Drop the last column that contains the total per vormfactor
+        df.drop(columns=["TOTAAL"], inplace=True)
+        normalized = df.div(totals, axis="index")
+        dfs_bins = []
+        for row in normalized.itertuples():
+            # probabilities from A++++ to G
+            probabilities = list(row[1:])
+            bin_max = [probabilities[0], ]
+            bin_min = [0.0, ]
+            for i, p in enumerate(probabilities[1:], start=1):
+                _bmax = bin_max[i - 1] + p
+                _bmin = bin_max[i - 1]
+                bin_max.append(_bmax)
+                bin_min.append(_bmin)
+            df_bins = pd.DataFrame(
+                data={"vormfactor": row.Index, "energylabel": list(EnergyLabel),
+                      "bin_min": bin_min, "bin_max": bin_max}
+            )
+            df_bins.set_index(["vormfactor", "energylabel"], inplace=True)
+            dfs_bins.append(df_bins)
+        # convert to long format
+        normalized_long = normalized.melt(var_name="energylabel",
+                                          value_name="probability", ignore_index=False)
+        normalized_long.set_index(["energylabel"], append=True, inplace=True)
+        df_long = normalized_long.join(pd.concat(dfs_bins), how="inner")
+        df_long["woningtype"] = woningtype
+        df_long["bouwperiode"] = bouwperiode
+        dfs.append(df_long)
+    df = pd.concat(dfs)
+    df.reset_index(inplace=True)
+    result_df = df[
+        ["woningtype", "bouwperiode", "vormfactor", "energylabel", "probability",
+         "bin_min", "bin_max"]]
+    result_df.set_index(["woningtype", "bouwperiode", "vormfactor"], inplace=True)
+    return result_df
