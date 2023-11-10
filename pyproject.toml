@@ -19,7 +19,8 @@ classifiers = [
 ]
 dependencies = [
     "cjio==0.9.0",
-    "pandas==2.1.1"
+    "pandas==2.1.1",
+    "geopandas==0.14.0"
 ]
 optional-dependencies = { develop = ["pytest", "tox"] }
 

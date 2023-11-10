@@ -1,11 +1,8 @@
-WITH sub AS (SELECT *
-             FROM lvbag.pandactueelbestaand
-             WHERE geometrie &&
-                   st_makeenvelope(92593.338, 444890.404, 93593.338, 446890.404, 28992))
-   , clusters AS (SELECT identificatie
+CREATE TABLE lvbag.woningtypen AS
+WITH clusters AS (SELECT identificatie
                        , geometrie
                        , st_clusterintersectingwin(geometrie) OVER () AS cluster
-                  FROM sub)
+                  FROM lvbag.pandactueelbestaand)
    , counts AS (SELECT *, count(*) OVER (PARTITION BY cluster) AS count_in_cluster
                 FROM clusters)
    , woningtype_single AS (SELECT identificatie
@@ -26,11 +23,15 @@ WITH sub AS (SELECT *
    , wtype_isect AS (SELECT *
                      FROM woningtype_single
                               LEFT JOIN isects USING (identificatie))
-SELECT identificatie
-     , st_astext(geometrie) AS wkt
-     , cluster
+SELECT i.identificatie
      , CASE
-           WHEN wt = 'rijwoning' AND isect_count = 1 THEN 'rijwoning hoek'
-           WHEN wt = 'rijwoning' AND isect_count > 1 THEN 'rijwoning tussen'
-           ELSE wt END      AS woningtype
-FROM wtype_isect;
+           WHEN i.wt = 'rijwoning' AND i.isect_count = 1 THEN 'rijwoning hoek'
+           WHEN i.wt = 'rijwoning' AND i.isect_count > 1 THEN 'rijwoning tussen'
+           ELSE i.wt END AS woningtype
+FROM wtype_isect AS i
+         INNER JOIN lvbag.pand_vbo_single AS pv USING (identificatie);
+
+COMMENT ON TABLE lvbag.woningtypen IS 'lvbag.pandactueelbestaand objects that have a single verblijfsobject in them and the VBO gebruiksdoel contains woonfunctie are classified into vrijstaande woning, 2 onder 1 kap, rijwoning hoek, rijwoning tussen.';
+
+ALTER TABLE lvbag.woningtypen
+    ADD PRIMARY KEY (identificatie);

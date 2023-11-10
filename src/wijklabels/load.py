@@ -132,6 +132,6 @@ class WoningtypeLoader:
         self.file = file
 
     def load(self) -> pd.DataFrame:
-        df = pd.read_csv(self.file, header=0, usecols=[0, 3])
+        df = pd.read_csv(self.file, header=0)
         df["woningtype"] = df.apply(lambda row: Woningtype(row["woningtype"]), axis=1)
         return df

@@ -1,5 +1,6 @@
 import logging
 import random
+import csv
 
 from wijklabels import load
 from wijklabels.vormfactor import VormfactorClass, vormfactor
@@ -16,7 +17,7 @@ import os
 os.chdir("/home/balazs/Development/wijklabels/src/wijklabels")
 
 if __name__ == "__main__":
-    files = ["../../tests/data/9-316-552.city.json", ]
+    files = ["../../tests/data/9-316-552.city.json", "../../tests/data/9-316-556.city.json",]
     vbo_csv = "../../tests/data/vbo.csv"
     label_distributions_path = "../../tests/data/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
     woningtype_path = "../../tests/data/woningtypen.csv"
@@ -32,17 +33,19 @@ if __name__ == "__main__":
     woningtype = woningtypeloader.load()
     woningtype.rename(columns={"identificatie": "pd_identificatie"}, inplace=True)
 
-    coid_notfound = []
+    coid_in_cityjson = []
     for coid, co in cm.j["CityObjects"].items():
         if co["type"] == "Building":
             try:
                 vbo_single = vbo_df.loc[coid]
             except KeyError:
-                coid_notfound.append(coid)
+                coid_in_cityjson.append((coid, False))
                 continue
             if vbo_single.empty:
                 log.error(f"Did not find {coid} in the VBO data")
+                coid_in_cityjson.append((coid, False))
                 continue
+            coid_in_cityjson.append((coid, True))
             vf = vormfactor(cityobject_id=coid, cityobject=co, vbo_df=vbo_df,
                             floor_area=True)
             vbo_df.loc[coid, "vormfactor"] = vf
@@ -54,6 +57,11 @@ if __name__ == "__main__":
             vbo_df.loc[coid, "oorspronkelijkbouwjaar"] = bouwjaar
     vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
 
+    # DEBUG
+    with open("../../tests/data/coid_in_cityjson.csv", "w") as fo:
+        csvwriter = csv.writer(fo)
+        csvwriter.writerow(("identificatie", "found_in_vbo"))
+        csvwriter.writerows(coid_in_cityjson)
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
 
     _d = parse_energylabel_ditributions(excelloader)
