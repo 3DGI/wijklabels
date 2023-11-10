@@ -63,7 +63,7 @@ class VBOLoader:
     def __init__(self, url: str = None, file: PathLike = None):
         self.url = url
         self.file = file
-        self.__index_col = ["pd_identificatie"]
+        self.__index_col = ["identificatie"]
 
     def load(self) -> pd.DataFrame:
         if self.url is not None:

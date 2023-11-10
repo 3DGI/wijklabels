@@ -10,3 +10,4 @@ src/wijklabels/__pycache__
 /logs/
 /.pytest_cache/
 venv
+/plots/

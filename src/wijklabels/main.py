@@ -1,10 +1,16 @@
 import logging
 import random
 import csv
+from pathlib import Path
+
+import numpy as np
+from matplotlib import pyplot as plt
+import matplotlib.ticker as mtick
 
 from wijklabels import load
 from wijklabels.vormfactor import VormfactorClass, vormfactor
-from wijklabels.labels import parse_energylabel_ditributions, reshape_for_classification, classify
+from wijklabels.labels import parse_energylabel_ditributions, \
+    reshape_for_classification, classify, EnergyLabel
 from wijklabels.woningtype import Bouwperiode
 
 log = logging.getLogger()
@@ -12,13 +18,19 @@ log = logging.getLogger()
 SEED = 1
 
 # DEBUG
-import os
-
 os.chdir("/home/balazs/Development/wijklabels/src/wijklabels")
 
 if __name__ == "__main__":
-    files = ["../../tests/data/9-316-552.city.json", "../../tests/data/9-316-556.city.json",]
-    vbo_csv = "../../tests/data/vbo.csv"
+    files = ["../../tests/data/9-316-552.city.json",
+             "../../tests/data/9-316-556.city.json"]
+    files += ["../../tests/data/9-312-552.city.json",
+              "../../tests/data/9-312-556.city.json",
+              "../../tests/data/9-320-552.city.json",
+              "../../tests/data/9-320-556.city.json",
+              "../../tests/data/9-324-552.city.json",
+              "../../tests/data/9-324-556.city.json",
+              ]
+    vbo_csv = "../../tests/data/vbo_buurt.csv"
     label_distributions_path = "../../tests/data/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
     woningtype_path = "../../tests/data/woningtypen.csv"
     cmloader = load.CityJSONLoader(files=files)
@@ -31,7 +43,6 @@ if __name__ == "__main__":
     label_distributions_excel = excelloader.load()
     woningtypeloader = load.WoningtypeLoader(file=woningtype_path)
     woningtype = woningtypeloader.load()
-    woningtype.rename(columns={"identificatie": "pd_identificatie"}, inplace=True)
 
     coid_in_cityjson = []
     for coid, co in cm.j["CityObjects"].items():
@@ -50,7 +61,8 @@ if __name__ == "__main__":
                             floor_area=True)
             vbo_df.loc[coid, "vormfactor"] = vf
             try:
-                vbo_df.loc[coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(vf)
+                vbo_df.loc[coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(
+                    vf)
             except ValueError as e:
                 pass
             bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
@@ -68,10 +80,10 @@ if __name__ == "__main__":
     distributions = reshape_for_classification(_d)
 
     # match data
-    panden = vbo_df.merge(woningtype, on="pd_identificatie", how="left")
+    panden = vbo_df.merge(woningtype, on="identificatie", how="left")
     bouwperiode = panden[
-        ["pd_identificatie", "oorspronkelijkbouwjaar", "woningtype",
-         "vormfactorclass"]].dropna()
+        ["identificatie", "oorspronkelijkbouwjaar", "woningtype",
+         "vormfactorclass", "buurtnaam"]].dropna()
     bouwperiode["bouwperiode"] = bouwperiode.apply(
         lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
                                                row["woningtype"]),
@@ -85,3 +97,49 @@ if __name__ == "__main__":
         axis=1
     )
     bouwperiode.to_csv("../../tests/data/results.csv")
+
+    # Aggregate per buurt
+    buurten_counts = bouwperiode[["buurtnaam"]].value_counts()
+    buurten_labels_groups = bouwperiode[["buurtnaam", "energylabel"]].groupby(
+        ["buurtnaam", "energylabel"])
+    buurten_labels_distribution = (
+            buurten_labels_groups.value_counts() / buurten_counts).to_frame(
+        name="fraction")
+    buurten_labels_wide = buurten_labels_distribution.reset_index(level=1).pivot(
+        columns="energylabel", values="fraction")
+    for label in EnergyLabel:
+        if label not in buurten_labels_wide:
+            buurten_labels_wide[label] = np.nan
+    buurten_labels_wide = buurten_labels_wide[
+        [EnergyLabel.APPPP, EnergyLabel.APPP, EnergyLabel.APP,
+         EnergyLabel.AP, EnergyLabel.A, EnergyLabel.B, EnergyLabel.C, EnergyLabel.D,
+         EnergyLabel.E, EnergyLabel.F, EnergyLabel.G]]
+    buurten_labels_wide.to_csv("../../tests/data/results_buurten.csv")
+
+    # Plot each buurt
+    Path("../../plots").mkdir(exist_ok=True)
+    for buurt in buurten_labels_wide.index:
+        ax = (buurten_labels_wide.loc[buurt] * 100).plot(
+            kind="bar",
+            title=buurt,
+            color={"#1a9641": EnergyLabel.APPPP,
+                   "#52b151": EnergyLabel.APPP,
+                   "#8acc62": EnergyLabel.APP,
+                   "#b8e17b": EnergyLabel.AP,
+                   "#dcf09e": EnergyLabel.A,
+                   "#ffffc0": EnergyLabel.B,
+                   "#ffdf9a": EnergyLabel.C,
+                   "#febe74": EnergyLabel.D,
+                   "#f69053": EnergyLabel.E,
+                   "#e75437": EnergyLabel.F,
+                   "#d7191c": EnergyLabel.G
+            },
+            rot=0,
+            xlabel="",
+            zorder=3
+        )
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=100, decimals=0))
+        ax.set_yticks([10, 20, 30, 40, 50, 60, 70, 80])
+        plt.grid(visible=True, which="major", axis="y", zorder=0)
+        plt.tight_layout()
+        plt.savefig(f"../../plots/{buurt.lower().replace(' ', '-').replace('.', '')}.png")
