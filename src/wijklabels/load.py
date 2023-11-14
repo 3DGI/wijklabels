@@ -8,12 +8,14 @@ from os import PathLike
 from pathlib import Path
 from copy import deepcopy
 
+import numpy as np
 from cjio.cityjson import CityJSON
 import pandas as pd
 from openpyxl import load_workbook, Workbook
 
-from . import Bbox
+from wijklabels import Bbox
 from wijklabels.woningtype import Woningtype
+from wijklabels.labels import EnergyLabel
 
 
 class CityJSONLoader:
@@ -134,4 +136,79 @@ class WoningtypeLoader:
     def load(self) -> pd.DataFrame:
         df = pd.read_csv(self.file, header=0)
         df["woningtype"] = df.apply(lambda row: Woningtype(row["woningtype"]), axis=1)
+        return df
+
+
+class EPLoader:
+    """Loads the CSV file of the open energy labels from
+    https://www.ep-online.nl/PublicData. The CSV file must be the one with all the
+    labels, not the one with the mutations."""
+
+    def __init__(self, file: PathLike = None):
+        self.file = file
+
+    def load(self) -> pd.DataFrame:
+        """Columns in the csv, 0-indexed:
+        5 - energy label
+        11 - postcode
+        12 - huisnummer
+        13 - huisletter
+        14 - huisnummertoevoeging
+        16 - verblijfsobject ID
+        19 - pand ID
+        20 - gebouwtype (woningtype)
+        21 - gebouwsubtype (woningsubtype)
+        """
+
+        def to_energylabel(energieklasse: str):
+            try:
+                return EnergyLabel(energieklasse)
+            except ValueError:
+                return np.nan
+
+        def to_woningtype(gebouwtype: str):
+            if (gebouwtype == "Twee-onder-één-kap" or
+                    gebouwtype == "Twee-onder-een-kap / rijwoning hoek"):
+                return Woningtype.TWEE_ONDER_EEN_KAP
+            else:
+                try:
+                    return Woningtype(gebouwtype.lower())
+                except ValueError:
+                    return np.nan
+
+        def to_huisnummer(hnr: str):
+            try:
+                return int(hnr)
+            except ValueError:
+                return np.nan
+
+        def to_identificatie(id: str):
+            if len(id) > 1:
+                return f"NL.IMBAG.Pand.{id}"
+            else:
+                return np.nan
+
+        def to_vbo_identifiactie(id: str):
+            if len(id) > 1:
+                return f"NL.IMBAG.Verblijfsobject.{id}"
+            else:
+                return np.nan
+
+        usecols = [5, 11, 12, 13, 14, 16, 19, 20, 21]
+        converters = {
+            "Pand_energieklasse": to_energylabel,
+            "Pand_gebouwtype": to_woningtype,
+            "Pand_bagpandid": to_identificatie,
+            "Pand_bagverblijfsobjectid": to_vbo_identifiactie,
+            "Pand_postcode": str,
+            "Pand_huisnummer": to_huisnummer,
+            "Pand_huisletter": str
+        }
+        df = pd.read_csv(self.file, header=0, usecols=usecols, sep=";",
+                         converters=converters)
+        df.rename(columns={"Pand_energieklasse": "energylabel",
+                           "Pand_gebouwtype": "woningtype",
+                           "Pand_bagpandid": "identificatie",
+                           "Pand_bagverblijfsobjectid": "vbo_identificatie"},
+                  inplace=True)
         return df

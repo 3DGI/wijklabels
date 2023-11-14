@@ -11,3 +11,5 @@ src/wijklabels/__pycache__
 /.pytest_cache/
 venv
 /plots/
+/plots_comparison/
+/plots_truth/

@@ -3,6 +3,7 @@ from enum import Enum
 
 Bbox = Tuple[float, float, float, float]
 
+
 class OrderedEnum(Enum):
 
     def __ge__(self, other):

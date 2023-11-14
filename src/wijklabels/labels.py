@@ -9,7 +9,6 @@ import pandas as pd
 from numpy import nan
 
 from wijklabels import OrderedEnum
-from wijklabels.load import ExcelLoader
 from wijklabels.woningtype import Woningtype, Bouwperiode
 from wijklabels.vormfactor import VormfactorClass
 
@@ -42,7 +41,7 @@ class EnergyLabel(OrderedEnum):
         return self.__str__()
 
 
-def parse_energylabel_ditributions(excelloader: ExcelLoader) -> LabelDistributions:
+def parse_energylabel_ditributions(excelloader) -> LabelDistributions:
     """Parse the energy label distributions from the excel file.
     The distribution tables are parsed into a DataFrame and they are indexed by
     (Woningtype, Bouwperiode).
