@@ -76,18 +76,19 @@ def plot_buurts(dir_plots: str, df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    files = ["../../tests/data/9-316-552.city.json",
-             "../../tests/data/9-316-556.city.json"]
-    files += ["../../tests/data/9-312-552.city.json",
-              "../../tests/data/9-312-556.city.json",
-              "../../tests/data/9-320-552.city.json",
-              "../../tests/data/9-320-556.city.json",
-              "../../tests/data/9-324-552.city.json",
-              "../../tests/data/9-324-556.city.json",
+    use_gebruiksoppervlakte_for_vormfactor = False
+    files = ["../../tests/data/input/9-316-552.city.json",
+             "../../tests/data/input/9-316-556.city.json"]
+    files += ["../../tests/data/input/9-312-552.city.json",
+              "../../tests/data/input/9-312-556.city.json",
+              "../../tests/data/input/9-320-552.city.json",
+              "../../tests/data/input/9-320-556.city.json",
+              "../../tests/data/input/9-324-552.city.json",
+              "../../tests/data/input/9-324-556.city.json",
               ]
-    vbo_csv = "../../tests/data/vbo_buurt.csv"
-    label_distributions_path = "../../tests/data/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
-    woningtype_path = "../../tests/data/woningtypen.csv"
+    vbo_csv = "../../tests/data/input/vbo_buurt.csv"
+    label_distributions_path = "../../tests/data/input/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
+    woningtype_path = "../../tests/data/input/woningtypen.csv"
     cmloader = CityJSONLoader(files=files)
     cm = cmloader.load()
     # We select only those Pand that have a single VBO, which means that they are
@@ -113,7 +114,7 @@ if __name__ == "__main__":
                 continue
             coid_in_cityjson.append((coid, True))
             vf = vormfactor(cityobject_id=coid, cityobject=co, vbo_df=vbo_df,
-                            floor_area=True)
+                            floor_area=use_gebruiksoppervlakte_for_vormfactor)
             vbo_df.loc[coid, "vormfactor"] = vf
             try:
                 vbo_df.loc[coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(
@@ -151,14 +152,14 @@ if __name__ == "__main__":
                              random_number=random.random()),
         axis=1
     )
-    bouwperiode.to_csv("../../tests/data/results.csv")
+    bouwperiode.to_csv("../../tests/data/output/results_individual_labels.csv")
 
     # Aggregate per buurt
     buurten_labels_wide = aggregate_to_buurt(bouwperiode, col_labels="energylabel")
-    buurten_labels_wide.to_csv("../../tests/data/results_buurten.csv")
+    buurten_labels_wide.to_csv("../../tests/data/output/results_buurten.csv")
 
     # Plot each buurt
-    plot_buurts("../../plots", buurten_labels_wide)
+    plot_buurts("../../plots_estimated", buurten_labels_wide)
 
     # Verify quality
     bouwperiode.set_index("identificatie", inplace=True)
@@ -176,9 +177,10 @@ if __name__ == "__main__":
                                  rsuffix="_true", validate="1:m")
     validated = _v.loc[(_v["energylabel_true"].notna() & _v["energylabel"].notna())]
     buurten_truths_wide = aggregate_to_buurt(validated, "energylabel_true")
-    buurten_truths_wide.to_csv("../../tests/data/results_buurten_truths.csv")
+    buurten_truths_wide.to_csv("../../tests/data/output/results_buurten_truths.csv")
     plot_buurts("../../plots_truth", buurten_truths_wide)
 
+    # Compare estimated to groundtruth in plots
     dir_plots = "../../plots_comparison"
     Path(dir_plots).mkdir(exist_ok=True)
     for buurt in validated["buurtnaam"].unique():
