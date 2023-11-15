@@ -94,11 +94,20 @@ if __name__ == "__main__":
     # We select only those Pand that have a single VBO, which means that they are
     # houses, not appartaments
     vboloader = VBOLoader(file=vbo_csv)
-    vbo_df = vboloader.load()
+    _v = vboloader.load()
+    # Remove duplicate VBO, which happens when a Pand is split, so there are two
+    # different Pand-ID, but the VBO is duplicated
+    vbo_df = _v.loc[~_v.index.duplicated(keep="first"), :].copy()
+    del _v
     excelloader = ExcelLoader(file=label_distributions_path)
     label_distributions_excel = excelloader.load()
     woningtypeloader = WoningtypeLoader(file=woningtype_path)
-    woningtype = woningtypeloader.load()
+    _w = woningtypeloader.load()
+    _w.set_index("vbo_identificatie", inplace=True)
+    # Remove duplicate VBO, which happens when a Pand is split, so there are two
+    # different Pand-ID, but the VBO is duplicated
+    woningtype_df = _w.loc[~_w.index.duplicated(keep="first"), :].copy()
+    del _w
 
     coid_in_cityjson = []
     vbo_df["vormfactor"] = pd.NA
@@ -107,6 +116,8 @@ if __name__ == "__main__":
     vbo_df["vormfactorclass"] = vbo_df["vormfactorclass"].astype("object")
     vbo_df["oorspronkelijkbouwjaar"] = pd.NA
     vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
+    vbo_df.reset_index(inplace=True)
+    vbo_df.set_index("identificatie", inplace=True)
     for coid, co in cm.j["CityObjects"].items():
         if co["type"] == "Building":
             try:
@@ -129,6 +140,8 @@ if __name__ == "__main__":
             bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
             vbo_df.loc[coid, "oorspronkelijkbouwjaar"] = bouwjaar
     vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
+    vbo_df.reset_index(inplace=True)
+    vbo_df.set_index("vbo_identificatie", inplace=True)
 
     # DEBUG
     with open("../../tests/data/coid_in_cityjson.csv", "w") as fo:
@@ -141,10 +154,9 @@ if __name__ == "__main__":
     distributions = reshape_for_classification(_d)
 
     # match data
-    panden = vbo_df.merge(woningtype, on="identificatie", how="left")
-    bouwperiode = panden[
-        ["identificatie", "oorspronkelijkbouwjaar", "woningtype",
-         "vormfactorclass", "buurtnaam"]].dropna()
+    panden = vbo_df.merge(woningtype_df, on="vbo_identificatie",how="inner", validate="1:1")
+    bouwperiode = panden[["oorspronkelijkbouwjaar", "woningtype", "vormfactorclass",
+                          "buurtnaam"]].dropna()
     bouwperiode["bouwperiode"] = bouwperiode.apply(
         lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
                                                row["woningtype"]),
@@ -167,10 +179,9 @@ if __name__ == "__main__":
     plot_buurts("../../plots_estimated", buurten_labels_wide)
 
     # Verify quality
-    bouwperiode.set_index("identificatie", inplace=True)
     eploader = EPLoader(file="/data/energylabel-ep-online/v20231101_v2_csv.csv")
     _g = eploader.load()
-    _g.set_index("identificatie", inplace=True)
+    _g.set_index("vbo_identificatie", inplace=True)
     _types_implemented = (
         Woningtype.VRIJSTAAND, Woningtype.TWEE_ONDER_EEN_KAP, Woningtype.RIJWONING_TUSSEN,
         Woningtype.RIJWONING_HOEK
@@ -199,13 +210,15 @@ if __name__ == "__main__":
                                    EnergyLabel.C, EnergyLabel.D,
                                    EnergyLabel.E, EnergyLabel.F, EnergyLabel.G])
         ax = b_df.plot(kind="bar",
-                       title=buurt,
                        rot=0,
                        xlabel="",
                        zorder=3)
         ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=100, decimals=0))
         ax.set_yticks([10, 20, 30, 40, 50, 60, 70, 80])
         plt.grid(visible=True, which="major", axis="y", zorder=0)
+        plt.title(f"Nr. woningen: {len(b)}", fontsize=10)
+        plt.suptitle(buurt, fontsize=14)
         plt.tight_layout()
         plt.savefig(
             f"{dir_plots}/{buurt.lower().replace(' ', '-').replace('.', '')}.png")
+        plt.close()
