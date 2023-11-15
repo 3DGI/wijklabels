@@ -164,7 +164,7 @@ class EPLoader:
             try:
                 return EnergyLabel(energieklasse)
             except ValueError:
-                return np.nan
+                return pd.NA
 
         def to_woningtype(gebouwtype: str):
             if (gebouwtype == "Twee-onder-één-kap" or
@@ -174,7 +174,7 @@ class EPLoader:
                 try:
                     return Woningtype(gebouwtype.lower())
                 except ValueError:
-                    return np.nan
+                    return pd.NA
 
         def to_huisnummer(hnr: str):
             try:
@@ -182,17 +182,17 @@ class EPLoader:
             except ValueError:
                 return np.nan
 
-        def to_identificatie(id: str):
+        def to_identificatie(id):
             if len(id) > 1:
                 return f"NL.IMBAG.Pand.{id}"
             else:
-                return np.nan
+                return pd.NA
 
-        def to_vbo_identifiactie(id: str):
+        def to_vbo_identifiactie(id):
             if len(id) > 1:
                 return f"NL.IMBAG.Verblijfsobject.{id}"
             else:
-                return np.nan
+                return pd.NA
 
         usecols = [5, 11, 12, 13, 14, 16, 19, 20, 21]
         converters = {
@@ -202,7 +202,8 @@ class EPLoader:
             "Pand_bagverblijfsobjectid": to_vbo_identifiactie,
             "Pand_postcode": str,
             "Pand_huisnummer": to_huisnummer,
-            "Pand_huisletter": str
+            "Pand_huisletter": str,
+            "Pand_huisnummertoevoeging": str
         }
         df = pd.read_csv(self.file, header=0, usecols=usecols, sep=";",
                          converters=converters)

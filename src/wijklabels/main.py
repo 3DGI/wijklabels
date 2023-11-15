@@ -76,7 +76,7 @@ def plot_buurts(dir_plots: str, df: pd.DataFrame):
 
 
 if __name__ == "__main__":
-    use_gebruiksoppervlakte_for_vormfactor = False
+    use_gebruiksoppervlakte_for_vormfactor = True
     files = ["../../tests/data/input/9-316-552.city.json",
              "../../tests/data/input/9-316-556.city.json"]
     files += ["../../tests/data/input/9-312-552.city.json",
@@ -101,6 +101,12 @@ if __name__ == "__main__":
     woningtype = woningtypeloader.load()
 
     coid_in_cityjson = []
+    vbo_df["vormfactor"] = pd.NA
+    vbo_df["vormfactor"] = vbo_df["vormfactor"].astype("Float64")
+    vbo_df["vormfactorclass"] = pd.NA
+    vbo_df["vormfactorclass"] = vbo_df["vormfactorclass"].astype("object")
+    vbo_df["oorspronkelijkbouwjaar"] = pd.NA
+    vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
     for coid, co in cm.j["CityObjects"].items():
         if co["type"] == "Building":
             try:
@@ -117,8 +123,7 @@ if __name__ == "__main__":
                             floor_area=use_gebruiksoppervlakte_for_vormfactor)
             vbo_df.loc[coid, "vormfactor"] = vf
             try:
-                vbo_df.loc[coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(
-                    vf)
+                vbo_df.loc[coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(vf)
             except ValueError as e:
                 pass
             bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]

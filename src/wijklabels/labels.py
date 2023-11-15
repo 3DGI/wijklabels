@@ -151,7 +151,7 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
         ["woningtype", "bouwperiode", "vormfactor", "energylabel", "probability",
          "bin_min", "bin_max"]]
     result_df.set_index(["woningtype", "bouwperiode", "vormfactor"], inplace=True)
-    return result_df
+    return result_df.sort_index(inplace=False)
 
 
 def classify(df: LongLabels, woningtype: Woningtype, bouwperiode: Bouwperiode,
