@@ -2,7 +2,9 @@
 .run
 .tox
 *.egg-info
-tests/data/*.json
+tests/data/input/*.json
+tests/data/input/*.qml
+tests/data/output
 tests/__pycache__
 src/wijklabels/__pycache__
 /build/
@@ -13,3 +15,4 @@ venv
 /plots/
 /plots_comparison/
 /plots_truth/
+/plots_estimated/

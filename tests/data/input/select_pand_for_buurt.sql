@@ -1,4 +1,4 @@
-SELECT p.*, b.buurtcode, b.buurtnaam, st_astext(p.geometrie)
+SELECT p.*, b.buurtcode, b.buurtnaam, st_astext(p.geometrie) as wkt
 FROM lvbag.pand_vbo_single AS p
          LEFT JOIN lvbag.pand_in_buurt AS b USING (identificatie)
 WHERE buurtcode = ANY
