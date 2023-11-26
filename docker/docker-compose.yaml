@@ -12,3 +12,5 @@ services:
       - "../tests/data/input_postgres/insert_bag_pand.sql.gz:/docker-entrypoint-initdb.d/insert_bag_pand.sql.gz"
       - "../tests/data/input_postgres/insert_bag_nummeraanduiding.sql.gz:/docker-entrypoint-initdb.d/insert_bag_nummeraanduiding.sql.gz"
       - "../tests/data/input_postgres/insert_bag_verblijfsobject.sql.gz:/docker-entrypoint-initdb.d/insert_bag_verblijfsobject.sql.gz"
+      - "../tests/data/input_postgres/create_buurten_table.sql.gz:/docker-entrypoint-initdb.d/create_buurten_table.sql.gz"
+      - "../tests/data/input_postgres/insert_buurten.sql.gz:/docker-entrypoint-initdb.d/insert_buurten.sql.gz"

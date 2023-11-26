@@ -7,6 +7,7 @@ from importlib import resources
 from os import PathLike
 from pathlib import Path
 from copy import deepcopy
+from datetime import date
 
 import numpy as np
 from cjio.cityjson import CityJSON
@@ -16,6 +17,17 @@ from openpyxl import load_workbook, Workbook
 from wijklabels import Bbox
 from wijklabels.woningtype import Woningtype
 from wijklabels.labels import EnergyLabel
+
+
+class SharedWallsLoader:
+    """Load the shared walls data from a local CSV."""
+
+    def __init__(self, file: PathLike = None):
+        self.file = file
+
+    def load(self) -> pd.DataFrame:
+        df = pd.read_csv(self.file, header=0, index_col="identificatie")
+        return df
 
 
 class CityJSONLoader:
@@ -194,8 +206,12 @@ class EPLoader:
             else:
                 return pd.NA
 
-        usecols = [5, 11, 12, 13, 14, 16, 19, 20, 21]
+        def to_date(d):
+            return pd.to_datetime(d, format="%Y%m%d")
+
+        usecols = [0, 5, 11, 12, 13, 14, 16, 19, 20, 21]
         converters = {
+            "Pand_opnamedatum": to_date,
             "Pand_energieklasse": to_energylabel,
             "Pand_gebouwtype": to_woningtype,
             "Pand_bagpandid": to_identificatie,
@@ -212,4 +228,6 @@ class EPLoader:
                            "Pand_bagpandid": "identificatie",
                            "Pand_bagverblijfsobjectid": "vbo_identificatie"},
                   inplace=True)
-        return df
+        # The new NTA method was in place since 2021-01-01
+        start_nta8800_method = pd.to_datetime("20210101", format="%Y%m%d")
+        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method]

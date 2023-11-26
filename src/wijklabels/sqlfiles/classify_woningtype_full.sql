@@ -9,9 +9,11 @@ WITH clusters AS (SELECT identificatie
                                 , geometrie
                                 , cluster
                                 , CASE
-                                      WHEN count_in_cluster = 1 THEN 'vrijstaande woning'
+                                      WHEN count_in_cluster = 1
+                                          THEN 'vrijstaande woning'
                                       WHEN count_in_cluster = 2 THEN '2 onder 1 kap'
-                                      WHEN count_in_cluster > 2 THEN 'rijwoning' END AS wt
+                                      WHEN count_in_cluster > 2
+                                          THEN 'rijwoning' END AS wt
                            FROM counts)
    , isects AS (SELECT id1 AS identificatie, count(*) AS isect_count
                 FROM (SELECT pd1.identificatie AS id1, pd2.identificatie AS id2
@@ -24,6 +26,7 @@ WITH clusters AS (SELECT identificatie
                      FROM woningtype_single
                               LEFT JOIN isects USING (identificatie))
 SELECT i.identificatie
+     , pv.vbo_identificatie
      , CASE
            WHEN i.wt = 'rijwoning' AND i.isect_count = 1 THEN 'rijwoning hoek'
            WHEN i.wt = 'rijwoning' AND i.isect_count > 1 THEN 'rijwoning tussen'

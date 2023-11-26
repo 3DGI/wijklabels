@@ -8,9 +8,9 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib.ticker as mtick
 
-from wijklabels.load import CityJSONLoader, VBOLoader, ExcelLoader, WoningtypeLoader, \
-    EPLoader
-from wijklabels.vormfactor import VormfactorClass, vormfactor
+from wijklabels.load import VBOLoader, ExcelLoader, WoningtypeLoader, \
+    EPLoader, SharedWallsLoader
+from wijklabels.vormfactor import vormfactorclass
 from wijklabels.labels import parse_energylabel_ditributions, \
     reshape_for_classification, classify, EnergyLabel
 from wijklabels.woningtype import Bouwperiode, Woningtype
@@ -72,25 +72,19 @@ def plot_buurts(dir_plots: str, df: pd.DataFrame):
         ax.set_yticks([10, 20, 30, 40, 50, 60, 70, 80])
         plt.grid(visible=True, which="major", axis="y", zorder=0)
         plt.tight_layout()
-        plt.savefig(f"{dir_plots}/{buurt.lower().replace(' ', '-').replace('.', '')}.png")
+        filename = ''.join(e for e in buurt if e.isalnum())
+        plt.savefig(f"{dir_plots}/{filename}.png")
 
 
 if __name__ == "__main__":
     use_gebruiksoppervlakte_for_vormfactor = True
-    files = ["../../tests/data/input/9-316-552.city.json",
-             "../../tests/data/input/9-316-556.city.json"]
-    files += ["../../tests/data/input/9-312-552.city.json",
-              "../../tests/data/input/9-312-556.city.json",
-              "../../tests/data/input/9-320-552.city.json",
-              "../../tests/data/input/9-320-556.city.json",
-              "../../tests/data/input/9-324-552.city.json",
-              "../../tests/data/input/9-324-556.city.json",
-              ]
+    shared_walls_csv = "../../tests/data/input/rvo_shared_subset_den_haag.csv"
     vbo_csv = "../../tests/data/input/vbo_buurt.csv"
     label_distributions_path = "../../tests/data/input/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
     woningtype_path = "../../tests/data/input/woningtypen.csv"
-    cmloader = CityJSONLoader(files=files)
-    cm = cmloader.load()
+
+    shared_walls_loader = SharedWallsLoader(shared_walls_csv)
+    shared_walls_df = shared_walls_loader.load().query("_betrouwbaar == True")
     # We select only those Pand that have a single VBO, which means that they are
     # houses, not appartaments
     vboloader = VBOLoader(file=vbo_csv)
@@ -109,45 +103,22 @@ if __name__ == "__main__":
     woningtype_df = _w.loc[~_w.index.duplicated(keep="first"), :].copy()
     del _w
 
-    coid_in_cityjson = []
-    vbo_df["vormfactor"] = pd.NA
-    vbo_df["vormfactor"] = vbo_df["vormfactor"].astype("Float64")
+    # vbo_df["vormfactor"] = pd.NA
+    # vbo_df["vormfactor"] = vbo_df["vormfactor"].astype("Float64")
     vbo_df["vormfactorclass"] = pd.NA
     vbo_df["vormfactorclass"] = vbo_df["vormfactorclass"].astype("object")
-    vbo_df["oorspronkelijkbouwjaar"] = pd.NA
-    vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
     vbo_df.reset_index(inplace=True)
     vbo_df.set_index("identificatie", inplace=True)
-    for coid, co in cm.j["CityObjects"].items():
-        if co["type"] == "Building":
-            try:
-                vbo_single = vbo_df.loc[coid]
-            except KeyError:
-                coid_in_cityjson.append((coid, False))
-                continue
-            if vbo_single.empty:
-                log.error(f"Did not find {coid} in the VBO data")
-                coid_in_cityjson.append((coid, False))
-                continue
-            coid_in_cityjson.append((coid, True))
-            vf = vormfactor(cityobject_id=coid, cityobject=co, vbo_df=vbo_df,
-                            floor_area=use_gebruiksoppervlakte_for_vormfactor)
-            vbo_df.loc[coid, "vormfactor"] = vf
-            try:
-                vbo_df.loc[coid, "vormfactorclass"] = VormfactorClass.from_vormfactor(vf)
-            except ValueError as e:
-                pass
-            bouwjaar = co["attributes"]["oorspronkelijkbouwjaar"]
-            vbo_df.loc[coid, "oorspronkelijkbouwjaar"] = bouwjaar
-    vbo_df["oorspronkelijkbouwjaar"] = vbo_df["oorspronkelijkbouwjaar"].astype("Int64")
+    # Compute the vormfactor
+    _df = vbo_df.merge(shared_walls_df, on="identificatie", how="inner", suffixes=("", "_y"))
+    vbo_df["vormfactorclass"] = _df.apply(
+        lambda row: vormfactorclass(row=row),
+        axis=1
+    )
     vbo_df.reset_index(inplace=True)
     vbo_df.set_index("vbo_identificatie", inplace=True)
 
     # DEBUG
-    with open("../../tests/data/coid_in_cityjson.csv", "w") as fo:
-        csvwriter = csv.writer(fo)
-        csvwriter.writerow(("identificatie", "found_in_vbo"))
-        csvwriter.writerows(coid_in_cityjson)
     vbo_df.to_csv("../../tests/data/vormfactor.csv")
 
     _d = parse_energylabel_ditributions(excelloader)
@@ -219,6 +190,7 @@ if __name__ == "__main__":
         plt.title(f"Nr. woningen: {len(b)}", fontsize=10)
         plt.suptitle(buurt, fontsize=14)
         plt.tight_layout()
+        filename = ''.join(e for e in buurt if e.isalnum())
         plt.savefig(
-            f"{dir_plots}/{buurt.lower().replace(' ', '-').replace('.', '')}.png")
+            f"{dir_plots}/{filename}.png")
         plt.close()

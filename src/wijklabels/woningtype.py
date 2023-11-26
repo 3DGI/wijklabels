@@ -6,6 +6,8 @@ from enum import StrEnum
 
 from wijklabels import OrderedEnum
 
+# The actual woningtype classification is done in the classify_woningtype_full.sql
+# script.
 
 class Woningtype(StrEnum):
     VRIJSTAAND = "vrijstaande woning"
