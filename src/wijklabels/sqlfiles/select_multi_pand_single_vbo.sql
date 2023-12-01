@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW lvbag.multi_pand_single_vbo AS
 WITH joined AS (SELECT p.identificatie
                      , p.oorspronkelijkbouwjaar
                      , p.status
@@ -14,10 +15,12 @@ WITH joined AS (SELECT p.identificatie
                                      WHERE 'woonfunctie' = ANY (gebruiksdoel)
                                        AND status IS NOT NULL) AS vbo
                                     ON vbo.pandref = p.identificatie)
+   , counts AS (SELECT vbo_identificatie, count(*) AS cnt
+                FROM joined
+                WHERE identificatie IS NOT NULL
+                GROUP BY vbo_identificatie)
 SELECT *
-FROM joined
-         RIGHT JOIN LATERAL (
-    SELECT identificatie
-    FROM joined
-    GROUP BY identificatie
-    HAVING count(*) = 1) AS sub USING (identificatie);
+FROM counts
+WHERE cnt > 1;
+
+COMMENT ON VIEW lvbag.multi_pand_single_vbo IS 'The verblijfsactueelbestaand objects where a single VBO belongs to multiple pand.';

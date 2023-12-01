@@ -7,7 +7,6 @@ from importlib import resources
 from os import PathLike
 from pathlib import Path
 from copy import deepcopy
-from datetime import date
 
 import numpy as np
 from cjio.cityjson import CityJSON
@@ -15,7 +14,7 @@ import pandas as pd
 from openpyxl import load_workbook, Workbook
 
 from wijklabels import Bbox
-from wijklabels.woningtype import Woningtype
+from wijklabels.woningtype import Woningtype, to_woningtype
 from wijklabels.labels import EnergyLabel
 
 
@@ -146,8 +145,9 @@ class WoningtypeLoader:
         self.file = file
 
     def load(self) -> pd.DataFrame:
-        df = pd.read_csv(self.file, header=0)
-        df["woningtype"] = df.apply(lambda row: Woningtype(row["woningtype"]), axis=1)
+        df = pd.read_csv(self.file, header=0,
+                         converters={"woningtype": to_woningtype, "identificatie": str,
+                                     "vbo_identificatie": str})
         return df
 
 

@@ -2,14 +2,42 @@
 
 Copyright 2023 3DGI
 """
+import math
 from enum import StrEnum
 
+from pandas import NA
+
 from wijklabels import OrderedEnum
+
 
 # The actual woningtype classification is done in the classify_woningtype_full.sql
 # script.
 
+def to_woningtype(w):
+    try:
+        return Woningtype(w)
+    except ValueError:
+        return NA
+
+
 class Woningtype(StrEnum):
+    """The classification per NTA method, since 2021-01-01"""
+    VRIJSTAAND = "vrijstaande woning"
+    TWEE_ONDER_EEN_KAP = "2 onder 1 kap"
+    RIJWONING_TUSSEN = "rijwoning tussen"
+    RIJWONING_HOEK = "rijwoning hoek"
+    APPARTEMENT_HOEKVLOER = "appartement - hoekvloer"
+    APPARTEMENT_HOEKMIDDEN = "appartement - hoekmidden"
+    APPARTEMENT_HOEKDAK = "appartement - hoekdak"
+    APPARTEMENT_HOEKDAKVLOER = "appartement - hoekdakvloer"
+    APPARTEMENT_TUSSENVLOER = "appartement - tussenvloer"
+    APPARTEMENT_TUSSENMIDDEN = "appartement - tussenmidden"
+    APPARTEMENT_TUSSENDAK = "appartement - tussendak"
+    APPARTEMENT_TUSSENDAKVLOER = "appartement - tussendakvloer"
+
+
+class WoningtypePreNTA8800(StrEnum):
+    """The pre-2021 (pre-NTA) classification"""
     VRIJSTAAND = "vrijstaande woning"
     TWEE_ONDER_EEN_KAP = "2 onder 1 kap"
     RIJWONING_TUSSEN = "rijwoning tussen"
@@ -68,3 +96,50 @@ class Bouwperiode(OrderedEnum):
                 return cls((2015, 9999))
             else:
                 raise ValueError(oorspronkelijkbouwjaar, woningtype)
+
+
+def distribute_vbo_on_floor(vbo_ids: list[str], nr_floors: int, vbo_count: int) -> list[
+    tuple[str, str]]:
+    """Distribute the Verblijfsobjecten in one Pand across its floors.
+
+    Returns a list of tuples with the (VBO ID, position), where 'position' is one of
+    'vloer', 'midden', 'dak', 'dakvloer'.
+    """
+    if nr_floors == 1:
+        return [(i, "dakvloer") for i in vbo_ids]
+    vbo_per_floor = float(vbo_count) / float(nr_floors)
+    vbo_per_floor_int = round(vbo_per_floor)
+    if vbo_per_floor_int > len(vbo_ids):
+        return [(i, "vloer") for i in vbo_ids]
+    else:
+        vbo_positions = []
+        # 1x vbo_per_floor is assigned to the ground floor
+        vbo_positions.extend((i, "vloer") for i in vbo_ids[:vbo_per_floor_int])
+        del vbo_ids[:vbo_per_floor_int]
+        # 1x vbo_per_floor is assigned to the roof or top floor
+        vbo_positions.extend((i, "dak") for i in vbo_ids[:vbo_per_floor_int])
+        del vbo_ids[:vbo_per_floor_int]
+        # the rest of vbo_per floor is in the sandwich
+        vbo_positions.extend((i, "midden") for i in vbo_ids[:vbo_per_floor_int])
+        return vbo_positions
+
+
+def classify_apartements(woningtype: Woningtype,
+                         vbo_positions: list[tuple[str, str]]) -> list[
+    tuple[str, Woningtype]]:
+    # We assume that all VBO-s have the same woningtype at this point, because the
+    # woningtype was estimated for the whole Pand
+    if woningtype[0] in [Woningtype.VRIJSTAAND, Woningtype.TWEE_ONDER_EEN_KAP]:
+        return [(i, Woningtype(f"appartement - hoek{position}")) for i, position in
+                vbo_positions]
+    elif woningtype[0] == Woningtype.RIJWONING_HOEK:
+        # It's the end of a row of houses, so we assume that one side of the building
+        # is touching a neighbour, thus we assume that half of the apparements are
+        # 'tussen', and half of them are 'hoek'.
+        half = math.floor(len(vbo_positions) / 2)
+        tussen = [(i, Woningtype(f"appartement - tussen{position}")) for i, position in vbo_positions[:half]]
+        hoek = [(i, Woningtype(f"appartement - hoek{position}")) for i, position in vbo_positions[half:]]
+        return hoek + tussen
+    elif woningtype[0] == Woningtype.RIJWONING_TUSSEN:
+        return [(i, Woningtype(f"appartement - tussen{position}")) for i, position in
+                vbo_positions]
