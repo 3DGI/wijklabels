@@ -87,7 +87,8 @@ class VBOLoader:
             raise ValueError("Either url or file must be set")
 
     def __load_file(self) -> pd.DataFrame:
-        return pd.read_csv(self.file, index_col=self.__index_col)
+        return pd.read_csv(self.file, index_col=self.__index_col,
+                           dtype={"oorspronkelijkbouwjaar": 'Int64'}, na_values=(r"\N", ))
 
     def __load_sql(self) -> pd.DataFrame:
         sql_select_vbo = load_sql("select_verblijfsobject.sql")

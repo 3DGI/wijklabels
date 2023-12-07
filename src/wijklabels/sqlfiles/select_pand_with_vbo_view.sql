@@ -52,7 +52,7 @@ FROM joined
 
 COMMENT ON VIEW lvbag.pand_vbo_multi IS 'The lvbag.pandactueelbestaand objects that have multiple verblijfsobject in them and the VBO gebruiksdoel contains woonfunctie.';
 
-CREATE OR REPLACE VIEW lvbag.pand_vbo AS
+CREATE OR REPLACE VIEW lvbag.pand_vbo_woonfunctie AS
 SELECT p.identificatie
      , p.oorspronkelijkbouwjaar
      , p.status
@@ -70,4 +70,4 @@ FROM lvbag.pandactueelbestaand AS p
                        AND status IS NOT NULL) AS vbo
                     ON vbo.pandref = p.identificatie;
 
-COMMENT ON VIEW lvbag.pand_vbo IS 'The lvbag.pandactueelbestaand objects joined with the VBO where the gebruiksdoel contains woonfunctie.';
+COMMENT ON VIEW lvbag.pand_vbo_woonfunctie IS 'The lvbag.pandactueelbestaand objects joined with the VBO where the gebruiksdoel contains woonfunctie.';

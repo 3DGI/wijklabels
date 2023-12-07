@@ -124,15 +124,15 @@ def distribute_vbo_on_floor(vbo_ids: list[str], nr_floors: int, vbo_count: int) 
         return vbo_positions
 
 
-def classify_apartements(woningtype: Woningtype,
+def classify_apartments(woningtype: Woningtype,
                          vbo_positions: list[tuple[str, str]]) -> list[
     tuple[str, Woningtype]]:
     # We assume that all VBO-s have the same woningtype at this point, because the
     # woningtype was estimated for the whole Pand
-    if woningtype[0] in [Woningtype.VRIJSTAAND, Woningtype.TWEE_ONDER_EEN_KAP]:
+    if woningtype in [Woningtype.VRIJSTAAND, Woningtype.TWEE_ONDER_EEN_KAP]:
         return [(i, Woningtype(f"appartement - hoek{position}")) for i, position in
                 vbo_positions]
-    elif woningtype[0] == Woningtype.RIJWONING_HOEK:
+    elif woningtype == Woningtype.RIJWONING_HOEK:
         # It's the end of a row of houses, so we assume that one side of the building
         # is touching a neighbour, thus we assume that half of the apparements are
         # 'tussen', and half of them are 'hoek'.
@@ -140,6 +140,6 @@ def classify_apartements(woningtype: Woningtype,
         tussen = [(i, Woningtype(f"appartement - tussen{position}")) for i, position in vbo_positions[:half]]
         hoek = [(i, Woningtype(f"appartement - hoek{position}")) for i, position in vbo_positions[half:]]
         return hoek + tussen
-    elif woningtype[0] == Woningtype.RIJWONING_TUSSEN:
+    elif woningtype == Woningtype.RIJWONING_TUSSEN:
         return [(i, Woningtype(f"appartement - tussen{position}")) for i, position in
                 vbo_positions]

@@ -31,7 +31,7 @@ SELECT pv.vbo_identificatie
            WHEN i.wt = 'rijwoning' AND i.isect_count = 1 THEN 'rijwoning hoek'
            WHEN i.wt = 'rijwoning' AND i.isect_count > 1 THEN 'rijwoning tussen'
            ELSE i.wt END AS woningtype
-FROM lvbag.pand_vbo AS pv
+FROM lvbag.pand_vbo_woonfunctie AS pv
          LEFT JOIN wtype_isect AS i USING (identificatie);
 
 COMMENT ON TABLE bdukai_work.woningtypen_all IS 'lvbag.pandactueelbestaand objects where the VBO gebruiksdoel contains woonfunctie are classified into vrijstaande woning, 2 onder 1 kap, rijwoning hoek, rijwoning tussen. This is not strictly correct classification, because other types, such as appartements are also included in the four categories.';

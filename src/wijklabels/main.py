@@ -1,6 +1,5 @@
 import logging
 import random
-import csv
 from pathlib import Path
 
 import numpy as np
@@ -10,12 +9,23 @@ import matplotlib.ticker as mtick
 
 from wijklabels.load import VBOLoader, ExcelLoader, WoningtypeLoader, \
     EPLoader, SharedWallsLoader
-from wijklabels.vormfactor import vormfactorclass
+from wijklabels.vormfactor import vormfactorclass, calculate_surface_areas
 from wijklabels.labels import parse_energylabel_ditributions, \
     reshape_for_classification, classify, EnergyLabel
-from wijklabels.woningtype import Bouwperiode, Woningtype
+from wijklabels.woningtype import Bouwperiode, Woningtype, distribute_vbo_on_floor, \
+    classify_apartments
 
-log = logging.getLogger()
+log = logging.getLogger("main")
+log.setLevel(logging.DEBUG)
+# Logger for data validation messages
+log_validation = logging.getLogger("VALIDATION")
+log_validation.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+ch.setFormatter(formatter)
+log_validation.addHandler(ch)
+
 # Do we need reproducible randomness?
 SEED = 1
 COLORS = {"#1a9641": EnergyLabel.APPPP,
@@ -35,7 +45,6 @@ COLORS = {"#1a9641": EnergyLabel.APPPP,
 import os
 
 os.chdir("/home/balazs/Development/wijklabels/src/wijklabels")
-
 
 
 def aggregate_to_buurt(df: pd.DataFrame, col_labels: str) -> pd.DataFrame:
@@ -81,18 +90,18 @@ if __name__ == "__main__":
     shared_walls_csv = "../../tests/data/input/rvo_shared_subset_den_haag.csv"
     vbo_csv = "../../tests/data/input/vbo_buurt.csv"
     label_distributions_path = "../../tests/data/input/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
-    woningtype_path = "../../tests/data/input/woningtypen.csv"
+    woningtype_path = "../../tests/data/input/woningtypen_all_den_haag.csv"
+    floors_path = "../../tests/data/input/floors.csv"
 
-    shared_walls_loader = SharedWallsLoader(shared_walls_csv)
-    shared_walls_df = shared_walls_loader.load().query("_betrouwbaar == True")
-    # We select only those Pand that have a single VBO, which means that they are
-    # houses, not appartaments
     vboloader = VBOLoader(file=vbo_csv)
     _v = vboloader.load()
-    # Remove duplicate VBO, which happens when a Pand is split, so there are two
-    # different Pand-ID, but the VBO is duplicated
-    vbo_df = _v.loc[~_v.index.duplicated(keep="first"), :].copy()
+    log_validation.info(
+        f"Loaded BAG Pand {len(_v['identificatie'])}, unique {len(_v['identificatie'].unique())}, VBO {len(_v.index)}, unique {len(_v.index.unique())} from {vbo_csv}")
+    duplicate_vbos = _v.index.duplicated(keep="first")
+    vbo_df = _v.loc[~duplicate_vbos, :].copy()
     del _v
+    log_validation.info(
+        f"Removed duplicate VBO which happens when a Pand is split, so there are two different Pand-ID, but the VBO is duplicated {sum(duplicate_vbos)}. Pand {len(vbo_df['identificatie'])}, unique {len(vbo_df['identificatie'].unique())}, VBO {len(vbo_df.index)}, unique {len(vbo_df.index.unique())}")
     excelloader = ExcelLoader(file=label_distributions_path)
     label_distributions_excel = excelloader.load()
     woningtypeloader = WoningtypeLoader(file=woningtype_path)
@@ -102,32 +111,87 @@ if __name__ == "__main__":
     # different Pand-ID, but the VBO is duplicated
     woningtype_df = _w.loc[~_w.index.duplicated(keep="first"), :].copy()
     del _w
+    log_validation.info(
+        f"Loaded woningtype Pand {len(woningtype_df['identificatie'])}, unique {len(woningtype_df['identificatie'].unique())}, VBO {len(woningtype_df.index)}, unique {len(woningtype_df.index.unique())} from {woningtype_path}")
+    floors_df = pd.read_csv(floors_path, header=0)
+    floors_df.set_index("identificatie", inplace=True)
+    log_validation.info(
+        f"Loaded floors Pand {len(floors_df.index)}, unique {len(floors_df.index.unique())} from {floors_path}")
+    shared_walls_loader = SharedWallsLoader(shared_walls_csv)
+    shared_walls_df = shared_walls_loader.load().query("_betrouwbaar == True")
+    log_validation.info(
+        f"Loaded shared walls Pand {len(shared_walls_df.index)}, unique {len(shared_walls_df.index.unique())} from {shared_walls_csv}")
+
+    pand_ids_set_bag = set(vbo_df["identificatie"].unique())
+    pand_ids_set_woningtype = set(woningtype_df["identificatie"].unique())
+    pand_ids_set_floors = set(floors_df.index.unique())
+    pand_ids_set_shared_walls = set(shared_walls_df.index.unique())
+    pand_ids_available = pand_ids_set_bag.intersection(pand_ids_set_woningtype).intersection(pand_ids_set_floors).intersection(pand_ids_set_shared_walls)
+    log_validation.info(f"Available Pand in all inputs {len(pand_ids_available)}")
+    if len(pand_ids_available) == 0:
+        raise ValueError(f"The intersection of Pand identificatie of all inputs is empty, there is no data to process.")
+
+
+    panden = vbo_df.merge(woningtype_df, on="vbo_identificatie", how="inner",
+                          validate="1:1", suffixes=("", "_y"))
+
+    pand_ids = vbo_df["identificatie"].unique()
+    for pid in pand_ids:
+        try:
+            vbo_ids = list(vbo_df.loc[vbo_df["identificatie"] == pid].index)
+            nr_floors = floors_df.loc[pid, "nr_floors"]
+            vbo_count = floors_df.loc[pid, "vbo_count"]
+            wtype_pand = woningtype_df.loc[woningtype_df["identificatie"] == pid, "woningtype"].iloc[0]
+            vbo_positions = distribute_vbo_on_floor(vbo_ids=vbo_ids,
+                                                    nr_floors=nr_floors,
+                                                    vbo_count=vbo_count)
+            apartment_typen = classify_apartments(woningtype=wtype_pand,
+                                                  vbo_positions=vbo_positions)
+            for vbo_id, wtype_vbo in apartment_typen:
+                panden.loc[vbo_id, "woningtype"] = wtype_vbo
+        except KeyError:
+            continue
 
     # vbo_df["vormfactor"] = pd.NA
     # vbo_df["vormfactor"] = vbo_df["vormfactor"].astype("Float64")
-    vbo_df["vormfactorclass"] = pd.NA
-    vbo_df["vormfactorclass"] = vbo_df["vormfactorclass"].astype("object")
-    vbo_df.reset_index(inplace=True)
-    vbo_df.set_index("identificatie", inplace=True)
+    panden["vormfactorclass"] = pd.NA
+    panden["vormfactorclass"] = panden["vormfactorclass"].astype("object")
+    panden.reset_index(inplace=True)
+    panden.set_index("identificatie", inplace=True)
     # Compute the vormfactor
-    _df = vbo_df.merge(shared_walls_df, on="identificatie", how="inner", suffixes=("", "_y"))
-    vbo_df["vormfactorclass"] = _df.apply(
+    _df = panden.merge(shared_walls_df, on="identificatie", how="inner",
+                       suffixes=("", "_y")).merge(floors_df, on="identificatie",
+                                                  how="inner", suffixes=("", "_z"))
+    # Update the surface areas for each VBO, so that for instance, an apartement
+    # only has its own portion of the total Pand surface areas
+    groups_with_new_surfaces = []
+    for _n, group in _df.groupby("identificatie"):
+        try:
+            groups_with_new_surfaces.append(calculate_surface_areas(group))
+        except BaseException as e:
+            log.exception(f"groups_with_new_surfaces for group {_n} returned with exception {e}")
+    new_surfaces = pd.concat(groups_with_new_surfaces)
+
+    panden.set_index("vbo_identificatie", inplace=True, append=True)
+    panden["vormfactorclass"] = new_surfaces.apply(
         lambda row: vormfactorclass(row=row),
         axis=1
     )
-    vbo_df.reset_index(inplace=True)
-    vbo_df.set_index("vbo_identificatie", inplace=True)
+    panden.reset_index(inplace=True)
+    panden.set_index("vbo_identificatie", inplace=True)
 
     # DEBUG
-    vbo_df.to_csv("../../tests/data/vormfactor.csv")
+    panden.to_csv("../../tests/data/vormfactor.csv")
 
     _d = parse_energylabel_ditributions(excelloader)
     distributions = reshape_for_classification(_d)
 
     # match data
-    panden = vbo_df.merge(woningtype_df, on="vbo_identificatie",how="inner", validate="1:1")
     bouwperiode = panden[["oorspronkelijkbouwjaar", "woningtype", "vormfactorclass",
                           "buurtnaam"]].dropna()
+    log_validation.info(f"Available VBO unique {len(bouwperiode.index.unique())}")
+    log_validation.info(f"Nr. NA in oorspronkelijkbouwjaar {bouwperiode['oorspronkelijkbouwjaar'].isna().sum()}")
+    log_validation.info(f"Nr. NA in woningtype {bouwperiode['woningtype'].isna().sum()}")
     bouwperiode["bouwperiode"] = bouwperiode.apply(
         lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
                                                row["woningtype"]),
@@ -154,14 +218,16 @@ if __name__ == "__main__":
     _g = eploader.load()
     _g.set_index("vbo_identificatie", inplace=True)
     _types_implemented = (
-        Woningtype.VRIJSTAAND, Woningtype.TWEE_ONDER_EEN_KAP, Woningtype.RIJWONING_TUSSEN,
+        Woningtype.VRIJSTAAND, Woningtype.TWEE_ONDER_EEN_KAP,
+        Woningtype.RIJWONING_TUSSEN,
         Woningtype.RIJWONING_HOEK
     )
-    groundtruth = _g.loc[(_g.index.notna() & _g["woningtype"].isin(_types_implemented) & _g["energylabel"].notna()), :]
+    groundtruth = _g.loc[(_g.index.notna() & _g["woningtype"].isin(_types_implemented) &
+                          _g["energylabel"].notna()), :]
     print(bouwperiode)
     print(groundtruth)
     _v = bouwperiode.join(groundtruth["energylabel"], how="left",
-                                 rsuffix="_true", validate="1:m")
+                          rsuffix="_true", validate="1:m")
     validated = _v.loc[(_v["energylabel_true"].notna() & _v["energylabel"].notna())]
     buurten_truths_wide = aggregate_to_buurt(validated, "energylabel_true")
     buurten_truths_wide.to_csv("../../tests/data/output/results_buurten_truths.csv")

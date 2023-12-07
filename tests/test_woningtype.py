@@ -23,23 +23,28 @@ def test_distribute_vbo_on_floor():
     # different Pand-ID, but the VBO is duplicated
     woningtype_df = _w.loc[~_w.index.duplicated(keep="first"), :].copy()
     del _w
-
     floors_df = pd.read_csv(
         "/home/balazs/Development/wijklabels/tests/data/input/floors.csv", header=0)
     floors_df.set_index("identificatie", inplace=True)
 
-    vbo_ids = list(vbo_df.loc[
-                       vbo_df["identificatie"] == "NL.IMBAG.Pand.0518100000333865"
-                       ].index)
-    nr_floors = floors_df.loc["NL.IMBAG.Pand.0518100000333865", "nr_floors"]
-    vbo_count = floors_df.loc["NL.IMBAG.Pand.0518100000333865", "vbo_count"]
-    woningt = woningtype_df.loc[woningtype_df[
-                                    "identificatie"] == "NL.IMBAG.Pand.0518100000333865", "woningtype"]
-    vbo_positions = woningtype.distribute_vbo_on_floor(vbo_ids=vbo_ids,
-                                                       nr_floors=nr_floors,
-                                                       vbo_count=vbo_count)
-    appartament_typen = woningtype.classify_apartements(woningtype=woningt,
-                                                        vbo_positions=vbo_positions)
+    panden = vbo_df.merge(woningtype_df, on="vbo_identificatie", how="inner",
+                          validate="1:1")
+
+    pand_ids = vbo_df["identificatie"].unique()
+    for pid in pand_ids:
+        try:
+            vbo_ids = list(vbo_df.loc[vbo_df["identificatie"] == pid].index)
+            nr_floors = floors_df.loc[pid, "nr_floors"]
+            vbo_count = floors_df.loc[pid, "vbo_count"]
+            wtype_pand = woningtype_df.loc[woningtype_df["identificatie"] == pid, "woningtype"]
+            vbo_positions = woningtype.distribute_vbo_on_floor(vbo_ids=vbo_ids,
+                                                               nr_floors=nr_floors,
+                                                               vbo_count=vbo_count)
+            apartment_typen = woningtype.classify_apartments(woningtype=wtype_pand,
+                                                                vbo_positions=vbo_positions)
+            for vbo_id, wtype_vbo in apartment_typen:
+                panden.loc[vbo_id, "woningtype"] = wtype_vbo
+        except KeyError:
+            continue
     print("\n")
-    for a in appartament_typen:
-        print(a[1])
+

@@ -9,7 +9,7 @@ import pandas as pd
 from numpy import nan
 
 from wijklabels import OrderedEnum
-from wijklabels.woningtype import Woningtype, Bouwperiode
+from wijklabels.woningtype import Woningtype, WoningtypePreNTA8800, Bouwperiode
 from wijklabels.vormfactor import VormfactorClass
 
 log = logging.getLogger()
@@ -17,7 +17,7 @@ log = logging.getLogger()
 # label_distributions_path = '/home/balazs/Development/wijklabels/resources/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx'
 # excelloader = load.ExcelLoader(file=label_distributions_path)
 
-LabelDistributions = dict[tuple[Woningtype, Bouwperiode], pd.DataFrame]
+LabelDistributions = dict[tuple[WoningtypePreNTA8800, Bouwperiode], pd.DataFrame]
 LongLabels = pd.DataFrame
 
 
@@ -79,7 +79,7 @@ def parse_energylabel_ditributions(excelloader) -> LabelDistributions:
                     construction_year_min = int(search_result.group())
                     construction_year_max = 9999
                 _wt = wt[:startpos - 1].strip().lower()
-                woningtype = Woningtype(_wt)
+                woningtype = WoningtypePreNTA8800(_wt)
                 bouwperiode = Bouwperiode.from_year_type(
                     oorspronkelijkbouwjaar=construction_year_min + 1,
                     woningtype=woningtype)
