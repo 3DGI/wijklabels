@@ -12,7 +12,7 @@ from wijklabels.load import VBOLoader, ExcelLoader, WoningtypeLoader, \
 from wijklabels.vormfactor import vormfactorclass, calculate_surface_areas
 from wijklabels.labels import parse_energylabel_ditributions, \
     reshape_for_classification, classify, EnergyLabel
-from wijklabels.woningtype import Bouwperiode, Woningtype, distribute_vbo_on_floor, \
+from wijklabels.woningtype import Bouwperiode, Woningtype, WoningtypePreNTA8800, distribute_vbo_on_floor, \
     classify_apartments
 
 log = logging.getLogger("main")
@@ -151,6 +151,10 @@ if __name__ == "__main__":
                 panden.loc[vbo_id, "woningtype"] = wtype_vbo
         except KeyError:
             continue
+    panden["woningtype_pre_nta8800"] = panden.apply(
+        lambda row: WoningtypePreNTA8800.from_nta8800(row["woningtype"]),
+        axis=1
+    )
 
     # vbo_df["vormfactor"] = pd.NA
     # vbo_df["vormfactor"] = vbo_df["vormfactor"].astype("Float64")

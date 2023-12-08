@@ -4,7 +4,9 @@ Copyright 2023 3DGI
 """
 import math
 from enum import StrEnum
+import random
 
+import pandas as pd
 from pandas import NA
 
 from wijklabels import OrderedEnum
@@ -46,6 +48,34 @@ class WoningtypePreNTA8800(StrEnum):
     GALERIJ = "galerij"
     PORTIEK = "portiek"
     OVERIG = "overig"
+
+    @classmethod
+    def from_nta8800(cls, woningtype: Woningtype):
+        """Map an NTA8800 Woningtype to a pre-NTA8800 Woningtype"""
+        if woningtype is pd.NA:
+            return pd.NA
+        elif woningtype == Woningtype.VRIJSTAAND:
+            return cls.VRIJSTAAND
+        elif woningtype == Woningtype.TWEE_ONDER_EEN_KAP:
+            return cls.TWEE_ONDER_EEN_KAP
+        elif woningtype == Woningtype.RIJWONING_TUSSEN:
+            return cls.RIJWONING_TUSSEN
+        elif woningtype == Woningtype.RIJWONING_HOEK:
+            return cls.RIJWONING_HOEK
+        else:
+            # Choose one of the apartement types from a distribution that was
+            # calculated from the EP-Online data.
+            return random.choice(APARTEMENTS_DISTRIBUTION_PRE_NTA8800)
+
+
+# The distribution of these types are compoted from the EP-Online data, from the records
+# before 2021-01-01
+PERCENT_OVERIG = 81
+PERCENT_MAISONETTE = 11
+PERCENT_GALERIJ = 5
+PERCENT_PORTIEK = 3
+APARTEMENTS_DISTRIBUTION_PRE_NTA8800 = [WoningtypePreNTA8800.OVERIG for _ in range(PERCENT_OVERIG)] + [WoningtypePreNTA8800.MAISONNETTE for _ in range(PERCENT_MAISONETTE)] + [WoningtypePreNTA8800.GALERIJ for _ in range(PERCENT_GALERIJ)] + [WoningtypePreNTA8800.PORTIEK for _ in range(PERCENT_PORTIEK)]
+random.shuffle(APARTEMENTS_DISTRIBUTION_PRE_NTA8800)
 
 
 class Bouwperiode(OrderedEnum):
