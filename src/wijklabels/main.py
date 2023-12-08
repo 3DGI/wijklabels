@@ -191,18 +191,18 @@ if __name__ == "__main__":
     distributions = reshape_for_classification(_d)
 
     # match data
-    bouwperiode = panden[["oorspronkelijkbouwjaar", "woningtype", "vormfactorclass",
+    bouwperiode = panden[["oorspronkelijkbouwjaar", "woningtype", "woningtype_pre_nta8800", "vormfactorclass",
                           "buurtnaam"]].dropna()
     log_validation.info(f"Available VBO unique {len(bouwperiode.index.unique())}")
     log_validation.info(f"Nr. NA in oorspronkelijkbouwjaar {bouwperiode['oorspronkelijkbouwjaar'].isna().sum()}")
     log_validation.info(f"Nr. NA in woningtype {bouwperiode['woningtype'].isna().sum()}")
     bouwperiode["bouwperiode"] = bouwperiode.apply(
         lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
-                                               row["woningtype"]),
+                                               row["woningtype_pre_nta8800"]),
         axis=1)
     bouwperiode["energylabel"] = bouwperiode.apply(
         lambda row: classify(df=distributions,
-                             woningtype=row["woningtype"],
+                             woningtype=row["woningtype_pre_nta8800"],
                              bouwperiode=row["bouwperiode"],
                              vormfactor=row["vormfactorclass"],
                              random_number=random.random()),

@@ -88,13 +88,14 @@ class Bouwperiode(OrderedEnum):
     FROM_1992_UNTIL_2005 = 1992, 2005
     FROM_2006_UNTIL_2014 = 2006, 2014
     FROM_2015 = 2015, 9999
+    FROM_1992 = 1992, 9999
 
     @classmethod
-    def from_year_type(cls, oorspronkelijkbouwjaar: int, woningtype: Woningtype):
+    def from_year_type(cls, oorspronkelijkbouwjaar: int, woningtype: WoningtypePreNTA8800):
         """Classify the oorspronkelijkbouwjaar of a BAG object into the 8 construction
         year periods that are defined in the 2022 update of the WoON2018 study.
         All classes are inclusive of their date limits."""
-        if woningtype == Woningtype.VRIJSTAAND or woningtype == Woningtype.TWEE_ONDER_EEN_KAP:
+        if woningtype == WoningtypePreNTA8800.VRIJSTAAND or woningtype == WoningtypePreNTA8800.TWEE_ONDER_EEN_KAP:
             if oorspronkelijkbouwjaar <= 1964:
                 return cls((0, 1964))
             elif 1965 <= oorspronkelijkbouwjaar <= 1974:
@@ -109,7 +110,7 @@ class Bouwperiode(OrderedEnum):
                 return cls((2015, 9999))
             else:
                 raise ValueError(oorspronkelijkbouwjaar, woningtype)
-        elif woningtype == Woningtype.RIJWONING_HOEK or woningtype == Woningtype.RIJWONING_TUSSEN:
+        elif woningtype == WoningtypePreNTA8800.RIJWONING_HOEK or woningtype == WoningtypePreNTA8800.RIJWONING_TUSSEN:
             if oorspronkelijkbouwjaar <= 1945:
                 return cls((0, 1945))
             elif 1946 <= oorspronkelijkbouwjaar <= 1964:
@@ -124,6 +125,30 @@ class Bouwperiode(OrderedEnum):
                 return cls((2006, 2014))
             elif 2015 <= oorspronkelijkbouwjaar:
                 return cls((2015, 9999))
+            else:
+                raise ValueError(oorspronkelijkbouwjaar, woningtype)
+        elif woningtype == WoningtypePreNTA8800.GALERIJ or woningtype == WoningtypePreNTA8800.MAISONNETTE or woningtype == WoningtypePreNTA8800.OVERIG:
+            if oorspronkelijkbouwjaar <= 1964:
+                return cls((0, 1964))
+            elif 1965 <= oorspronkelijkbouwjaar <= 1974:
+                return cls((1965, 1974))
+            elif 1975 <= oorspronkelijkbouwjaar <= 1991:
+                return cls((1975, 1991))
+            elif 1992 <= oorspronkelijkbouwjaar:
+                return cls((1992, 9999))
+            else:
+                raise ValueError(oorspronkelijkbouwjaar, woningtype)
+        elif woningtype == WoningtypePreNTA8800.PORTIEK:
+            if oorspronkelijkbouwjaar <= 1945:
+                return cls((0, 1945))
+            elif 1946 <= oorspronkelijkbouwjaar <= 1964:
+                return cls((1946, 1964))
+            elif 1965 <= oorspronkelijkbouwjaar <= 1974:
+                return cls((1965, 1974))
+            elif 1975 <= oorspronkelijkbouwjaar <= 1991:
+                return cls((1975, 1991))
+            elif 1992 <= oorspronkelijkbouwjaar:
+                return cls((1992, 9999))
             else:
                 raise ValueError(oorspronkelijkbouwjaar, woningtype)
 
