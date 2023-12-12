@@ -105,8 +105,8 @@ def fetch_rows(pool: ConnectionPool, cursor_start: int, colnames: list,
             log_validation.info(
                 f"Removed duplicate VBO which happens when a Pand is split, so there are two different Pand-ID, but the VBO is duplicated {sum(duplicate_vbos)}.")
             conn.commit()
-            cur.close()
-            return _df.loc[~duplicate_vbos, :]
+            # cur.close()
+    return _df.loc[~duplicate_vbos, :]
 
 
 def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
