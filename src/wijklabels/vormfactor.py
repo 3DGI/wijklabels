@@ -32,11 +32,11 @@ def calculate_surface_areas(group) -> pd.DataFrame:
         opp_vloer = group.iloc[0]["b3_opp_grond"]
         opp_muur = group.iloc[0]["b3_opp_buitenmuur"]
         # If the woningtype of the VBO is NA, we do count it
-        nr_dak = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or "dak" in w[1])
-        nr_vloer = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or "vloer" in w[1])
+        nr_dak = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "dak" in w[1])
+        nr_vloer = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "vloer" in w[1])
         nr_muur = group.iloc[0]["vbo_count"]
         for pand_id, vbo in group.iterrows():
-            if vbo["woningtype"] is pd.NA:
+            if vbo["woningtype"] is pd.NA or vbo["woningtype"] is None:
                 continue
             else:
                 # Each VBO has an equal portion of the total wall area

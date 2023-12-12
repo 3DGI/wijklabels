@@ -165,6 +165,9 @@ def classify(df: LongLabels, woningtype: Woningtype, bouwperiode: Bouwperiode,
     Then the input `random_number` is assigned the energy label which bin the
     `random_number` falls into.
     """
-    label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(
-        f"bin_min <= {random_number} < bin_max").energylabel
-    return label.item() if len(label) == 1 else None
+    try:
+        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(
+            f"bin_min <= {random_number} < bin_max").energylabel
+        return label.item() if len(label) == 1 else None
+    except KeyError:
+        return None
