@@ -1,7 +1,8 @@
 import logging
 import random
 from pathlib import Path
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
 import argparse
 
 import numpy as np
@@ -9,7 +10,6 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib.ticker as mtick
 import psycopg
-from psycopg_pool import ConnectionPool
 
 from wijklabels.load import ExcelLoader
 from wijklabels.vormfactor import vormfactorclass, calculate_surface_areas
@@ -93,9 +93,9 @@ def plot_buurts(dir_plots: str, df: pd.DataFrame):
 # Get a server-side cursor.
 # Prepare the query and move the cursor to the required position.
 # Fetch all rows in the window of cursor_start + SET_SIZE
-def fetch_rows(pool: ConnectionPool, cursor_start: int, colnames: list,
+def fetch_rows(connection_string, cursor_start: int, colnames: list,
                query_select_all, set_size) -> pd.DataFrame:
-    with pool.connection() as conn:
+    with psycopg.connect(connection_string) as conn:
         with psycopg.ServerCursor(conn, name="input_cursor") as cur:
             cur.execute(query_select_all)
             cur.scroll(cursor_start, 'absolute')
@@ -109,11 +109,12 @@ def fetch_rows(pool: ConnectionPool, cursor_start: int, colnames: list,
     return _df.loc[~duplicate_vbos, :]
 
 
-def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
+def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame,
                     path_output_csv, colnames: list, query_select_all,
                     set_size) -> pd.DataFrame:
     try:
-        df_input = fetch_rows(pool, cursor_start, colnames, query_select_all,
+        df_input = fetch_rows(connection_string, cursor_start, colnames,
+                              query_select_all,
                               set_size).drop(columns=["geometrie"])
         # log.debug(f"Created dataframe with {len(df_input)} rows at cursor start {cursor_start}")
         pand_ids = df_input["pand_identificatie"].unique()
@@ -214,6 +215,26 @@ def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
         return None
 
 
+def parallel_process_labels(CONNECTION_STRING, JOBS, PATH_OUTPUT_DIR, QUERY_SELECT_ALL,
+                            SET_SIZE, colnames, cursor_starts, distributions):
+    df_giga_list = []
+    with ProcessPoolExecutor(max_workers=JOBS) as executor:
+        outpaths = [PATH_OUTPUT_DIR.joinpath(f"labels_{i}").with_suffix(".csv") for i in
+                    enumerate(cursor_starts)]
+        for i, df in enumerate(
+                executor.map(estimate_labels,
+                             repeat(CONNECTION_STRING, len(cursor_starts)),
+                             cursor_starts,
+                             repeat(distributions, len(cursor_starts)), outpaths,
+                             repeat(colnames, len(cursor_starts)),
+                             repeat(QUERY_SELECT_ALL, len(cursor_starts)),
+                             repeat(SET_SIZE, len(cursor_starts)))):
+            if df is not None:
+                df_giga_list.append(df)
+            log.info(f"Processed {i} of {len(cursor_starts)} sets")
+    return df_giga_list
+
+
 parser = argparse.ArgumentParser(prog='wijklabels')
 parser.add_argument('path_output_dir')
 parser.add_argument('path_label_distributions')
@@ -281,20 +302,9 @@ def main_cli():
     distributions = reshape_for_classification(_d)
 
     # --- Loop
-    df_giga_list = []
-    with ConnectionPool(CONNECTION_STRING, min_size=JOBS) as pool:
-        with ThreadPoolExecutor(max_workers=JOBS) as executor:
-            futures = [executor.submit(estimate_labels, pool, cs, distributions,
-                                       PATH_OUTPUT_DIR
-                                       .joinpath(
-                                           f"labels_{i}").with_suffix(".csv"), colnames,
-                                       QUERY_SELECT_ALL, SET_SIZE) for i, cs in
-                       enumerate(cursor_starts)]
-            for i, future in enumerate(as_completed(futures)):
-                _df = future.result()
-                if _df is not None:
-                    df_giga_list.append(_df)
-                log.info(f"Processed {i} of {len(futures)} sets")
+    df_giga_list = parallel_process_labels(CONNECTION_STRING, JOBS, PATH_OUTPUT_DIR,
+                                           QUERY_SELECT_ALL, SET_SIZE, colnames,
+                                           cursor_starts, distributions)
     log.debug(f"Concatenating {len(df_giga_list)} dataframes")
     df_labels_individual = pd.concat(df_giga_list)
     df_labels_individual.to_csv(
