@@ -289,10 +289,12 @@ def main_cli():
                                            f"labels_{i}").with_suffix(".csv"), colnames,
                                        QUERY_SELECT_ALL, SET_SIZE) for i, cs in
                        enumerate(cursor_starts)]
+            cntr = 1
             for future in as_completed(futures):
                 _df = future.result()
                 if _df is not None:
                     df_giga_list.append(_df)
+                log.info(f"Processed {cntr} of {len(futures)} sets")
     log.debug(f"Concatenating {len(df_giga_list)} dataframes")
     df_labels_individual = pd.concat(df_giga_list)
     df_labels_individual.to_csv(
