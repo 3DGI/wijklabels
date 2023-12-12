@@ -50,11 +50,6 @@ COLORS = {"#1a9641": EnergyLabel.APPPP,
           "#d7191c": EnergyLabel.G
           }
 
-# DEBUG
-import os
-
-os.chdir("/home/balazs/Development/wijklabels/src/wijklabels")
-
 
 def aggregate_to_buurt(df: pd.DataFrame, col_labels: str) -> pd.DataFrame:
     buurten_counts = df[["buurtcode"]].value_counts()
@@ -215,6 +210,7 @@ def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
             f"Could not process the row set at cursor position {cursor_start} + {set_size} with exception\n{e}")
         return None
 
+
 parser = argparse.ArgumentParser(prog='wijklabels')
 parser.add_argument('path_output_dir')
 parser.add_argument('path_label_distributions')
@@ -225,6 +221,7 @@ parser.add_argument('user')
 parser.add_argument('password')
 parser.add_argument('-j', '--jobs', type=int, default=4)
 parser.add_argument('-s', '--set_size', type=int, default=10000)
+
 
 def main_cli():
     args = parser.parse_args()
