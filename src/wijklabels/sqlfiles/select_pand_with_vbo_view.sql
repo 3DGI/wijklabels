@@ -53,10 +53,8 @@ FROM joined
 COMMENT ON VIEW lvbag.pand_vbo_multi IS 'The lvbag.pandactueelbestaand objects that have multiple verblijfsobject in them and the VBO gebruiksdoel contains woonfunctie.';
 
 CREATE OR REPLACE VIEW lvbag.pand_vbo_woonfunctie AS
-SELECT p.identificatie
+SELECT p.identificatie AS pand_identificatie
      , p.oorspronkelijkbouwjaar
-     , p.status
-     , vbo.gebruiksdoel
      , vbo.oppervlakte
      , vbo.vbo_identificatie
      , p.geometrie
