@@ -2,6 +2,7 @@ import logging
 import random
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import argparse
 
 import numpy as np
 import pandas as pd
@@ -10,12 +11,11 @@ import matplotlib.ticker as mtick
 import psycopg
 from psycopg_pool import ConnectionPool
 
-from wijklabels.load import VBOLoader, ExcelLoader, WoningtypeLoader, \
-    EPLoader, SharedWallsLoader
+from wijklabels.load import ExcelLoader
 from wijklabels.vormfactor import vormfactorclass, calculate_surface_areas
 from wijklabels.labels import parse_energylabel_ditributions, \
     reshape_for_classification, classify, EnergyLabel
-from wijklabels.woningtype import Bouwperiode, Woningtype, WoningtypePreNTA8800, \
+from wijklabels.woningtype import Bouwperiode, WoningtypePreNTA8800, \
     distribute_vbo_on_floor, \
     classify_apartments
 
@@ -116,7 +116,8 @@ def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
                     path_output_csv, colnames: list, query_select_all,
                     set_size) -> pd.DataFrame:
     try:
-        df_input = fetch_rows(pool, cursor_start, colnames, query_select_all, set_size).drop(columns=["geometrie"])
+        df_input = fetch_rows(pool, cursor_start, colnames, query_select_all,
+                              set_size).drop(columns=["geometrie"])
         pand_ids = df_input["pand_identificatie"].unique()
         for pid in pand_ids:
             try:
@@ -126,17 +127,20 @@ def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
                     # log.debug(f"Skipping Pand {pid}, because vbo_ids is empty")
                     continue
                 nr_floors = \
-                    df_input.loc[df_input["pand_identificatie"] == pid, "nr_floors"].iloc[0]
+                    df_input.loc[
+                        df_input["pand_identificatie"] == pid, "nr_floors"].iloc[0]
                 if nr_floors is None:
                     # log.debug(f"Skipping Pand {pid}, because nr_floors is None")
                     continue
                 vbo_count = \
-                    df_input.loc[df_input["pand_identificatie"] == pid, "vbo_count"].iloc[0]
+                    df_input.loc[
+                        df_input["pand_identificatie"] == pid, "vbo_count"].iloc[0]
                 if vbo_count is None:
                     # log.debug(f"Skipping Pand {pid}, because vbo_count is None")
                     continue
                 wtype_pand = \
-                    df_input.loc[df_input["pand_identificatie"] == pid, "woningtype"].iloc[0]
+                    df_input.loc[
+                        df_input["pand_identificatie"] == pid, "woningtype"].iloc[0]
                 if wtype_pand is None:
                     # log.debug(f"Skipping Pand {pid}, because wtype_pand is None")
                     continue
@@ -207,25 +211,40 @@ def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
         # df_input.to_csv(path_output_csv)
         return df_input
     except BaseException as e:
-        log.exception(f"Could not process the row set at cursor position {cursor_start} + {set_size} with exception\n{e}")
+        log.exception(
+            f"Could not process the row set at cursor position {cursor_start} + {set_size} with exception\n{e}")
         return None
 
+parser = argparse.ArgumentParser(prog='wijklabels')
+parser.add_argument('path_output_dir')
+parser.add_argument('path_label_distributions')
+parser.add_argument('dbname')
+parser.add_argument('--host', default='localhost')
+parser.add_argument('--port', type=int, default=5432)
+parser.add_argument('user')
+parser.add_argument('password')
+parser.add_argument('-j', '--jobs', type=int, default=4)
+parser.add_argument('-s', '--set_size', type=int, default=10000)
 
-if __name__ == "__main__":
+def main_cli():
+    args = parser.parse_args()
+    PATH_OUTPUT_DIR = Path(args.path_output_dir).resolve()
+    PATH_LABEL_DISTRIBUTIONS = Path(args.path_label_distributions).resolve()
+    JOBS = args.jobs
+    # The number of rows to fetch from the database at once
+    SET_SIZE = args.set_size
+
     CREDS = {
-        "host": "localhost",
-        "user": "postgres",
-        "port": 8001,
-        "dbname": "postgres",
-        "password": "password"
+        "host": args.host,
+        "user": args.user,
+        "port": args.port,
+        "dbname": args.dbname,
+        "password": args.password
     }
     CONNECTION_STRING = " ".join((f"{k}={v}" for k, v in CREDS.items()))
 
     QUERY_COUNT = "SELECT count(*) FROM wijklabels.input;"
     QUERY_SELECT_ALL = "SELECT * FROM wijklabels.input;"
-
-    # The number of rows to fetch from the database at once
-    SET_SIZE = 5000
 
     # Determine the number of database requests from the number of rows and the required
     # set size.
@@ -256,20 +275,18 @@ if __name__ == "__main__":
         "b3_opp_scheidingsmuur"
     ]
 
-    path_output_dir = Path("../../tests/data/output").resolve()
-
     use_gebruiksoppervlakte_for_vormfactor = True
-    label_distributions_path = "../../tests/data/input/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
-    excelloader = ExcelLoader(file=label_distributions_path)
+    excelloader = ExcelLoader(file=PATH_LABEL_DISTRIBUTIONS)
     _d = parse_energylabel_ditributions(excelloader)
     distributions = reshape_for_classification(_d)
 
     # --- Loop
     df_giga_list = []
     with ConnectionPool(CONNECTION_STRING) as pool:
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=JOBS) as executor:
             futures = [executor.submit(estimate_labels, pool, cs, distributions,
-                                       path_output_dir.joinpath(
+                                       PATH_OUTPUT_DIR
+                                       .joinpath(
                                            f"labels_{i}").with_suffix(".csv"), colnames,
                                        QUERY_SELECT_ALL, SET_SIZE) for i, cs in
                        enumerate(cursor_starts)]
@@ -280,14 +297,16 @@ if __name__ == "__main__":
     log.debug(f"Concatenating {len(df_giga_list)} dataframes")
     df_labels_individual = pd.concat(df_giga_list)
     df_labels_individual.to_csv(
-        path_output_dir.joinpath("labels_individual").with_suffix(".csv"))
+        PATH_OUTPUT_DIR
+        .joinpath("labels_individual").with_suffix(".csv"))
 
     # Aggregate per buurt
     log.info("Aggregating the neigbourhoods")
     buurten_labels_wide = aggregate_to_buurt(df_labels_individual,
                                              col_labels="energylabel")
     buurten_labels_wide.to_csv(
-        path_output_dir.joinpath("labels_neighbourhood").with_suffix(".csv"))
+        PATH_OUTPUT_DIR
+        .joinpath("labels_neighbourhood").with_suffix(".csv"))
 
     # # Plot each buurt
     # plot_buurts("../../plots_estimated", buurten_labels_wide)

@@ -31,6 +31,9 @@ optional-dependencies = { develop = ["pytest", "tox"] }
 "Homepage" = "https://github.com/3DGI/wijklabels"
 "Bug Tracker" = "https://github.com/3DGI/wijklabels/issues"
 
+[project.scripts]
+wijklabels = "wijklabels.main:main_cli"
+
 [tool.pytest.ini_options]
 log_cli = true
 log_cli_level = "INFO"
