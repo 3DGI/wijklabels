@@ -281,7 +281,7 @@ def main_cli():
 
     # --- Loop
     df_giga_list = []
-    with ConnectionPool(CONNECTION_STRING) as pool:
+    with ConnectionPool(CONNECTION_STRING, min_size=JOBS) as pool:
         with ThreadPoolExecutor(max_workers=JOBS) as executor:
             futures = [executor.submit(estimate_labels, pool, cs, distributions,
                                        PATH_OUTPUT_DIR
