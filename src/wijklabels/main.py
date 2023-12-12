@@ -102,8 +102,8 @@ def fetch_rows(pool: ConnectionPool, cursor_start: int, colnames: list,
             _df = pd.DataFrame(cur.fetchmany(size=set_size),
                                columns=colnames).set_index("vbo_identificatie")
             duplicate_vbos = _df.index.duplicated(keep="first")  #
-            log_validation.info(
-                f"Removed duplicate VBO which happens when a Pand is split, so there are two different Pand-ID, but the VBO is duplicated {sum(duplicate_vbos)}.")
+            # log_validation.info(
+            #     f"Removed duplicate VBO which happens when a Pand is split, so there are two different Pand-ID, but the VBO is duplicated {sum(duplicate_vbos)}.")
             conn.commit()
             # cur.close()
     return _df.loc[~duplicate_vbos, :]
@@ -115,6 +115,7 @@ def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
     try:
         df_input = fetch_rows(pool, cursor_start, colnames, query_select_all,
                               set_size).drop(columns=["geometrie"])
+        # log.debug(f"Created dataframe with {len(df_input)} rows at cursor start {cursor_start}")
         pand_ids = df_input["pand_identificatie"].unique()
         for pid in pand_ids:
             try:
@@ -188,11 +189,11 @@ def estimate_labels(pool, cursor_start, distributions: pd.DataFrame,
             ["oorspronkelijkbouwjaar", "woningtype", "woningtype_pre_nta8800",
              "vormfactorclass",
              "buurtcode"]].dropna()
-        log_validation.info(f"Available VBO unique {len(bouwperiode.index.unique())}")
-        log_validation.info(
-            f"Nr. NA in oorspronkelijkbouwjaar {bouwperiode['oorspronkelijkbouwjaar'].isna().sum()}")
-        log_validation.info(
-            f"Nr. NA in woningtype {bouwperiode['woningtype'].isna().sum()}")
+        # log_validation.info(f"Available VBO unique {len(bouwperiode.index.unique())}")
+        # log_validation.info(
+        #     f"Nr. NA in oorspronkelijkbouwjaar {bouwperiode['oorspronkelijkbouwjaar'].isna().sum()}")
+        # log_validation.info(
+        #     f"Nr. NA in woningtype {bouwperiode['woningtype'].isna().sum()}")
         df_input["bouwperiode"] = bouwperiode.apply(
             lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
                                                    row["woningtype_pre_nta8800"]),
@@ -289,12 +290,11 @@ def main_cli():
                                            f"labels_{i}").with_suffix(".csv"), colnames,
                                        QUERY_SELECT_ALL, SET_SIZE) for i, cs in
                        enumerate(cursor_starts)]
-            cntr = 1
-            for future in as_completed(futures):
+            for i, future in enumerate(as_completed(futures)):
                 _df = future.result()
                 if _df is not None:
                     df_giga_list.append(_df)
-                log.info(f"Processed {cntr} of {len(futures)} sets")
+                log.info(f"Processed {i} of {len(futures)} sets")
     log.debug(f"Concatenating {len(df_giga_list)} dataframes")
     df_labels_individual = pd.concat(df_giga_list)
     df_labels_individual.to_csv(
@@ -359,3 +359,7 @@ def main_cli():
     #     plt.savefig(
     #         f"{dir_plots}/{filename}.png")
     #     plt.close()
+
+
+if __name__ == "__main__":
+    main_cli()
