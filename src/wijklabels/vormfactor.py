@@ -3,30 +3,28 @@
 Copyright 2023 3DGI
 """
 import logging
+from math import isclose
 
 import pandas as pd
 from pandas import DataFrame
 from wijklabels import OrderedEnum
 
-log = logging.getLogger()
-
+log = logging.getLogger("main")
 
 def calculate_surface_areas(group) -> pd.DataFrame:
     """Update the surface areas for each VBO, so that for instance, an apartement
     only has its own portion of the total Pand surface areas"""
     # 'wl' stands for WijkLabel
-    group_copy = group.copy(deep=True).set_index("vbo_identificatie", append=True)
+    group_copy = group.copy(deep=True)
     group_copy.loc[:, "_wl_opp_dak"] = 0.0
     group_copy.loc[:, "_wl_opp_vloer"] = 0.0
     group_copy.loc[:, "_wl_opp_muur"] = 0.0
     if len(group) == 1:
         # not apartment, no need to update the surface areas
-        pand_id = group.index
-        vbo_id = group.iloc[0]["vbo_identificatie"]
-        group_copy.loc[(pand_id, vbo_id), "_wl_opp_dak"] = group.iloc[0]["b3_opp_dak_plat"] + \
+        group_copy.loc[:, "_wl_opp_dak"] = group.iloc[0]["b3_opp_dak_plat"] + \
                                             group.iloc[0]["b3_opp_dak_schuin"]
-        group_copy.loc[(pand_id, vbo_id), "_wl_opp_vloer"] = group.iloc[0]["b3_opp_grond"]
-        group_copy.loc[(pand_id, vbo_id), "_wl_opp_muur"] = group.iloc[0]["b3_opp_buitenmuur"]
+        group_copy.loc[:, "_wl_opp_vloer"] = group.iloc[0]["b3_opp_grond"]
+        group_copy.loc[:, "_wl_opp_muur"] = group.iloc[0]["b3_opp_buitenmuur"]
     else:
         opp_dak = group.iloc[0]["b3_opp_dak_plat"] + group.iloc[0]["b3_opp_dak_schuin"]
         opp_vloer = group.iloc[0]["b3_opp_grond"]
@@ -35,26 +33,52 @@ def calculate_surface_areas(group) -> pd.DataFrame:
         nr_dak = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "dak" in w[1])
         nr_vloer = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "vloer" in w[1])
         nr_muur = group.iloc[0]["vbo_count"]
-        for pand_id, vbo in group.iterrows():
+        # Only 95% of the total wall surface is considered as dwelling surface.
+        # The 95% percent is an arbitrary value that seems about okay-ish.
+        # So we say that 5% of the wallsurface covers spaces in the building like
+        # staircase etc.
+        wallsurface_not_dwelling = 0.05
+        opp_muur_woningen = opp_muur * (1.0 - wallsurface_not_dwelling)
+        # If the woningtype is NA, it'll be counted as tussen for the wall area
+        nr_muur_tussen = 0
+        nr_muur_hoek = 0
+        for w in group["woningtype"].items():
+            if w[1] is pd.NA or w[1] is None or "tussen" in w[1]:
+                nr_muur_tussen += 1
+            elif "hoek" in w[1]:
+                nr_muur_hoek += 1
+        # We divide the usable wallsurface into 2 * nr. dwellings and divide the
+        # the wallsurface with that.
+        # We assume that the area of the "side" wall of a hoek apartement is 2x the area
+        # of the facade wall of the same apartement. Thus the hoek apartment get 3
+        # portions of the total wall area, a tussen apartement get 1 portion.
+        opp_muur_tussen = opp_muur_woningen / nr_muur
+        if "tussen" not in group["woningtype"]:
+            # all apartements are on the hoek, so they have equal wallsurface
+            opp_muur_hoek = opp_muur_woningen / nr_muur
+        else:
+            opp_muur_tussen = opp_muur_woningen / (nr_muur * 2)
+            total_tussen = opp_muur_tussen * nr_muur_tussen
+            opp_muur_hoek = (opp_muur_woningen - total_tussen) / nr_muur_hoek
+            if opp_muur_hoek < opp_muur_tussen:
+                log.debug(f"{opp_muur_hoek=} is less than {total_tussen=} for {group.index[0]}")
+        for vbo_pand_id, vbo in group.iterrows():
             if vbo["woningtype"] is pd.NA or vbo["woningtype"] is None:
                 continue
             else:
-                # Each VBO has an equal portion of the total wall area
-                group_copy.loc[(
-                    pand_id, vbo["vbo_identificatie"]), "_wl_opp_muur"] = opp_muur / nr_muur
+                if "hoek" in vbo["woningtype"]:
+                    group_copy.loc[vbo_pand_id, "_wl_opp_muur"] = opp_muur_hoek
+                elif "tussen" in vbo["woningtype"]:
+                    group_copy.loc[vbo_pand_id, "_wl_opp_muur"] = opp_muur_tussen
                 if "dakvloer" in vbo["woningtype"]:
-                    group_copy.loc[(
-                        pand_id,
-                        vbo["vbo_identificatie"]), "_wl_opp_dak"] = opp_dak / nr_dak
-                    group_copy.loc[(pand_id, vbo[
-                        "vbo_identificatie"]), "_wl_opp_vloer"] = opp_vloer / nr_vloer
+                    group_copy.loc[vbo_pand_id, "_wl_opp_dak"] = opp_dak / nr_dak
+                    group_copy.loc[vbo_pand_id, "_wl_opp_vloer"] = opp_vloer / nr_vloer
                 elif "dak" in vbo["woningtype"]:
-                    group_copy.loc[(
-                        pand_id,
-                        vbo["vbo_identificatie"]), "_wl_opp_dak"] = opp_dak / nr_dak
+                    group_copy.loc[vbo_pand_id, "_wl_opp_dak"] = opp_dak / nr_dak
                 elif "vloer" in vbo["woningtype"]:
-                    group_copy.loc[(pand_id, vbo[
-                        "vbo_identificatie"]), "_wl_opp_vloer"] = opp_vloer / nr_vloer
+                    group_copy.loc[vbo_pand_id, "_wl_opp_vloer"] = opp_vloer / nr_vloer
+        if not isclose(group_copy["_wl_opp_muur"].sum(), opp_muur_woningen):
+            log.info(f"calculated wall areas {group_copy["_wl_opp_muur"].sum()} do not add up to a total of {opp_muur_woningen} for {group.index[0]}, {nr_muur_tussen=}, {nr_muur_hoek=}, NA count {sum(group_copy["_wl_opp_muur"].isna())}")
     return group_copy
 
 

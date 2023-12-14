@@ -153,7 +153,7 @@ class Bouwperiode(OrderedEnum):
                 raise ValueError(oorspronkelijkbouwjaar, woningtype)
 
 
-def distribute_vbo_on_floor(vbo_ids: list[str], nr_floors: int, vbo_count: int) -> list[
+def distribute_vbo_on_floor(vbo_pand_ids: list[str], nr_floors: int, vbo_count: int) -> list[
     tuple[str, str]]:
     """Distribute the Verblijfsobjecten in one Pand across its floors.
 
@@ -161,26 +161,26 @@ def distribute_vbo_on_floor(vbo_ids: list[str], nr_floors: int, vbo_count: int) 
     'vloer', 'midden', 'dak', 'dakvloer'.
     """
     if nr_floors == 1:
-        return [(i, "dakvloer") for i in vbo_ids]
+        return [(i, "dakvloer") for i in vbo_pand_ids]
     vbo_per_floor = float(vbo_count) / float(nr_floors)
     vbo_per_floor_int = round(vbo_per_floor)
-    if vbo_per_floor_int > len(vbo_ids):
-        return [(i, "vloer") for i in vbo_ids]
+    if vbo_per_floor_int >= vbo_count:
+        return [(i, "vloer") for i in vbo_pand_ids]
     else:
         vbo_positions = []
         # 1x vbo_per_floor is assigned to the ground floor
-        vbo_positions.extend((i, "vloer") for i in vbo_ids[:vbo_per_floor_int])
-        del vbo_ids[:vbo_per_floor_int]
+        vbo_positions.extend((i, "vloer") for i in vbo_pand_ids[:vbo_per_floor_int])
+        del vbo_pand_ids[:vbo_per_floor_int]
         # 1x vbo_per_floor is assigned to the roof or top floor
-        vbo_positions.extend((i, "dak") for i in vbo_ids[:vbo_per_floor_int])
-        del vbo_ids[:vbo_per_floor_int]
+        vbo_positions.extend((i, "dak") for i in vbo_pand_ids[:vbo_per_floor_int])
+        del vbo_pand_ids[:vbo_per_floor_int]
         # the rest of vbo_per floor is in the sandwich
-        vbo_positions.extend((i, "midden") for i in vbo_ids[:vbo_per_floor_int])
+        vbo_positions.extend((i, "midden") for i in vbo_pand_ids)
         return vbo_positions
 
 
 def classify_apartments(woningtype: Woningtype,
-                         vbo_positions: list[tuple[str, str]]) -> list[
+                        vbo_positions: list[tuple[str, str]]) -> list[
     tuple[str, Woningtype]]:
     # We assume that all VBO-s have the same woningtype at this point, because the
     # woningtype was estimated for the whole Pand

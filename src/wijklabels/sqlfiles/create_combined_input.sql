@@ -120,7 +120,8 @@ SELECT p.*
      , pw.b3_opp_scheidingsmuur
 FROM wijklabels.pand_vbo_woonfunctie p
          INNER JOIN wijklabels.woningtypen w
-                    ON p.vbo_identificatie = w.vbo_identificatie
+                    ON p.pand_identificatie = w.identificatie AND
+                       p.vbo_identificatie = w.vbo_identificatie
          INNER JOIN wijklabels.pand_in_buurt b ON p.pand_identificatie = b.identificatie
          INNER JOIN wijklabels.floors f USING (pand_identificatie)
          INNER JOIN public.party_walls pw ON p.pand_identificatie = pw.identificatie

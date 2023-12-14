@@ -100,14 +100,14 @@ def fetch_rows(connection_string, cursor_start: int, colnames: list,
             cur.execute(query_select_all)
             cur.scroll(cursor_start, 'absolute')
             _df = pd.DataFrame(cur.fetchmany(size=set_size),
-                               columns=colnames).set_index("vbo_identificatie")
-            duplicate_vbos = _df.index.duplicated(keep="first")  #
+                               columns=colnames).set_index(["vbo_identificatie", "pand_identificatie"])
+            # duplicate_vbos = _df.index.duplicated(keep="first")  #
             # log_validation.info(
             #     f"Removed duplicate VBO which happens when a Pand is split, so there are two different Pand-ID, but the VBO is duplicated {sum(duplicate_vbos)}.")
             conn.commit()
             # cur.close()
-    return _df.loc[~duplicate_vbos, :]
-
+    # return _df.loc[~duplicate_vbos, :]
+    return _df
 
 def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame,
                     path_output_csv, colnames: list, query_select_all,
@@ -116,42 +116,41 @@ def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame
         df_input = fetch_rows(connection_string, cursor_start, colnames,
                               query_select_all,
                               set_size).drop(columns=["geometrie"])
-        # log.debug(f"Created dataframe with {len(df_input)} rows at cursor start {cursor_start}")
-        pand_ids = df_input["pand_identificatie"].unique()
-        for pid in pand_ids:
+        for pid, group in df_input.groupby("pand_identificatie"):
             try:
-                vbo_ids = list(
-                    df_input.loc[df_input["pand_identificatie"] == pid].index)
-                if len(vbo_ids) == 0:
-                    # log.debug(f"Skipping Pand {pid}, because vbo_ids is empty")
+                vbo_pand_ids = list(group.index)
+                if len(vbo_pand_ids) == 0:
+                    log.debug(f"Skipping Pand {pid}, because vbo_ids is empty")
                     continue
-                nr_floors = \
-                    df_input.loc[
-                        df_input["pand_identificatie"] == pid, "nr_floors"].iloc[0]
+                nr_floors = group["nr_floors"].values[0]
                 if nr_floors is None:
-                    # log.debug(f"Skipping Pand {pid}, because nr_floors is None")
+                    log.debug(f"Skipping Pand {pid}, because nr_floors is None")
                     continue
-                vbo_count = \
-                    df_input.loc[
-                        df_input["pand_identificatie"] == pid, "vbo_count"].iloc[0]
+                vbo_count = group["vbo_count"].values[0]
                 if vbo_count is None:
-                    # log.debug(f"Skipping Pand {pid}, because vbo_count is None")
+                    log.debug(f"Skipping Pand {pid}, because vbo_count is None")
                     continue
-                wtype_pand = \
-                    df_input.loc[
-                        df_input["pand_identificatie"] == pid, "woningtype"].iloc[0]
+                wtype_pand = group["woningtype"].values[0]
                 if wtype_pand is None:
-                    # log.debug(f"Skipping Pand {pid}, because wtype_pand is None")
+                    log.debug(f"Skipping Pand {pid}, because wtype_pand is None")
                     continue
-                vbo_positions = distribute_vbo_on_floor(vbo_ids=vbo_ids,
+                vbo_positions = distribute_vbo_on_floor(vbo_pand_ids=vbo_pand_ids,
                                                         nr_floors=nr_floors,
                                                         vbo_count=vbo_count)
+                if vbo_positions is None:
+                    log.error(f"vbo_positions in {pid}")
+                    continue
+                elif len(vbo_positions) != vbo_count:
+                    log.error(f"did not determine vbo positions for all vbo in {pid}")
                 apartment_typen = classify_apartments(woningtype=wtype_pand,
                                                       vbo_positions=vbo_positions)
                 if apartment_typen is None:
-                    log.error(f"apartment_typen is None")
-                for vbo_id, wtype_vbo in apartment_typen:
-                    df_input.loc[vbo_id, "woningtype"] = wtype_vbo
+                    log.error(f"apartment_typen is None in {pid}")
+                    continue
+                elif len(apartment_typen) != vbo_count:
+                    log.error(f"did not determine apartement types for all vbo in {pid}")
+                for vbo_pand_id, wtype_vbo in apartment_typen:
+                    df_input.loc[vbo_pand_id, "woningtype"] = wtype_vbo
             except KeyError:
                 continue
         df_input["woningtype_pre_nta8800"] = df_input.apply(
@@ -163,27 +162,22 @@ def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame
         # vbo_df["vormfactor"] = vbo_df["vormfactor"].astype("Float64")
         df_input["vormfactorclass"] = pd.NA
         df_input["vormfactorclass"] = df_input["vormfactorclass"].astype("object")
-        df_input.reset_index(inplace=True)
-        df_input.set_index("pand_identificatie", inplace=True)
         # Compute the vormfactor
         # Update the surface areas for each VBO, so that for instance, an apartement
         # only has its own portion of the total Pand surface areas
         groups_with_new_surfaces = []
-        for _n, group in df_input.groupby("pand_identificatie"):
+        for _pid, group in df_input.groupby("pand_identificatie"):
             try:
                 groups_with_new_surfaces.append(calculate_surface_areas(group))
             except BaseException as e:
                 log.exception(
-                    f"groups_with_new_surfaces for group {_n} returned with exception {e}")
+                    f"groups_with_new_surfaces for group {_pid} returned with exception {e}")
         new_surfaces = pd.concat(groups_with_new_surfaces)
 
-        df_input.set_index("vbo_identificatie", inplace=True, append=True)
         df_input["vormfactorclass"] = new_surfaces.apply(
             lambda row: vormfactorclass(row=row),
             axis=1
         )
-        df_input.reset_index(inplace=True)
-        df_input.set_index("vbo_identificatie", inplace=True)
 
         # match data
         bouwperiode = df_input[
