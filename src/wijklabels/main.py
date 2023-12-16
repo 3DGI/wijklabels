@@ -117,42 +117,28 @@ def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame
                               query_select_all,
                               set_size).drop(columns=["geometrie"])
         for pid, group in df_input.groupby("pand_identificatie"):
-            try:
-                vbo_pand_ids = list(group.index)
-                if len(vbo_pand_ids) == 0:
-                    log.debug(f"Skipping Pand {pid}, because vbo_ids is empty")
+            if group["vbo_count"].iloc[0] > 1:
+                try:
+                    vbo_positions = distribute_vbo_on_floor(group)
+                    if vbo_positions is None:
+                        log.error(f"vbo_positions is None in {pid}")
+                        continue
+                    elif vbo_positions["_position"].isnull().sum() > 0:
+                        log.error(f"did not determine vbo positions for all vbo in {pid}")
+                    apartment_typen = classify_apartments(vbo_positions)
+                    try:
+                        nr_apartments = sum(1 for a in apartment_typen["woningtype"] if a is not pd.NA and "appartement" in a)
+                    except TypeError as e:
+                        log.exception(f"TypeError in {pid}:\n{e}")
+                        continue
+                    if apartment_typen is None:
+                        log.error(f"apartment_typen is None in {pid}")
+                        continue
+                    elif nr_apartments < len(apartment_typen):
+                        log.error(f"did not determine apartement types for all vbo in {pid}")
+                    group["woningtype"] = apartment_typen["woningtype"]
+                except KeyError:
                     continue
-                nr_floors = group["nr_floors"].values[0]
-                if nr_floors is None:
-                    log.debug(f"Skipping Pand {pid}, because nr_floors is None")
-                    continue
-                vbo_count = group["vbo_count"].values[0]
-                if vbo_count is None:
-                    log.debug(f"Skipping Pand {pid}, because vbo_count is None")
-                    continue
-                wtype_pand = group["woningtype"].values[0]
-                if wtype_pand is None:
-                    log.debug(f"Skipping Pand {pid}, because wtype_pand is None")
-                    continue
-                vbo_positions = distribute_vbo_on_floor(vbo_pand_ids=vbo_pand_ids,
-                                                        nr_floors=nr_floors,
-                                                        vbo_count=vbo_count)
-                if vbo_positions is None:
-                    log.error(f"vbo_positions in {pid}")
-                    continue
-                elif len(vbo_positions) != vbo_count:
-                    log.error(f"did not determine vbo positions for all vbo in {pid}")
-                apartment_typen = classify_apartments(woningtype=wtype_pand,
-                                                      vbo_positions=vbo_positions)
-                if apartment_typen is None:
-                    log.error(f"apartment_typen is None in {pid}")
-                    continue
-                elif len(apartment_typen) != vbo_count:
-                    log.error(f"did not determine apartement types for all vbo in {pid}")
-                for vbo_pand_id, wtype_vbo in apartment_typen:
-                    df_input.loc[vbo_pand_id, "woningtype"] = wtype_vbo
-            except KeyError:
-                continue
         df_input["woningtype_pre_nta8800"] = df_input.apply(
             lambda row: WoningtypePreNTA8800.from_nta8800(row["woningtype"]),
             axis=1

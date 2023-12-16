@@ -5,11 +5,15 @@ Copyright 2023 3DGI
 import math
 from enum import StrEnum
 import random
+import itertools
+import logging
 
 import pandas as pd
 from pandas import NA
 
 from wijklabels import OrderedEnum
+
+log = logging.getLogger("main")
 
 
 # The actual woningtype classification is done in the classify_woningtype_full.sql
@@ -74,7 +78,14 @@ PERCENT_OVERIG = 81
 PERCENT_MAISONETTE = 11
 PERCENT_GALERIJ = 5
 PERCENT_PORTIEK = 3
-APARTEMENTS_DISTRIBUTION_PRE_NTA8800 = [WoningtypePreNTA8800.OVERIG for _ in range(PERCENT_OVERIG)] + [WoningtypePreNTA8800.MAISONNETTE for _ in range(PERCENT_MAISONETTE)] + [WoningtypePreNTA8800.GALERIJ for _ in range(PERCENT_GALERIJ)] + [WoningtypePreNTA8800.PORTIEK for _ in range(PERCENT_PORTIEK)]
+APARTEMENTS_DISTRIBUTION_PRE_NTA8800 = [WoningtypePreNTA8800.OVERIG for _ in
+                                        range(PERCENT_OVERIG)] + [
+                                           WoningtypePreNTA8800.MAISONNETTE for _ in
+                                           range(PERCENT_MAISONETTE)] + [
+                                           WoningtypePreNTA8800.GALERIJ for _ in
+                                           range(PERCENT_GALERIJ)] + [
+                                           WoningtypePreNTA8800.PORTIEK for _ in
+                                           range(PERCENT_PORTIEK)]
 random.shuffle(APARTEMENTS_DISTRIBUTION_PRE_NTA8800)
 
 
@@ -91,7 +102,8 @@ class Bouwperiode(OrderedEnum):
     FROM_1992 = 1992, 9999
 
     @classmethod
-    def from_year_type(cls, oorspronkelijkbouwjaar: int, woningtype: WoningtypePreNTA8800):
+    def from_year_type(cls, oorspronkelijkbouwjaar: int,
+                       woningtype: WoningtypePreNTA8800):
         """Classify the oorspronkelijkbouwjaar of a BAG object into the 8 construction
         year periods that are defined in the 2022 update of the WoON2018 study.
         All classes are inclusive of their date limits."""
@@ -153,48 +165,120 @@ class Bouwperiode(OrderedEnum):
                 raise ValueError(oorspronkelijkbouwjaar, woningtype)
 
 
-def distribute_vbo_on_floor(vbo_pand_ids: list[str], nr_floors: int, vbo_count: int) -> list[
-    tuple[str, str]]:
+def distribute_vbo_on_floor(group: pd.DataFrame) -> pd.DataFrame | None:
     """Distribute the Verblijfsobjecten in one Pand across its floors.
+    Takes a DataFrame group and adds two attributes, `_position` which is one of
+    'vloer', 'midden', 'dak', 'dakvloer' and `_floor` which is the 0-indexed floor
+    number.
 
-    Returns a list of tuples with the (VBO ID, position), where 'position' is one of
-    'vloer', 'midden', 'dak', 'dakvloer'.
+    Returns the updated copy of the group.
     """
-    if nr_floors == 1:
-        return [(i, "dakvloer") for i in vbo_pand_ids]
-    vbo_per_floor = float(vbo_count) / float(nr_floors)
-    vbo_per_floor_int = round(vbo_per_floor)
-    if vbo_per_floor_int >= vbo_count:
-        return [(i, "vloer") for i in vbo_pand_ids]
+    group_copy = group.copy()
+    group_copy["_position"] = pd.NA
+    group_copy["_position"] = group_copy["_position"].astype("object")
+    group_copy["_floor"] = pd.NA
+    group_copy["_floor"] = group_copy["_floor"].astype("Int64")
+
+    pid = group.index.get_level_values("pand_identificatie")[0]
+    vbo_pand_ids = list(group.index)
+    if len(vbo_pand_ids) == 0:
+        log.debug(f"Skipping Pand {pid}, because vbo_ids is empty")
+        return None
+    nr_floors = group["nr_floors"].values[0]
+    if nr_floors is None:
+        log.debug(f"Skipping Pand {pid}, because nr_floors is None")
+        return None
+    vbo_count = group["vbo_count"].values[0]
+    if vbo_count is None:
+        log.debug(f"Skipping Pand {pid}, because vbo_count is None")
+        return None
+    wtype_pand = group["woningtype"].values[0]
+    if wtype_pand is None:
+        log.debug(f"Skipping Pand {pid}, because wtype_pand is None")
+        return None
+    vbo_per_floor = round(float(vbo_count) / float(nr_floors))
+
+    if vbo_per_floor >= vbo_count:
+        # These are single-storey buildings with one dwelling, or multi-storey buildings
+        # with one dwelling that spans across the floors.
+        group_copy["_position"] = "dakvloer"
+        group_copy["_floor"] = 0
     else:
-        vbo_positions = []
+        remaining_vbo_to_distribute = vbo_pand_ids
         # 1x vbo_per_floor is assigned to the ground floor
-        vbo_positions.extend((i, "vloer") for i in vbo_pand_ids[:vbo_per_floor_int])
-        del vbo_pand_ids[:vbo_per_floor_int]
+        selected_vbos = remaining_vbo_to_distribute[:vbo_per_floor]
+        del remaining_vbo_to_distribute[:vbo_per_floor]
+        group_copy.loc[selected_vbos, "_position"] = "vloer"
+        group_copy.loc[selected_vbos, "_floor"] = 0
+
         # 1x vbo_per_floor is assigned to the roof or top floor
-        vbo_positions.extend((i, "dak") for i in vbo_pand_ids[:vbo_per_floor_int])
-        del vbo_pand_ids[:vbo_per_floor_int]
-        # the rest of vbo_per floor is in the sandwich
-        vbo_positions.extend((i, "midden") for i in vbo_pand_ids)
-        return vbo_positions
+        if len(remaining_vbo_to_distribute) == 0:
+            return group_copy
+        selected_vbos = remaining_vbo_to_distribute[:vbo_per_floor]
+        del remaining_vbo_to_distribute[:vbo_per_floor]
+        group_copy.loc[selected_vbos, "_position"] = "dak"
+        # We have 0-indexed floor numbers
+        group_copy.loc[selected_vbos, "_floor"] = nr_floors - 1
+
+        # the rest of vbo_per_floor is in the sandwich
+        floor = 1
+        for floor in range(1, nr_floors - 1):
+            if len(remaining_vbo_to_distribute) > 0:
+                selected_vbos = remaining_vbo_to_distribute[:vbo_per_floor]
+                del remaining_vbo_to_distribute[:vbo_per_floor]
+                group_copy.loc[selected_vbos, "_position"] = "midden"
+                group_copy.loc[selected_vbos, "_floor"] = floor
+            else:
+                return group_copy
+        if len(remaining_vbo_to_distribute) > 0:
+            # We have remaining VBOs, so we assign them to the last floor of the
+            # "midden". This can happen if the we are on the last floor of loop
+            # and the vbo_per_floor is less than the remaining VBO
+            group_copy.loc[remaining_vbo_to_distribute, "_position"] = "midden"
+            group_copy.loc[remaining_vbo_to_distribute, "_floor"] = floor
+    return group_copy
 
 
-def classify_apartments(woningtype: Woningtype,
-                        vbo_positions: list[tuple[str, str]]) -> list[
-    tuple[str, Woningtype]]:
-    # We assume that all VBO-s have the same woningtype at this point, because the
-    # woningtype was estimated for the whole Pand
-    if woningtype in [Woningtype.VRIJSTAAND, Woningtype.TWEE_ONDER_EEN_KAP]:
-        return [(i, Woningtype(f"appartement - hoek{position}")) for i, position in
-                vbo_positions]
-    elif woningtype == Woningtype.RIJWONING_HOEK:
-        # It's the end of a row of houses, so we assume that one side of the building
-        # is touching a neighbour, thus we assume that half of the apparements are
-        # 'tussen', and half of them are 'hoek'.
-        half = math.floor(len(vbo_positions) / 2)
-        tussen = [(i, Woningtype(f"appartement - tussen{position}")) for i, position in vbo_positions[:half]]
-        hoek = [(i, Woningtype(f"appartement - hoek{position}")) for i, position in vbo_positions[half:]]
-        return hoek + tussen
+def classify_apartments(group: pd.DataFrame) -> pd.DataFrame | None:
+    group_copy = group.copy()
+    woningtype = group["woningtype"].values[0]
+
+    pid = group.index.get_level_values("pand_identificatie")[0]
+    vbo_pand_ids = list(group.index)
+    if len(vbo_pand_ids) == 0:
+        log.debug(f"Skipping Pand {pid}, because vbo_ids is empty")
+        return None
+    nr_floors = group["nr_floors"].values[0]
+    if nr_floors is None:
+        log.debug(f"Skipping Pand {pid}, because nr_floors is None")
+        return None
+    vbo_count = group["vbo_count"].values[0]
+    if vbo_count is None:
+        log.debug(f"Skipping Pand {pid}, because vbo_count is None")
+        return None
+    vbo_per_floor = round(float(vbo_count) / float(nr_floors))
+
+    # We assume a rectangular footprint
+    # We can have the apartements in a single or double row.
+    # We choose randomly between the two layouts.
+    # The single row, has two hoek apartements and N tussen per floor. The double row
+    # has 2x2 hoek and N tussen per floor.
+    # An improved version would take into account the shape of the footprint to
+    # determine the most likely layout.
+    # 1 is double row, 0 is single row
+    double_row = random.binomialvariate()
+    if vbo_per_floor == 3:
+        double_row = False
+    nr_hoek = None
+    if woningtype == Woningtype.VRIJSTAAND:
+        nr_hoek = 4 if double_row else 2
+    elif woningtype == Woningtype.TWEE_ONDER_EEN_KAP or woningtype == Woningtype.RIJWONING_HOEK:
+        nr_hoek = 2 if double_row else 1
     elif woningtype == Woningtype.RIJWONING_TUSSEN:
-        return [(i, Woningtype(f"appartement - tussen{position}")) for i, position in
-                vbo_positions]
+        nr_hoek = 0
+    for _floor, g in group.groupby("_floor"):
+        hoek = g["_position"].iloc[:nr_hoek].map("appartement - hoek{}".format).map(Woningtype)
+        tussen = g["_position"].iloc[nr_hoek:].map("appartement - tussen{}".format).map(Woningtype)
+        group_copy.loc[hoek.index, "woningtype"] = hoek
+        group_copy.loc[tussen.index, "woningtype"] = tussen
+    return group_copy
