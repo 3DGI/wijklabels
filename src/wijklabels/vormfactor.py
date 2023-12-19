@@ -30,8 +30,12 @@ def calculate_surface_areas(group) -> pd.DataFrame:
         opp_vloer = group.iloc[0]["b3_opp_grond"]
         opp_muur = group.iloc[0]["b3_opp_buitenmuur"]
         # If the woningtype of the VBO is NA, we do count it
-        nr_dak = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "dak" in w[1])
-        nr_vloer = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "vloer" in w[1])
+        try:
+            nr_dak = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "dak" in w[1])
+            nr_vloer = sum(1 for w in group["woningtype"].items() if w[1] is pd.NA or w[1] is None or "vloer" in w[1])
+        except TypeError as e:
+            log.exception(f"calculating the number of roof and ground apartements returned with an exception for group {group.name}:\n{e}")
+            return group_copy
         nr_muur = group.iloc[0]["vbo_count"]
         # Only 95% of the total wall surface is considered as dwelling surface.
         # The 95% percent is an arbitrary value that seems about okay-ish.

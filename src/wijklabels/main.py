@@ -23,7 +23,7 @@ log = logging.getLogger("main")
 log.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(lineno)d - %(message)s')
+formatter = logging.Formatter('%(asctime)s - %(filename)s - %(lineno)d - %(message)s')
 ch.setFormatter(formatter)
 log.addHandler(ch)
 # Logger for data validation messages
@@ -116,7 +116,13 @@ def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame
         df_input = fetch_rows(connection_string, cursor_start, colnames,
                               query_select_all,
                               set_size).drop(columns=["geometrie"])
-        for pid, group in df_input.groupby("pand_identificatie"):
+        _grp = df_input.groupby("pand_identificatie")
+        cntr = 1
+        le = _grp.ngroups
+        for pid, group in _grp:
+            if cntr % 1000 == 0:
+                log.info(f"Done with {cntr}/{le}")
+            cntr += 1
             if group["vbo_count"].iloc[0] > 1:
                 try:
                     vbo_positions = distribute_vbo_on_floor(group)
@@ -136,8 +142,9 @@ def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame
                         continue
                     elif nr_apartments < len(apartment_typen):
                         log.error(f"did not determine apartement types for all vbo in {pid}")
-                    group["woningtype"] = apartment_typen["woningtype"]
-                except KeyError:
+                    df_input.loc[apartment_typen.index, "woningtype"] = apartment_typen["woningtype"]
+                except KeyError as e:
+                    log.exception(f"KeyError in {pid}:\n{e}")
                     continue
         df_input["woningtype_pre_nta8800"] = df_input.apply(
             lambda row: WoningtypePreNTA8800.from_nta8800(row["woningtype"]),
@@ -202,13 +209,15 @@ def parallel_process_labels(CONNECTION_STRING, JOBS, PATH_OUTPUT_DIR, QUERY_SELE
         outpaths = [PATH_OUTPUT_DIR.joinpath(f"labels_{i}").with_suffix(".csv") for i in
                     enumerate(cursor_starts)]
         for i, df in enumerate(
-                executor.map(estimate_labels,
-                             repeat(CONNECTION_STRING, len(cursor_starts)),
-                             cursor_starts,
-                             repeat(distributions, len(cursor_starts)), outpaths,
-                             repeat(colnames, len(cursor_starts)),
-                             repeat(QUERY_SELECT_ALL, len(cursor_starts)),
-                             repeat(SET_SIZE, len(cursor_starts)))):
+            executor.map(estimate_labels,
+                         repeat(CONNECTION_STRING, len(cursor_starts)),
+                         cursor_starts,
+                         repeat(distributions, len(cursor_starts)), outpaths,
+                         repeat(colnames, len(cursor_starts)),
+                         repeat(QUERY_SELECT_ALL, len(cursor_starts)),
+                         repeat(SET_SIZE, len(cursor_starts))),
+            start=1
+        ):
             if df is not None:
                 df_giga_list.append(df)
             log.info(f"Processed {i} of {len(cursor_starts)} sets")
