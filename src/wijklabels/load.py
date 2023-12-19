@@ -155,7 +155,11 @@ class WoningtypeLoader:
 class EPLoader:
     """Loads the CSV file of the open energy labels from
     https://www.ep-online.nl/PublicData. The CSV file must be the one with all the
-    labels, not the one with the mutations."""
+    labels, not the one with the mutations.
+
+    It only keeps the labels that were determined after 2021-01-01, which is the start
+    of the NTA8800 method.
+    """
 
     def __init__(self, file: PathLike = None):
         self.file = file
@@ -226,9 +230,9 @@ class EPLoader:
                          converters=converters)
         df.rename(columns={"Pand_energieklasse": "energylabel",
                            "Pand_gebouwtype": "woningtype",
-                           "Pand_bagpandid": "identificatie",
+                           "Pand_bagpandid": "pand_identificatie",
                            "Pand_bagverblijfsobjectid": "vbo_identificatie"},
                   inplace=True)
         # The new NTA method was in place since 2021-01-01
         start_nta8800_method = pd.to_datetime("20210101", format="%Y%m%d")
-        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method]
+        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method].set_index(["vbo_identificatie", "pand_identificatie"])
