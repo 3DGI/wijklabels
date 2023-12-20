@@ -108,8 +108,7 @@ class VormfactorClass(OrderedEnum):
             log.error(f"couldn't classify vormfactor {vormfactor}")
 
 
-def vormfactorclass(row):
-    vof = vormfactor(row=row)
+def vormfactorclass(vof):
     try:
         return VormfactorClass.from_vormfactor(vof)
     except ValueError:

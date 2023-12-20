@@ -1,7 +1,7 @@
 import logging
 import random
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from itertools import repeat
 import argparse
 
@@ -10,7 +10,7 @@ import psycopg
 
 from wijklabels.report import aggregate_to_buurt
 from wijklabels.load import ExcelLoader
-from wijklabels.vormfactor import vormfactorclass, calculate_surface_areas
+from wijklabels.vormfactor import vormfactorclass, calculate_surface_areas, vormfactor
 from wijklabels.labels import parse_energylabel_ditributions, \
     reshape_for_classification, classify
 from wijklabels.woningtype import Bouwperiode, WoningtypePreNTA8800, \
@@ -27,6 +27,18 @@ log.addHandler(ch)
 # Do we need reproducible randomness?
 SEED = 1
 
+
+# Download the whole database table to a dataframe.
+# We use this method instead of the pd.read_sql_table() so that the created dataframe
+# is consistent with what comes out of fetch_rows().
+def postgres_table_to_df(connection_string, query_select_all, colnames) -> pd.DataFrame:
+    with psycopg.connect(connection_string) as conn:
+        with conn.cursor() as cur:
+            cur.execute(query_select_all)
+            df = pd.DataFrame(cur.fetchall(),
+                               columns=colnames).set_index(
+                ["vbo_identificatie", "pand_identificatie"])
+    return df
 
 # Get a connection from the connection pool.
 # Get a server-side cursor.
@@ -50,88 +62,46 @@ def fetch_rows(connection_string, cursor_start: int, colnames: list,
     return _df
 
 
-def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame,
-                    path_output_csv, colnames: list, query_select_all,
-                    set_size) -> pd.DataFrame:
+def estimate_labels(group, distributions) -> pd.DataFrame | None:
+    pid = group.index.get_level_values("pand_identificatie").values[0]
     try:
-        df_input = fetch_rows(connection_string, cursor_start, colnames,
-                              query_select_all,
-                              set_size).drop(columns=["geometrie"])
-        _grp = df_input.groupby("pand_identificatie")
-        cntr = 1
-        le = _grp.ngroups
-        for pid, group in _grp:
-            if cntr % 1000 == 0:
-                log.info(f"Done with {cntr}/{le}")
-            cntr += 1
-            if group["vbo_count"].iloc[0] > 1:
-                try:
-                    vbo_positions = distribute_vbo_on_floor(group)
-                    if vbo_positions is None:
-                        log.error(f"vbo_positions is None in {pid}")
-                        continue
-                    elif vbo_positions["_position"].isnull().sum() > 0:
-                        log.error(
-                            f"did not determine vbo positions for all vbo in {pid}")
-                    apartment_typen = classify_apartments(vbo_positions)
-                    try:
-                        nr_apartments = sum(1 for a in apartment_typen["woningtype"] if
-                                            a is not pd.NA and "appartement" in a)
-                    except TypeError as e:
-                        log.exception(f"TypeError in {pid}:\n{e}")
-                        continue
-                    if apartment_typen is None:
-                        log.error(f"apartment_typen is None in {pid}")
-                        continue
-                    elif nr_apartments < len(apartment_typen):
-                        log.error(
-                            f"did not determine apartement types for all vbo in {pid}")
-                    df_input.loc[apartment_typen.index, "woningtype"] = apartment_typen[
-                        "woningtype"]
-                except KeyError as e:
-                    log.exception(f"KeyError in {pid}:\n{e}")
-                    continue
-        df_input["woningtype_pre_nta8800"] = df_input.apply(
+        # If the Pand has apartements, set the 'woningtype' to one of the
+        # apartement types
+        if group["vbo_count"].iloc[0] > 1:
+            _gc = classify_aparements(group)
+            if _gc is not None:
+                group = _gc
+        group["woningtype_pre_nta8800"] = group.apply(
             lambda row: WoningtypePreNTA8800.from_nta8800(row["woningtype"]),
             axis=1
         )
 
-        # vbo_df["vormfactor"] = pd.NA
-        # vbo_df["vormfactor"] = vbo_df["vormfactor"].astype("Float64")
-        df_input["vormfactorclass"] = pd.NA
-        df_input["vormfactorclass"] = df_input["vormfactorclass"].astype("object")
+        group["vormfactor"] = pd.NA
+        group["vormfactor"] = group["vormfactor"].astype("Float64")
+        group["vormfactorclass"] = pd.NA
+        group["vormfactorclass"] = group["vormfactorclass"].astype("object")
         # Compute the vormfactor
         # Update the surface areas for each VBO, so that for instance, an apartement
         # only has its own portion of the total Pand surface areas
-        groups_with_new_surfaces = []
-        for _pid, group in df_input.groupby("pand_identificatie"):
-            try:
-                groups_with_new_surfaces.append(calculate_surface_areas(group))
-            except BaseException as e:
-                log.exception(
-                    f"groups_with_new_surfaces for group {_pid} returned with exception {e}")
-        new_surfaces = pd.concat(groups_with_new_surfaces)
-
-        df_input["vormfactorclass"] = new_surfaces.apply(
-            lambda row: vormfactorclass(row=row),
+        new_surfaces = calculate_surface_areas(group)
+        group["vormfactor"] = new_surfaces.apply(
+            lambda row: vormfactor(row=row),
+            axis=1
+        )
+        group["vormfactorclass"] = group.apply(
+            lambda row: vormfactorclass(row["vormfactor"]),
             axis=1
         )
 
         # match data
-        bouwperiode = df_input[
+        bouwperiode = group[
             ["oorspronkelijkbouwjaar", "woningtype", "woningtype_pre_nta8800",
-             "vormfactorclass",
-             "buurtcode"]].dropna()
-        # log_validation.info(f"Available VBO unique {len(bouwperiode.index.unique())}")
-        # log_validation.info(
-        #     f"Nr. NA in oorspronkelijkbouwjaar {bouwperiode['oorspronkelijkbouwjaar'].isna().sum()}")
-        # log_validation.info(
-        #     f"Nr. NA in woningtype {bouwperiode['woningtype'].isna().sum()}")
-        df_input["bouwperiode"] = bouwperiode.apply(
+             "vormfactorclass", "buurtcode"]].dropna()
+        group["bouwperiode"] = bouwperiode.apply(
             lambda row: Bouwperiode.from_year_type(row["oorspronkelijkbouwjaar"],
                                                    row["woningtype_pre_nta8800"]),
             axis=1)
-        df_input["energylabel"] = df_input.apply(
+        group["energylabel"] = group.apply(
             lambda row: classify(df=distributions,
                                  woningtype=row["woningtype_pre_nta8800"],
                                  bouwperiode=row["bouwperiode"],
@@ -139,33 +109,57 @@ def estimate_labels(connection_string, cursor_start, distributions: pd.DataFrame
                                  random_number=random.random()),
             axis=1
         )
-        # df_input.to_csv(path_output_csv)
-        return df_input
+        return group
     except BaseException as e:
-        log.exception(
-            f"Could not process the row set at cursor position {cursor_start} + {set_size} with exception\n{e}")
+        log.exception(f"Could not process the group {pid}:\n{e}")
         return None
 
 
-def parallel_process_labels(CONNECTION_STRING, JOBS, PATH_OUTPUT_DIR, QUERY_SELECT_ALL,
-                            SET_SIZE, colnames, cursor_starts, distributions):
-    df_giga_list = []
+def classify_aparements(group: pd.DataFrame) -> pd.DataFrame | None:
+    pid = group.index.get_level_values("pand_identificatie").values[0]
+    try:
+        vbo_positions = distribute_vbo_on_floor(group)
+        if vbo_positions is None:
+            log.error(f"vbo_positions is None in {pid}")
+            return None
+        elif vbo_positions["_position"].isnull().sum() > 0:
+            log.error(
+                f"did not determine vbo positions for all vbo in {pid}")
+        apartment_typen = classify_apartments(vbo_positions)
+        try:
+            nr_apartments = sum(1 for a in apartment_typen["woningtype"] if
+                                a is not pd.NA and "appartement" in a)
+        except TypeError as e:
+            log.exception(f"TypeError in {pid}:\n{e}")
+            return None
+        if apartment_typen is None:
+            log.error(f"apartment_typen is None in {pid}")
+            return None
+        elif nr_apartments < len(apartment_typen):
+            log.error(
+                f"did not determine apartement types for all vbo in {pid}")
+        group.loc[apartment_typen.index, "woningtype"] = apartment_typen[
+            "woningtype"]
+        return group
+    except KeyError as e:
+        log.exception(f"KeyError in {pid}:\n{e}")
+        return None
+
+
+def parallel_process_labels(groups, distributions, JOBS):
+    # Need to preallocate the list, even though normally not needed in Python, because
+    # otherwise we get crazy over-allocation with the dataframe items and all the
+    # memory leaks away from the machine.
+    df_giga_list = [None for i in range(len(groups))]
     with ProcessPoolExecutor(max_workers=JOBS) as executor:
-        outpaths = [PATH_OUTPUT_DIR.joinpath(f"labels_{i}").with_suffix(".csv") for i in
-                    enumerate(cursor_starts)]
-        for i, df in enumerate(
-                executor.map(estimate_labels,
-                             repeat(CONNECTION_STRING, len(cursor_starts)),
-                             cursor_starts,
-                             repeat(distributions, len(cursor_starts)), outpaths,
-                             repeat(colnames, len(cursor_starts)),
-                             repeat(QUERY_SELECT_ALL, len(cursor_starts)),
-                             repeat(SET_SIZE, len(cursor_starts))),
-                start=1
-        ):
+        le = len(groups)
+        cntr = 0
+        for df in executor.map(estimate_labels,groups, repeat(distributions, le)):
+            if cntr % 1000 == 0:
+                log.info(f"Processed {cntr}/{le} groups")
             if df is not None:
-                df_giga_list.append(df)
-            log.info(f"Processed {i} of {len(cursor_starts)} sets")
+                df_giga_list[0] = df
+            cntr += 1
     return df_giga_list
 
 
@@ -235,10 +229,17 @@ def process_cli():
     _d = parse_energylabel_ditributions(excelloader)
     distributions = reshape_for_classification(_d)
 
+    # Download the whole database table
+    df_input = postgres_table_to_df(CONNECTION_STRING, QUERY_SELECT_ALL, colnames).drop(columns=["geometrie"])
+
     # --- Loop
-    df_giga_list = parallel_process_labels(CONNECTION_STRING, JOBS, PATH_OUTPUT_DIR,
-                                           QUERY_SELECT_ALL, SET_SIZE, colnames,
-                                           cursor_starts, distributions)
+    # A list of one dataframe per pand_identificatie group
+    gb = df_input.groupby("pand_identificatie")
+    log.info("Splitting input into groups")
+    groups = [gb.get_group(g) for g in gb.groups]
+    del gb, df_input
+    log.info("Calculating attributes")
+    df_giga_list = parallel_process_labels(groups, distributions, JOBS)
     log.debug(f"Concatenating {len(df_giga_list)} dataframes")
     df_labels_individual = pd.concat(df_giga_list)
     df_labels_individual.to_csv(
