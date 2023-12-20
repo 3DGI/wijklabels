@@ -36,9 +36,10 @@ def postgres_table_to_df(connection_string, query_select_all, colnames) -> pd.Da
         with conn.cursor() as cur:
             cur.execute(query_select_all)
             df = pd.DataFrame(cur.fetchall(),
-                               columns=colnames).set_index(
+                              columns=colnames).set_index(
                 ["vbo_identificatie", "pand_identificatie"])
     return df
+
 
 # Get a connection from the connection pool.
 # Get a server-side cursor.
@@ -147,42 +148,24 @@ def classify_aparements(group: pd.DataFrame) -> pd.DataFrame | None:
         return None
 
 
-def _parallel_process_labels(groups, distributions, JOBS):
-    # Need to preallocate the list, even though normally not needed in Python, because
-    # otherwise we get crazy over-allocation with the dataframe items and all the
-    # memory leaks away from the machine.
-    df_giga_list = [g.copy() for g in groups]
-    with ProcessPoolExecutor(max_workers=JOBS) as executor:
-        le = len(groups)
-        ten_percent = int(le / 10)
-        cntr = 0
-        for df in executor.map(estimate_labels,groups, repeat(distributions, le)):
-            if cntr % ten_percent == 0:
-                log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
-            df_giga_list[cntr] = df
-            cntr += 1
-    return df_giga_list
-
 def parallel_process_labels(groups, distributions, JOBS):
     # Need to preallocate the list, even though normally not needed in Python, because
     # otherwise we get crazy over-allocation with the dataframe items and all the
     # memory leaks away from the machine.
-    df_giga_list = []
-    with ThreadPoolExecutor(max_workers=JOBS) as executor:
+    df_giga = None
+    with ProcessPoolExecutor(max_workers=JOBS) as executor:
         le = len(groups)
         ten_percent = int(le / 10)
         cntr = 0
-        future_to_df = [executor.submit(estimate_labels, group, distributions) for group in groups]
-        for future in as_completed(future_to_df):
-            try:
-                df = future.result()
-                if cntr % ten_percent == 0:
-                    log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
-                df_giga_list.append(df)
-            except Exception as e:
-                pass
+        for df in executor.map(estimate_labels, groups, repeat(distributions, le)):
+            if cntr % ten_percent == 0:
+                log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
+            df_giga = pd.concat([df_giga, df])
+            # I don't know what the fuck to do here. This list explodes the memory.
+            # df_giga_list[cntr] = df.copy()
             cntr += 1
-    return df_giga_list
+    return [df_giga, ]
+
 
 def sequential_process_labels(groups, distributions):
     # Need to preallocate the list, even though normally not needed in Python, because
@@ -200,7 +183,6 @@ def sequential_process_labels(groups, distributions):
             df_giga_list.append(df)
         cntr += 1
     return df_giga_list
-
 
 
 parser = argparse.ArgumentParser(prog='wijklabels-process')
@@ -270,7 +252,8 @@ def process_cli():
     distributions = reshape_for_classification(_d)
 
     # Download the whole database table
-    df_input = postgres_table_to_df(CONNECTION_STRING, QUERY_SELECT_ALL, colnames).drop(columns=["geometrie"])
+    df_input = postgres_table_to_df(CONNECTION_STRING, QUERY_SELECT_ALL, colnames).drop(
+        columns=["geometrie"])
 
     # --- Loop
     # A list of one dataframe per pand_identificatie group
