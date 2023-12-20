@@ -142,19 +142,19 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
                                           value_name="probability", ignore_index=False)
         normalized_long.set_index(["energylabel"], append=True, inplace=True)
         df_long = normalized_long.join(pd.concat(dfs_bins), how="inner")
-        df_long["woningtype"] = woningtype
+        df_long["woningtype_pre_nta8800"] = woningtype
         df_long["bouwperiode"] = bouwperiode
         dfs.append(df_long)
     df = pd.concat(dfs)
     df.reset_index(inplace=True)
     result_df = df[
-        ["woningtype", "bouwperiode", "vormfactor", "energylabel", "probability",
+        ["woningtype_pre_nta8800", "bouwperiode", "vormfactor", "energylabel", "probability",
          "bin_min", "bin_max"]]
-    result_df.set_index(["woningtype", "bouwperiode", "vormfactor"], inplace=True)
+    result_df.set_index(["woningtype_pre_nta8800", "bouwperiode", "vormfactor"], inplace=True)
     return result_df.sort_index(inplace=False)
 
 
-def classify(df: LongLabels, woningtype: Woningtype, bouwperiode: Bouwperiode,
+def classify(df: LongLabels, woningtype: WoningtypePreNTA8800, bouwperiode: Bouwperiode,
              vormfactor: VormfactorClass, random_number: float) -> EnergyLabel | None:
     """Assign an energy label to the provided properties (woningtype, bouwperiode,
     vormfactor) and the computed random number.
@@ -166,8 +166,10 @@ def classify(df: LongLabels, woningtype: Woningtype, bouwperiode: Bouwperiode,
     `random_number` falls into.
     """
     try:
-        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(
-            f"bin_min <= {random_number} < bin_max").energylabel
+        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(f"bin_min <= {random_number} < bin_max").energylabel
+        if len(label) > 1:
+            log.error(f"multiple labels {label} found for {(woningtype, bouwperiode, vormfactor)} and {random_number}, returning None")
         return label.item() if len(label) == 1 else None
-    except KeyError:
+    except KeyError as e:
+        log.error(f"{e}")
         return None

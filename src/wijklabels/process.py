@@ -1,7 +1,7 @@
 import logging
 import random
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from itertools import repeat
 import argparse
 
@@ -72,7 +72,8 @@ def estimate_labels(group, distributions) -> pd.DataFrame | None:
             if _gc is not None:
                 group = _gc
         group["woningtype_pre_nta8800"] = group.apply(
-            lambda row: WoningtypePreNTA8800.from_nta8800(row["woningtype"]),
+            lambda row: WoningtypePreNTA8800.from_nta8800(
+                row["woningtype"], row["oorspronkelijkbouwjaar"]),
             axis=1
         )
 
@@ -109,7 +110,7 @@ def estimate_labels(group, distributions) -> pd.DataFrame | None:
                                  random_number=random.random()),
             axis=1
         )
-        return group
+        return group.copy()
     except BaseException as e:
         log.exception(f"Could not process the group {pid}:\n{e}")
         return None
@@ -146,21 +147,60 @@ def classify_aparements(group: pd.DataFrame) -> pd.DataFrame | None:
         return None
 
 
+def _parallel_process_labels(groups, distributions, JOBS):
+    # Need to preallocate the list, even though normally not needed in Python, because
+    # otherwise we get crazy over-allocation with the dataframe items and all the
+    # memory leaks away from the machine.
+    df_giga_list = [g.copy() for g in groups]
+    with ProcessPoolExecutor(max_workers=JOBS) as executor:
+        le = len(groups)
+        ten_percent = int(le / 10)
+        cntr = 0
+        for df in executor.map(estimate_labels,groups, repeat(distributions, le)):
+            if cntr % ten_percent == 0:
+                log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
+            df_giga_list[cntr] = df
+            cntr += 1
+    return df_giga_list
+
 def parallel_process_labels(groups, distributions, JOBS):
     # Need to preallocate the list, even though normally not needed in Python, because
     # otherwise we get crazy over-allocation with the dataframe items and all the
     # memory leaks away from the machine.
-    df_giga_list = [None for i in range(len(groups))]
-    with ProcessPoolExecutor(max_workers=JOBS) as executor:
+    df_giga_list = []
+    with ThreadPoolExecutor(max_workers=JOBS) as executor:
         le = len(groups)
+        ten_percent = int(le / 10)
         cntr = 0
-        for df in executor.map(estimate_labels,groups, repeat(distributions, le)):
-            if cntr % 1000 == 0:
-                log.info(f"Processed {cntr}/{le} groups")
-            if df is not None:
-                df_giga_list[0] = df
+        future_to_df = [executor.submit(estimate_labels, group, distributions) for group in groups]
+        for future in as_completed(future_to_df):
+            try:
+                df = future.result()
+                if cntr % ten_percent == 0:
+                    log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
+                df_giga_list.append(df)
+            except Exception as e:
+                pass
             cntr += 1
     return df_giga_list
+
+def sequential_process_labels(groups, distributions):
+    # Need to preallocate the list, even though normally not needed in Python, because
+    # otherwise we get crazy over-allocation with the dataframe items and all the
+    # memory leaks away from the machine.
+    df_giga_list = []
+    le = len(groups)
+    ten_percent = int(le / 10)
+    cntr = 0
+    for group in groups:
+        df = estimate_labels(group, distributions)
+        if cntr % ten_percent == 0:
+            log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
+        if df is not None:
+            df_giga_list.append(df)
+        cntr += 1
+    return df_giga_list
+
 
 
 parser = argparse.ArgumentParser(prog='wijklabels-process')
@@ -237,22 +277,24 @@ def process_cli():
     gb = df_input.groupby("pand_identificatie")
     log.info("Splitting input into groups")
     groups = [gb.get_group(g) for g in gb.groups]
-    del gb, df_input
     log.info("Calculating attributes")
-    df_giga_list = parallel_process_labels(groups, distributions, JOBS)
-    log.debug(f"Concatenating {len(df_giga_list)} dataframes")
-    df_labels_individual = pd.concat(df_giga_list)
-    df_labels_individual.to_csv(
-        PATH_OUTPUT_DIR
-        .joinpath("labels_individual").with_suffix(".csv"))
+    if JOBS == 1:
+        df_giga_list = sequential_process_labels(groups, distributions)
+    else:
+        df_giga_list = parallel_process_labels(groups, distributions, JOBS)
+    log.debug(f"Concatenating dataframes")
+    df_labels_individual = pd.concat(df_giga_list, copy=False)
+    p = PATH_OUTPUT_DIR.joinpath("labels_individual").with_suffix(".csv")
+    log.info(f"Writing individual labels to {p}")
+    df_labels_individual.to_csv(p)
 
     # Aggregate per buurt
     log.info("Aggregating the neigbourhoods")
     buurten_labels_wide = aggregate_to_buurt(df_labels_individual,
                                              col_labels="energylabel")
-    buurten_labels_wide.to_csv(
-        PATH_OUTPUT_DIR
-        .joinpath("labels_neighbourhood").with_suffix(".csv"))
+    p = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood").with_suffix(".csv")
+    log.info(f"Writing neighbourhood labels to {p}")
+    buurten_labels_wide.to_csv(p)
 
     # # Plot each buurt
     # plot_buurts("../../plots_estimated", buurten_labels_wide)

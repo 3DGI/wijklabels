@@ -2,11 +2,10 @@
 
 Copyright 2023 3DGI
 """
-import math
 from enum import StrEnum
 import random
-import itertools
 import logging
+import itertools
 
 import pandas as pd
 from pandas import NA
@@ -54,7 +53,7 @@ class WoningtypePreNTA8800(StrEnum):
     OVERIG = "overig"
 
     @classmethod
-    def from_nta8800(cls, woningtype: Woningtype):
+    def from_nta8800(cls, woningtype: Woningtype, oorspronkelijkbouwjaar: int):
         """Map an NTA8800 Woningtype to a pre-NTA8800 Woningtype"""
         if woningtype is pd.NA:
             return pd.NA
@@ -69,24 +68,47 @@ class WoningtypePreNTA8800(StrEnum):
         else:
             # Choose one of the apartement types from a distribution that was
             # calculated from the EP-Online data.
-            return random.choice(APARTEMENTS_DISTRIBUTION_PRE_NTA8800)
+            if oorspronkelijkbouwjaar <= 1964:
+                return random.choice(APARTEMENTS_DISTRIBUTION_PRE_NTA8800[(0, 1964)])
+            elif 1965 <= oorspronkelijkbouwjaar <= 1974:
+                return random.choice(APARTEMENTS_DISTRIBUTION_PRE_NTA8800[(1965, 1974)])
+            elif 1975 <= oorspronkelijkbouwjaar <= 1991:
+                return random.choice(APARTEMENTS_DISTRIBUTION_PRE_NTA8800[(1975, 1991)])
+            elif 1992 <= oorspronkelijkbouwjaar:
+                return random.choice(APARTEMENTS_DISTRIBUTION_PRE_NTA8800[(1992, 9999)])
+            else:
+                raise ValueError(
+                    f"cannot determine apartement type from {oorspronkelijkbouwjaar=}, {woningtype=}")
 
 
 # The distribution of these types are compoted from the EP-Online data, from the records
 # before 2021-01-01
-PERCENT_OVERIG = 81
-PERCENT_MAISONETTE = 11
-PERCENT_GALERIJ = 5
-PERCENT_PORTIEK = 3
-APARTEMENTS_DISTRIBUTION_PRE_NTA8800 = [WoningtypePreNTA8800.OVERIG for _ in
-                                        range(PERCENT_OVERIG)] + [
-                                           WoningtypePreNTA8800.MAISONNETTE for _ in
-                                           range(PERCENT_MAISONETTE)] + [
-                                           WoningtypePreNTA8800.GALERIJ for _ in
-                                           range(PERCENT_GALERIJ)] + [
-                                           WoningtypePreNTA8800.PORTIEK for _ in
-                                           range(PERCENT_PORTIEK)]
-random.shuffle(APARTEMENTS_DISTRIBUTION_PRE_NTA8800)
+APARTEMENTS_DISTRIBUTION_PRE_NTA8800 = {
+    (0, 1964): list(itertools.chain(
+        (WoningtypePreNTA8800.OVERIG for _ in range(78)),
+        (WoningtypePreNTA8800.GALERIJ for _ in range(2)),
+        (WoningtypePreNTA8800.MAISONNETTE for _ in range(16)),
+        (WoningtypePreNTA8800.PORTIEK for _ in range(4)),
+    )),
+    (1965, 1974): list(itertools.chain(
+        (WoningtypePreNTA8800.OVERIG for _ in range(84)),
+        (WoningtypePreNTA8800.GALERIJ for _ in range(9)),
+        (WoningtypePreNTA8800.MAISONNETTE for _ in range(6)),
+        (WoningtypePreNTA8800.PORTIEK for _ in range(2)),
+    )),
+    (1975, 1991): list(itertools.chain(
+        (WoningtypePreNTA8800.OVERIG for _ in range(78)),
+        (WoningtypePreNTA8800.GALERIJ for _ in range(4)),
+        (WoningtypePreNTA8800.MAISONNETTE for _ in range(15)),
+        (WoningtypePreNTA8800.PORTIEK for _ in range(2)),
+    )),
+    (1992, 9999): list(itertools.chain(
+        (WoningtypePreNTA8800.OVERIG for _ in range(85)),
+        (WoningtypePreNTA8800.GALERIJ for _ in range(7)),
+        (WoningtypePreNTA8800.MAISONNETTE for _ in range(7)),
+        (WoningtypePreNTA8800.PORTIEK for _ in range(1)),
+    ))
+}
 
 
 class Bouwperiode(OrderedEnum):
@@ -277,8 +299,10 @@ def classify_apartments(group: pd.DataFrame) -> pd.DataFrame | None:
     elif woningtype == Woningtype.RIJWONING_TUSSEN:
         nr_hoek = 0
     for _floor, g in group.groupby("_floor"):
-        hoek = g["_position"].iloc[:nr_hoek].map("appartement - hoek{}".format).map(Woningtype)
-        tussen = g["_position"].iloc[nr_hoek:].map("appartement - tussen{}".format).map(Woningtype)
+        hoek = g["_position"].iloc[:nr_hoek].map("appartement - hoek{}".format).map(
+            Woningtype)
+        tussen = g["_position"].iloc[nr_hoek:].map("appartement - tussen{}".format).map(
+            Woningtype)
         group_copy.loc[hoek.index, "woningtype"] = hoek
         group_copy.loc[tussen.index, "woningtype"] = tussen
     return group_copy
