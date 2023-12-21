@@ -16,3 +16,8 @@ venv
 .Rproj.user
 
 /.quarto/
+.jupyter_cache
+report_files
+.Rproj.user
+.RData
+.Rhistory

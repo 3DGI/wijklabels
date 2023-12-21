@@ -177,7 +177,7 @@ def sequential_process_labels(df_input, distributions):
         if cntr % ten_percent == 0:
             log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
         if df is not None:
-            df_input.loc[df.index] = df
+            df_input.update(df)
         cntr += 1
     df_giga_list.append(df_input)
     return df_giga_list
