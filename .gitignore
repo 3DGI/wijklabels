@@ -11,9 +11,9 @@ src/wijklabels/__pycache__
 /dist/
 /logs/
 /.pytest_cache/
-venv
+venv*
 /plots*
-.Rproj.user
+
 
 /.quarto/
 .jupyter_cache

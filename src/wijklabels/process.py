@@ -2,11 +2,12 @@ import logging
 import random
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
-from itertools import repeat
+from itertools import repeat, chain
 import argparse
 
 import pandas as pd
 import psycopg
+from psycopg.rows import namedtuple_row
 from psycopg_pool import ConnectionPool
 
 from wijklabels.report import aggregate_to_buurt
@@ -59,7 +60,9 @@ def fetch_rows(connection_string, cursor_start: int, colnames: list,
     return _df
 
 
-def estimate_labels(group, distributions) -> pd.DataFrame | None:
+def estimate_labels(group_tuples, distributions, colnames) -> tuple | None:
+    group = pd.DataFrame(group_tuples, columns=colnames).set_index(
+                ["vbo_identificatie", "pand_identificatie"]).drop(columns=["geometrie"])
     pid = group.index.get_level_values("pand_identificatie").values[0]
     try:
         # If the Pand has apartements, set the 'woningtype' to one of the
@@ -107,7 +110,7 @@ def estimate_labels(group, distributions) -> pd.DataFrame | None:
                                  random_number=random.random()),
             axis=1
         )
-        return group.copy()
+        return group.reset_index().to_dict("records")
     except BaseException as e:
         log.exception(f"Could not process the group {pid}:\n{e}")
         return None
@@ -144,23 +147,23 @@ def classify_aparements(group: pd.DataFrame) -> pd.DataFrame | None:
         return None
 
 
-def parallel_process_labels(groups, distributions, JOBS):
+def parallel_process_labels(groups, distributions, JOBS, colnames):
     # Need to preallocate the list, even though normally not needed in Python, because
     # otherwise we get crazy over-allocation with the dataframe items and all the
     # memory leaks away from the machine.
-    df_giga = None
+    tuples_giga_list = [None for _ in range(len(groups))]
     with ProcessPoolExecutor(max_workers=JOBS) as executor:
         le = len(groups)
         ten_percent = int(le / 10)
         cntr = 0
-        for df in executor.map(estimate_labels, groups, repeat(distributions, le)):
+        for tuples in executor.map(estimate_labels, groups, repeat(distributions, le), repeat(colnames, le)):
             if cntr % ten_percent == 0:
                 log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
-            df_giga = pd.concat([df_giga, df])
+            tuples_giga_list[cntr] = tuples
             # I don't know what the fuck to do here. This list explodes the memory.
             # df_giga_list[cntr] = df.copy()
             cntr += 1
-    return [df_giga, ]
+    return chain.from_iterable(tuples_giga_list)
 
 
 def sequential_process_labels(df_input, distributions):
@@ -191,6 +194,14 @@ def get_pand_df(pool, pand_identificatie, colnames) -> pd.DataFrame:
         return (pd.DataFrame(exec.fetchall(), columns=colnames)
                 .set_index(["vbo_identificatie", "pand_identificatie"])
                 .drop(columns="geometrie"))
+
+
+def get_pand(pool, pand_identificatie) -> tuple:
+    with pool.connection() as conn:
+        exec = conn.execute(
+            "SELECT * FROM wijklabels.input WHERE pand_identificatie = %s",
+            (pand_identificatie,))
+        return exec.fetchall()
 
 
 parser = argparse.ArgumentParser(prog='wijklabels-process')
@@ -268,12 +279,16 @@ def process_cli():
         with ConnectionPool(CONNECTION_STRING, min_size=JOBS * 4) as pool:
             pool.wait()
             with ThreadPoolExecutor(max_workers=JOBS * 4) as executor:
-                futures = [executor.submit(get_pand_df, pool, pid, colnames) for pid in
+                futures = [executor.submit(get_pand, pool, pid) for pid in
                            pand_identificatie_all]
-                groups = [future.result() for future in as_completed(futures)]
-        df_giga_list = parallel_process_labels(groups, distributions, JOBS)
+                groups = tuple(chain(future.result() for future in as_completed(futures)))
+        df_giga_list = parallel_process_labels(groups, distributions, JOBS, colnames)
     log.debug(f"Concatenating dataframes")
-    df_labels_individual = pd.concat(df_giga_list, copy=False)
+    df_labels_individual = pd.DataFrame.from_records(
+        df_giga_list,
+        columns=colnames + ['woningtype_pre_nta8800', 'vormfactor', 'vormfactorclass',
+       'bouwperiode', 'energylabel']
+    )
     p = PATH_OUTPUT_DIR.joinpath("labels_individual").with_suffix(".csv")
     log.info(f"Writing individual labels to {p}")
     df_labels_individual.to_csv(p)
