@@ -55,12 +55,7 @@ def fetch_rows(connection_string, cursor_start: int, colnames: list,
             _df = pd.DataFrame(cur.fetchmany(size=set_size),
                                columns=colnames).set_index(
                 ["vbo_identificatie", "pand_identificatie"])
-            # duplicate_vbos = _df.index.duplicated(keep="first")  #
-            # log_validation.info(
-            #     f"Removed duplicate VBO which happens when a Pand is split, so there are two different Pand-ID, but the VBO is duplicated {sum(duplicate_vbos)}.")
             conn.commit()
-            # cur.close()
-    # return _df.loc[~duplicate_vbos, :]
     return _df
 
 
@@ -205,7 +200,6 @@ parser.add_argument('--port', type=int, default=5432)
 parser.add_argument('user')
 parser.add_argument('password')
 parser.add_argument('-j', '--jobs', type=int, default=4)
-parser.add_argument('-s', '--set_size', type=int, default=10000)
 
 
 def process_cli():
@@ -213,8 +207,6 @@ def process_cli():
     PATH_OUTPUT_DIR = Path(args.path_output_dir).resolve()
     PATH_LABEL_DISTRIBUTIONS = Path(args.path_label_distributions).resolve()
     JOBS = args.jobs
-    # The number of rows to fetch from the database at once
-    SET_SIZE = args.set_size
 
     CREDS = {
         "host": args.host,
@@ -226,19 +218,7 @@ def process_cli():
     CONNECTION_STRING = " ".join((f"{k}={v}" for k, v in CREDS.items()))
 
     QUERY_COUNT = "SELECT count(*) FROM wijklabels.input;"
-    QUERY_SELECT_ALL = "SELECT * FROM wijklabels.input;"
     QUERY_PID = "SELECT DISTINCT pand_identificatie FROM wijklabels.input;"
-
-    # Determine the number of database requests from the number of rows and the required
-    # set size.
-    # Since we use absolute cursor positions, we also calculate the cursor start position
-    # for each set.
-    with psycopg.connect(CONNECTION_STRING) as conn:
-        with conn.cursor() as cur:
-            cur.execute(QUERY_COUNT)
-            row_count = cur.fetchone()[0]
-    nr_requests = -(row_count // -SET_SIZE)
-    cursor_starts = [i * SET_SIZE for i in range(nr_requests)]
 
     # Get all the distinct pand_identificatie
     with psycopg.connect(CONNECTION_STRING) as conn:
