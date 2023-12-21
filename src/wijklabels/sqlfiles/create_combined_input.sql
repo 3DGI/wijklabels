@@ -128,3 +128,5 @@ FROM wijklabels.pand_vbo_woonfunctie p
 WHERE pw._betrouwbaar IS TRUE;
 
 COMMENT ON TABLE wijklabels.input IS 'The input data with all the attributes needed for the energy label estimation.';
+
+CREATE INDEX input_pand_identificatie_idx ON wijklabels.input (pand_identificatie);

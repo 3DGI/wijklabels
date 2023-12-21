@@ -123,6 +123,12 @@ class Bouwperiode(OrderedEnum):
     FROM_2015 = 2015, 9999
     FROM_1992 = 1992, 9999
 
+    def __repr__(self):
+        return str(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
     @classmethod
     def from_year_type(cls, oorspronkelijkbouwjaar: int,
                        woningtype: WoningtypePreNTA8800):

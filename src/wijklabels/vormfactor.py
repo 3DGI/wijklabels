@@ -97,6 +97,12 @@ class VormfactorClass(OrderedEnum):
     FROM_300_UNTIL_350 = (3.0, 3.5)
     ABOVE_350 = (3.5, float("inf"))
 
+    def __repr__(self):
+        return str(self.value)
+
+    def __str__(self):
+        return str(self.value)
+
     @classmethod
     def from_vormfactor(cls, vormfactor):
         """Classify the vormfactor into into one of the bins defined in the energy

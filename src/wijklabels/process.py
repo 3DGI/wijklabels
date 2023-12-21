@@ -7,6 +7,7 @@ import argparse
 
 import pandas as pd
 import psycopg
+from psycopg_pool import ConnectionPool
 
 from wijklabels.report import aggregate_to_buurt
 from wijklabels.load import ExcelLoader
@@ -87,7 +88,7 @@ def estimate_labels(group, distributions) -> pd.DataFrame | None:
         # only has its own portion of the total Pand surface areas
         new_surfaces = calculate_surface_areas(group)
         group["vormfactor"] = new_surfaces.apply(
-            lambda row: vormfactor(row=row),
+            lambda row: round(vormfactor(row=row), 2),
             axis=1
         )
         group["vormfactorclass"] = group.apply(
@@ -185,6 +186,16 @@ def sequential_process_labels(groups, distributions):
     return df_giga_list
 
 
+def get_pand_df(pool, pand_identificatie, colnames) -> pd.DataFrame:
+    with pool.connection() as conn:
+        exec = conn.execute(
+            "SELECT * FROM wijklabels.input WHERE pand_identificatie = %s",
+            (pand_identificatie,))
+        return (pd.DataFrame(exec.fetchall(), columns=colnames)
+                .set_index(["vbo_identificatie", "pand_identificatie"])
+                .drop(columns="geometrie"))
+
+
 parser = argparse.ArgumentParser(prog='wijklabels-process')
 parser.add_argument('path_output_dir')
 parser.add_argument('path_label_distributions')
@@ -216,6 +227,7 @@ def process_cli():
 
     QUERY_COUNT = "SELECT count(*) FROM wijklabels.input;"
     QUERY_SELECT_ALL = "SELECT * FROM wijklabels.input;"
+    QUERY_PID = "SELECT DISTINCT pand_identificatie FROM wijklabels.input;"
 
     # Determine the number of database requests from the number of rows and the required
     # set size.
@@ -227,6 +239,12 @@ def process_cli():
             row_count = cur.fetchone()[0]
     nr_requests = -(row_count // -SET_SIZE)
     cursor_starts = [i * SET_SIZE for i in range(nr_requests)]
+
+    # Get all the distinct pand_identificatie
+    with psycopg.connect(CONNECTION_STRING) as conn:
+        with conn.cursor() as cur:
+            cur.execute(QUERY_PID)
+            pand_identificatie_all = [r[0] for r in cur.fetchall()]
 
     # Column names to use for the dataframe
     colnames = [
@@ -252,14 +270,16 @@ def process_cli():
     distributions = reshape_for_classification(_d)
 
     # Download the whole database table
-    df_input = postgres_table_to_df(CONNECTION_STRING, QUERY_SELECT_ALL, colnames).drop(
-        columns=["geometrie"])
+    log.info(f"Loading {len(pand_identificatie_all)} dataframes from the input table")
+    with ConnectionPool(CONNECTION_STRING, min_size=JOBS * 2) as pool:
+        pool.wait()
+        with ThreadPoolExecutor(max_workers=JOBS * 2) as executor:
+            futures = [executor.submit(get_pand_df, pool, pid, colnames) for pid in
+                       pand_identificatie_all]
+            groups = [future.result() for future in as_completed(futures)]
 
     # --- Loop
     # A list of one dataframe per pand_identificatie group
-    gb = df_input.groupby("pand_identificatie")
-    log.info("Splitting input into groups")
-    groups = [gb.get_group(g) for g in gb.groups]
     log.info("Calculating attributes")
     if JOBS == 1:
         df_giga_list = sequential_process_labels(groups, distributions)
