@@ -251,9 +251,9 @@ def process_cli():
 
     # Download the whole database table
     log.info(f"Loading {len(pand_identificatie_all)} dataframes from the input table")
-    with ConnectionPool(CONNECTION_STRING, min_size=JOBS * 2) as pool:
+    with ConnectionPool(CONNECTION_STRING, min_size=JOBS * 4) as pool:
         pool.wait()
-        with ThreadPoolExecutor(max_workers=JOBS * 2) as executor:
+        with ThreadPoolExecutor(max_workers=JOBS * 4) as executor:
             futures = [executor.submit(get_pand_df, pool, pid, colnames) for pid in
                        pand_identificatie_all]
             groups = [future.result() for future in as_completed(futures)]
