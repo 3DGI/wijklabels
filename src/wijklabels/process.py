@@ -163,21 +163,23 @@ def parallel_process_labels(groups, distributions, JOBS):
     return [df_giga, ]
 
 
-def sequential_process_labels(groups, distributions):
+def sequential_process_labels(df_input, distributions):
     # Need to preallocate the list, even though normally not needed in Python, because
     # otherwise we get crazy over-allocation with the dataframe items and all the
     # memory leaks away from the machine.
     df_giga_list = []
+    groups = df_input.groupby("pand_identificatie")
     le = len(groups)
     ten_percent = int(le / 10)
     cntr = 0
-    for group in groups:
+    for _, group in groups:
         df = estimate_labels(group, distributions)
         if cntr % ten_percent == 0:
             log.info(f"Processed {round(cntr / ten_percent) * 10}% of {le} groups")
         if df is not None:
-            df_giga_list.append(df)
+            df_input.loc[df.index] = df
         cntr += 1
+    df_giga_list.append(df_input)
     return df_giga_list
 
 
@@ -217,7 +219,7 @@ def process_cli():
     }
     CONNECTION_STRING = " ".join((f"{k}={v}" for k, v in CREDS.items()))
 
-    QUERY_COUNT = "SELECT count(*) FROM wijklabels.input;"
+    QUERY_ALL = "SELECT * FROM wijklabels.input;"
     QUERY_PID = "SELECT DISTINCT pand_identificatie FROM wijklabels.input;"
 
     # Get all the distinct pand_identificatie
@@ -244,26 +246,31 @@ def process_cli():
         "b3_opp_scheidingsmuur"
     ]
 
-    use_gebruiksoppervlakte_for_vormfactor = True
     excelloader = ExcelLoader(file=PATH_LABEL_DISTRIBUTIONS)
     _d = parse_energylabel_ditributions(excelloader)
     distributions = reshape_for_classification(_d)
-
-    # Download the whole database table
-    log.info(f"Loading {len(pand_identificatie_all)} dataframes from the input table")
-    with ConnectionPool(CONNECTION_STRING, min_size=JOBS * 4) as pool:
-        pool.wait()
-        with ThreadPoolExecutor(max_workers=JOBS * 4) as executor:
-            futures = [executor.submit(get_pand_df, pool, pid, colnames) for pid in
-                       pand_identificatie_all]
-            groups = [future.result() for future in as_completed(futures)]
 
     # --- Loop
     # A list of one dataframe per pand_identificatie group
     log.info("Calculating attributes")
     if JOBS == 1:
-        df_giga_list = sequential_process_labels(groups, distributions)
+        with psycopg.connect(CONNECTION_STRING) as conn:
+            with conn.cursor() as cur:
+                cur.execute(QUERY_ALL)
+                df_input = (pd.DataFrame(cur.fetchall(), columns=colnames)
+                      .set_index(["vbo_identificatie", "pand_identificatie"])
+                      .drop(columns="geometrie"))
+        df_giga_list = sequential_process_labels(df_input, distributions)
     else:
+        # Download the whole database table
+        log.info(
+            f"Loading {len(pand_identificatie_all)} dataframes from the input table")
+        with ConnectionPool(CONNECTION_STRING, min_size=JOBS * 4) as pool:
+            pool.wait()
+            with ThreadPoolExecutor(max_workers=JOBS * 4) as executor:
+                futures = [executor.submit(get_pand_df, pool, pid, colnames) for pid in
+                           pand_identificatie_all]
+                groups = [future.result() for future in as_completed(futures)]
         df_giga_list = parallel_process_labels(groups, distributions, JOBS)
     log.debug(f"Concatenating dataframes")
     df_labels_individual = pd.concat(df_giga_list, copy=False)

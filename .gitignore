@@ -13,3 +13,6 @@ src/wijklabels/__pycache__
 /.pytest_cache/
 venv
 /plots*
+.Rproj.user
+
+/.quarto/
