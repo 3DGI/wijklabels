@@ -27,8 +27,19 @@ formatter = logging.Formatter('%(asctime)s - %(filename)s - %(lineno)d - %(messa
 ch.setFormatter(formatter)
 log.addHandler(ch)
 
+parser = argparse.ArgumentParser(prog='wijklabels-process')
+parser.add_argument('path_output_dir')
+parser.add_argument('path_label_distributions')
+parser.add_argument('dbname')
+parser.add_argument('--host', default='localhost')
+parser.add_argument('--port', type=int, default=5432)
+parser.add_argument('user')
+parser.add_argument('password')
+parser.add_argument('table', type=str, default='wijklabels.input')
+parser.add_argument('-j', '--jobs', type=int, default=4)
 
-def process_cli(args):
+
+def process_cli():
     columns = [
         "pand_identificatie",
         "oorspronkelijkbouwjaar",
@@ -48,6 +59,7 @@ def process_cli(args):
     columns_index = ["pand_identificatie", "vbo_identificatie"]
     columns_excluded = ["geometrie"]
 
+    args = parser.parse_args()
     connection_string = f"postgresql://{args.user}:{args.password}@{args.host}:{args.port}/{args.dbname}"
     path_label_distributions = Path(args.path_label_distributions).resolve()
     path_output_dir = Path(args.path_output_dir).resolve()
@@ -278,16 +290,4 @@ def get_pand(connection_str: str, table: str, pand_identificatie: str) -> list[d
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog='wijklabels-process')
-    parser.add_argument('path_output_dir')
-    parser.add_argument('path_label_distributions')
-    parser.add_argument('dbname')
-    parser.add_argument('--host', default='localhost')
-    parser.add_argument('--port', type=int, default=5432)
-    parser.add_argument('user')
-    parser.add_argument('password')
-    parser.add_argument('table', type=str, default='wijklabels.input')
-    parser.add_argument('-j', '--jobs', type=int, default=4)
-    args_cli = parser.parse_args()
-
-    process_cli(args_cli)
+    process_cli()
