@@ -54,8 +54,8 @@ def process_cli(args):
     path_output_individual = path_output_dir.joinpath("labels_individual").with_suffix(".csv")
     path_output_aggregate = path_output_dir.joinpath("labels_neighbourhood").with_suffix(".csv")
     jobs = args.jobs
+    table = args.table
 
-    table = "wijklabels.input"
     query_one = f"SELECT * FROM {table} LIMIT 1;"
     query_pid = f"SELECT DISTINCT pand_identificatie FROM {table};"
 
@@ -286,6 +286,7 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=5432)
     parser.add_argument('user')
     parser.add_argument('password')
+    parser.add_argument('table', type=str, default='wijklabels.input')
     parser.add_argument('-j', '--jobs', type=int, default=4)
     args_cli = parser.parse_args()
 
