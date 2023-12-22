@@ -10,7 +10,7 @@ import psycopg
 from psycopg.rows import dict_row
 
 from wijklabels.report import aggregate_to_buurt
-from build.lib.wijklabels.load import ExcelLoader
+from wijklabels.load import ExcelLoader
 from wijklabels.vormfactor import calculate_surface_areas, vormfactor, \
     vormfactorclass
 from wijklabels.woningtype import distribute_vbo_on_floor, \
