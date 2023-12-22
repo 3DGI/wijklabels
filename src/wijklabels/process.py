@@ -3,6 +3,7 @@ import random
 from pathlib import Path
 import argparse
 import itertools
+from concurrent.futures import ProcessPoolExecutor
 
 import pandas as pd
 import psycopg
@@ -82,11 +83,19 @@ def process_cli(args):
             pand_identificatie_all = [r[0] for r in cur.fetchall()]
 
     log.info("Calculating attributes and estimating energy labels")
-    records = itertools.chain.from_iterable(
-        estimate_labels_one_pand(connection_string, table, pid, columns_index,
-                                 columns_excluded, distributions)
-        for pid in pand_identificatie_all
-    )
+    nr_pand = len(pand_identificatie_all)
+    with ProcessPoolExecutor(max_workers=jobs) as executor:
+        records = itertools.chain.from_iterable(
+            executor.map(
+                estimate_labels_one_pand,
+                itertools.repeat(connection_string, nr_pand),
+                itertools.repeat(table, nr_pand),
+                pand_identificatie_all,
+                itertools.repeat(columns_index, nr_pand),
+                itertools.repeat(columns_excluded, nr_pand),
+                itertools.repeat(distributions, nr_pand)
+            )
+        )
     df_labels_individual = pd.DataFrame.from_records(records, index=columns_index)
 
     log.info(f"Writing individual labels to {path_output_individual}")
@@ -261,7 +270,10 @@ def get_pand(connection_str: str, table: str, pand_identificatie: str) -> list[d
     """
     with psycopg.connect(connection_str) as conn:
         with conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(f"SELECT * FROM {table} WHERE pand_identificatie = %s",(pand_identificatie,))
+            cur.execute(
+                f"SELECT * FROM {table} WHERE pand_identificatie = %s",
+                (pand_identificatie,)
+            )
             return cur.fetchall()
 
 
