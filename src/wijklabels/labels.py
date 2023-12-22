@@ -154,8 +154,8 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
     return result_df.sort_index(inplace=False)
 
 
-def classify(df: LongLabels, woningtype: WoningtypePreNTA8800, bouwperiode: Bouwperiode,
-             vormfactor: VormfactorClass, random_number: float) -> EnergyLabel | None:
+def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800, bouwperiode: Bouwperiode,
+                   vormfactor: VormfactorClass, random_number: float) -> EnergyLabel | None:
     """Assign an energy label to the provided properties (woningtype, bouwperiode,
     vormfactor) and the computed random number.
     For the given woningtype, bouwperiode and vormfactor, the energy labels have the
