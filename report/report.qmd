@@ -36,7 +36,7 @@ The resulting value is rounded up to the nearest whole number, which gives us th
 We can reliably estimate the number of floors in a Pand only from its roofprint area and the area of its VBO-s.
 :::
 
-```sql-postgresql
+```{sql-postgresql}
 CREATE TABLE wijklabels.floors AS
 WITH gb AS (SELECT pand_identificatie
                  , sum(oppervlakte) AS gebruiksoppervlakte
@@ -54,6 +54,66 @@ COMMENT ON TABLE wijklabels.floors IS 'The estimated number of floors per pand.'
 ```
 
 ## Dwelling types
+
+Dwellings are classified into distinct types.
+The current classification, as used by the NTA8800 method, is listed below.
+In case of appartements, hoek/tussen refers to the horizontal position of the appartement in the building, while vloer/midden/dak/dakvloer refers to its vertical position.
+For the sake of simplicity, we refer to this classification as **NTA8800-types**.
+
+Eengezinswoningen:
+
+- vrijstaande woning
+- 2 onder 1 kap
+- rijwoning tussen
+- rijwoning hoek
+
+Meergezinswoningen:
+
+- appartement - hoekvloer
+- appartement - hoekmidden
+- appartement - hoekdak
+- appartement - hoekdakvloer
+- appartement - tussenvloer
+- appartement - tussenmidden
+- appartement - tussendak
+- appartement - tussendakvloer
+
+Before the introduction of the NTA8800 method, dwellings were classified slightly differently.
+This is the classification used by the WoON2022 study.
+For the sake of simplicity, we refer to this classification as **pre-NTA8800-types**.
+
+Eengezinswoningen:
+
+- vrijstaande woning
+- 2 onder 1 kap
+- rijwoning tussen
+- rijwoning hoek
+
+Meergezinswoningen:
+
+- maisonette
+- galerij
+- portiek
+- flat (overig)
+
+The types of the single family houses are equivalent before and after NTA8800.
+On the other hand, there is no relation between the types of the meergezingswoningen before and after NTA8800.
+
+This work requires that we know both the *NTA8800* and the *pre-NTA8800* type of each dwelling.
+The *pre-NTA8800* type is needed, because that is used by the WoON2022 study, and the *NTA8800* type is needed, because that is used by the validation data on EP-Online.
+
+We first estimate the *NTA8800* type and then convert that to a *pre-NTA8800* type.
+The method for classifying the een- and meergezinswoningen differs significantly.
+
+### Eengezinswoningen
+
+The eengezinswoningen are identified by clustering the intersecting BAG geometries.
+For example, a row of five row-houses forms one cluster, because they form a group of connected objects.
+We determine the types *vrijstaand/2 onder 1 kap/rijwoning* from the number of buildings in the cluster.
+In case of a *rijwoning*, we determine its position *hoek/tussen* from the number intersections with other buildings in the cluster.
+
+### Meergezinswoningen
+
 
 **compare to the ep-online nta8800 woningtype**
 
