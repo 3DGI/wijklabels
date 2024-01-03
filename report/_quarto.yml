@@ -1,0 +1,22 @@
+project:
+  output-dir: _output
+
+toc: true
+number-sections: true
+lang: en
+
+format:
+  html:
+    code-fold: true
+  pdf: default
+  ipynb: default
+#  odt:
+#    page-layout: article
+#    echo: false
+
+jupyter: python3
+
+#execute:
+#  eval: true
+#  freeze: true
+#  cache: true

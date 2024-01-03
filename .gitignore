@@ -14,10 +14,12 @@ src/wijklabels/__pycache__
 venv*
 /plots*
 
-
-/.quarto/
-.jupyter_cache
-report_files
-.Rproj.user
-.RData
-.Rhistory
+# report
+/report/.jupyter_cache/
+/report/.quarto/
+/report/_freeze/
+/report/_output/
+/report/.Rproj.user
+/report/.Rhistory
+/report/wijklabels.Rproj
+/report/_environment

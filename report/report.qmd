@@ -1,0 +1,95 @@
+---
+title: "Wijklabels"
+author: "Balázs Dukai, Ravi Peters"
+date: last-modified
+---
+```{python}
+import pandas as pd
+```
+
+
+# Introduction
+
+challanges:
+- the position of a VBO is not known in a pand
+
+# Preparing the input
+
+## BAG and 3DBAG
+
+We used the [3DBAG](https://3dbag.nl) version `2023.10.08`.
+We used the party walls data that were computed from the same 3DBAG version and delivered as a CSV file to the RVO (`3dbag_v20231008_rvo_export.csv`).
+
+The 3DBAG `2023.10.08` is based on the BAG 2.0 Extract of 08.09.2023.
+
+Only those VBO-s are selected whose usage (gebruiksdoel) includes woonfunctie.
+
+## Number of floors
+
+Required for distributing the VBO-s in the Pand.
+We compute the number of floors by dividing the gebruiksoppervlakte by the area of the roofprint taken from the 3DBAG.
+The gebruiksoppervlakte is the sum of each VBO's `oppervlakte` in the BAG.
+The roofprint area is the [totale oppervlakte begane grond](https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond), without any underground parts.
+The resulting value is rounded up to the nearest whole number, which gives us the number of floors.
+
+::: {.callout-note title="Assumption"}
+We can reliably estimate the number of floors in a Pand only from its roofprint area and the area of its VBO-s.
+:::
+
+```sql-postgresql
+CREATE TABLE wijklabels.floors AS
+WITH gb AS (SELECT pand_identificatie
+                 , sum(oppervlakte) AS gebruiksoppervlakte
+                 , count(*)         AS vbo_count
+            FROM wijklabels.pand_vbo_woonfunctie
+            GROUP BY pand_identificatie)
+SELECT gb.pand_identificatie
+     , ceil(gb.gebruiksoppervlakte / pw.b3_opp_grond)::int4 AS nr_floors
+     , gb.vbo_count
+FROM public.party_walls AS pw
+         JOIN gb ON pw.identificatie = gb.pand_identificatie
+WHERE pw.b3_opp_grond > 0.0;
+
+COMMENT ON TABLE wijklabels.floors IS 'The estimated number of floors per pand.';
+```
+
+## Dwelling types
+
+**compare to the ep-online nta8800 woningtype**
+
+## Construction year
+
+The WoON2022 study determines at most seven construction year periods, depending on the dwelling type.
+We used the *energy label distributions data* as a reference for the periods.
+
+```{python}
+df = pd.read_csv('/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv', usecols=["bouwperiode", "woningtype", "woningtype_pre_nta8800"])
+pd.pivot_table(df, index=["bouwperiode"], columns=["woningtype_pre_nta8800"],
+                    aggfunc="count", fill_value="")
+```
+
+
+## Neighborhoods
+
+The neighborhood boundaries are retrieved from CBS.
+
+Version: 2022 v1, [link to data](https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg)
+
+
+required inputs:
+
+- ~~number of floors~~
+- dwelling types:
+  - types of single-vbo houses
+  - types of apartements
+- mapping between the pre-nta and nta types
+- construction year
+- form factor
+- energy label distributions
+- ~~neighborhoods~~
+
+# Estimating the energy labels
+
+# Results
+
+**number of vbo did not get label because distribution**
