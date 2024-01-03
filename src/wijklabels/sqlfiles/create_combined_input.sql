@@ -36,16 +36,34 @@ FROM lvbag.pandactueelbestaand AS p
 
 COMMENT ON VIEW wijklabels.pand_vbo_woonfunctie IS 'The lvbag.pandactueelbestaand objects joined with the VBO where the gebruiksdoel contains woonfunctie.';
 
+/* BAG Pand with 'woonfunctie'
+   */
+CREATE TABLE wijklabels.pand_woonfunctie AS
+SELECT DISTINCT pand_identificatie, geometrie
+FROM (SELECT p.identificatie AS pand_identificatie
+           , p.geometrie
+      FROM lvbag.pandactueelbestaand AS p
+               RIGHT JOIN (SELECT unnest(pandref) AS pandref
+                           FROM lvbag.verblijfsobjectactueelbestaand
+                           WHERE 'woonfunctie' = ANY (gebruiksdoel)
+                             AND status IS NOT NULL) AS vbo
+                          ON vbo.pandref = p.identificatie) AS sub
+WHERE pand_identificatie IS NOT NULL;
+
+COMMENT ON TABLE wijklabels.pand_woonfunctie IS 'The lvbag.pandactueelbestaand objects where the gebruiksdoel of at least one of their VBOs contains woonfunctie.';
+
+CREATE INDEX pand_woonfunctie_geometrie_idx ON wijklabels.pand_woonfunctie USING gist (geometrie);
+
 /* Woningtype
    */
 CREATE TABLE wijklabels.woningtypen AS
-WITH clusters AS (SELECT identificatie
+WITH clusters AS (SELECT pand_identificatie
                        , geometrie
                        , st_clusterintersectingwin(geometrie) OVER () AS cluster
-                  FROM lvbag.pandactueelbestaand)
+                  FROM wijklabels.pand_woonfunctie)
    , counts AS (SELECT *, count(*) OVER (PARTITION BY cluster) AS count_in_cluster
                 FROM clusters)
-   , woningtype_single AS (SELECT identificatie
+   , woningtype_single AS (SELECT pand_identificatie
                                 , geometrie
                                 , cluster
                                 , CASE
@@ -55,24 +73,25 @@ WITH clusters AS (SELECT identificatie
                                       WHEN count_in_cluster > 2
                                           THEN 'rijwoning' END AS wt
                            FROM counts)
-   , isects AS (SELECT id1 AS identificatie, count(*) AS isect_count
-                FROM (SELECT pd1.identificatie AS id1, pd2.identificatie AS id2
-                      FROM lvbag.pandactueelbestaand AS pd1
-                               LEFT JOIN lvbag.pandactueelbestaand AS pd2
+   , isects AS (SELECT id1 AS pand_identificatie, count(*) AS isect_count
+                FROM (SELECT pd1.pand_identificatie AS id1
+                           , pd2.pand_identificatie AS id2
+                      FROM wijklabels.pand_woonfunctie AS pd1
+                               LEFT JOIN wijklabels.pand_woonfunctie AS pd2
                                          ON st_intersects(pd1.geometrie, pd2.geometrie)
-                      WHERE pd1.identificatie != pd2.identificatie) AS sub
+                      WHERE pd1.pand_identificatie != pd2.pand_identificatie) AS sub
                 GROUP BY id1)
    , wtype_isect AS (SELECT *
                      FROM woningtype_single
-                              LEFT JOIN isects USING (identificatie))
+                              LEFT JOIN isects USING (pand_identificatie))
 SELECT pv.vbo_identificatie
-     , i.identificatie
+     , i.pand_identificatie
      , CASE
            WHEN i.wt = 'rijwoning' AND i.isect_count = 1 THEN 'rijwoning hoek'
            WHEN i.wt = 'rijwoning' AND i.isect_count > 1 THEN 'rijwoning tussen'
            ELSE i.wt END AS woningtype
 FROM wijklabels.pand_vbo_woonfunctie AS pv
-         LEFT JOIN wtype_isect AS i ON pv.pand_identificatie = i.identificatie;
+         LEFT JOIN wtype_isect AS i USING (pand_identificatie);
 
 COMMENT ON TABLE wijklabels.woningtypen IS 'lvbag.pandactueelbestaand objects where the VBO gebruiksdoel contains woonfunctie are classified into vrijstaande woning, 2 onder 1 kap, rijwoning hoek, rijwoning tussen. This is not strictly correct classification, because other types, such as appartements are also included in the four categories.';
 
@@ -108,7 +127,11 @@ COMMENT ON TABLE wijklabels.floors IS 'The estimated number of floors per pand.'
 /* Combined table with all necessary attributes
    */
 CREATE TABLE wijklabels.input AS
-SELECT p.*
+SELECT p.pand_identificatie
+     , p.vbo_identificatie
+     , p.oorspronkelijkbouwjaar
+     , p.oppervlakte
+     , p.geometrie
      , w.woningtype
      , b.buurtcode
      , f.nr_floors
@@ -120,10 +143,10 @@ SELECT p.*
      , pw.b3_opp_scheidingsmuur
 FROM wijklabels.pand_vbo_woonfunctie p
          INNER JOIN wijklabels.woningtypen w
-                    ON p.pand_identificatie = w.identificatie AND
+                    ON p.pand_identificatie = w.pand_identificatie AND
                        p.vbo_identificatie = w.vbo_identificatie
          INNER JOIN wijklabels.pand_in_buurt b ON p.pand_identificatie = b.identificatie
-         INNER JOIN wijklabels.floors f USING (pand_identificatie)
+         INNER JOIN wijklabels.floors f ON p.pand_identificatie = f.pand_identificatie
          INNER JOIN public.party_walls pw ON p.pand_identificatie = pw.identificatie
 WHERE pw._betrouwbaar IS TRUE;
 
