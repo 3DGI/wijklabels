@@ -20,12 +20,12 @@ CREATE SCHEMA IF NOT EXISTS wijklabels;
    */
 CREATE OR REPLACE VIEW wijklabels.pand_vbo_woonfunctie AS
 SELECT p.identificatie AS pand_identificatie
+     , vbo.vbo_identificatie
      , p.oorspronkelijkbouwjaar
      , vbo.oppervlakte
-     , vbo.vbo_identificatie
      , p.geometrie
 FROM lvbag.pandactueelbestaand AS p
-         RIGHT JOIN (SELECT unnest(pandref) AS pandref
+         INNER JOIN (SELECT unnest(pandref) AS pandref
                           , gebruiksdoel
                           , oppervlakte
                           , identificatie   AS vbo_identificatie
