@@ -193,6 +193,26 @@ class EPLoader:
                 except ValueError:
                     return pd.NA
 
+        def parse_gebouwtype(row):
+            if pd.notnull(row["Pand_gebouwtype"]):
+                gebouwtype = row["Pand_gebouwtype"].strip().lower()
+                if (gebouwtype == "Twee-onder-één-kap".lower() or
+                        gebouwtype == "Twee-onder-een-kap / rijwoning hoek".lower()):
+                    return Woningtype.TWEE_ONDER_EEN_KAP
+                elif (gebouwtype == "Appartement".lower()):
+                    if pd.notnull(row["Pand_gebouwsubtype"]):
+                        subtype = row["Pand_gebouwsubtype"].strip().lower()
+                        return Woningtype(f"{gebouwtype} - {subtype}")
+                    else:
+                        return pd.NA
+                else:
+                    try:
+                        return Woningtype(gebouwtype)
+                    except ValueError:
+                        return pd.NA
+            else:
+                return pd.NA
+
         def to_huisnummer(hnr: str):
             try:
                 return int(hnr)
@@ -218,7 +238,6 @@ class EPLoader:
         converters = {
             "Pand_opnamedatum": to_date,
             "Pand_energieklasse": to_energylabel,
-            "Pand_gebouwtype": to_woningtype,
             "Pand_bagpandid": to_identificatie,
             "Pand_bagverblijfsobjectid": to_vbo_identifiactie,
             "Pand_postcode": str,
@@ -228,11 +247,12 @@ class EPLoader:
         }
         df = pd.read_csv(self.file, header=0, usecols=usecols, sep=";",
                          converters=converters)
+        df["woningtype"] = df.apply(lambda row: parse_gebouwtype(row), axis=1)
         df.rename(columns={"Pand_energieklasse": "energylabel",
-                           "Pand_gebouwtype": "woningtype",
                            "Pand_bagpandid": "pand_identificatie",
                            "Pand_bagverblijfsobjectid": "vbo_identificatie"},
                   inplace=True)
         # The new NTA method was in place since 2021-01-01
         start_nta8800_method = pd.to_datetime("20210101", format="%Y%m%d")
-        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method].set_index(["vbo_identificatie", "pand_identificatie"])
+        columns_index = ["pand_identificatie", "vbo_identificatie"]
+        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method].dropna(axis="rows", how="any", subset=columns_index).set_index(columns_index)

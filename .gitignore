@@ -21,5 +21,6 @@ venv*
 /report/_output/
 /report/.Rproj.user
 /report/.Rhistory
-/report/wijklabels.Rproj
+/report/report.Rproj
 /report/_environment
+.Rproj.user

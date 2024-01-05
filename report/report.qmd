@@ -112,6 +112,45 @@ For example, a row of five row-houses forms one cluster, because they form a gro
 We determine the types *vrijstaand/2 onder 1 kap/rijwoning* from the number of buildings in the cluster.
 In case of a *rijwoning*, we determine its position *hoek/tussen* from the number intersections with other buildings in the cluster.
 
+```{python}
+import pandas as pd
+import psycopg
+from psycopg.rows import dict_row
+from matplotlib import pyplot as plt
+
+from wijklabels.load import EPLoader
+from wijklabels.woningtype import Woningtype
+
+
+def to_woningtype(gebouwtype: str):
+    try:
+        return Woningtype(gebouwtype.lower())
+    except ValueError:
+        return pd.NA
+
+with psycopg.connect(conninfo="postgresql://postgres:password@localhost:8001/postgres") as conn:
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute("select * from wijklabels.woningtypen")
+        woningtypen_df = pd.DataFrame.from_records(
+            cur.fetchall(), index=["pand_identificatie", "vbo_identificatie"])
+
+_r = woningtypen_df.apply(lambda row: to_woningtype(row["woningtype"]), axis=1)
+woningtypen_df["woningtype"] = _r
+
+ep_df = EPLoader("/data/energylabel-ep-online/v20231101_v2_csv.csv").load()
+
+res = woningtypen_df.join(ep_df, how="inner", rsuffix="_ep")
+
+eengezins = res.loc[res["Pand_gebouwsubtype"].isna()]
+correct = eengezins.loc[eengezins["woningtype"] == eengezins["woningtype_ep"]]
+correct_pct = len(correct) / len(eengezins) * 100.0
+incorrect = eengezins.loc[eengezins["woningtype"] != eengezins["woningtype_ep"]]
+incorrect_pct = incorrect["woningtype"].value_counts() / len(incorrect)
+incorrect_pct.plot(kind="pie", autopct='%1.1f%%')
+plt.show()
+```
+
+
 ### Meergezinswoningen
 
 
