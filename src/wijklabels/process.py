@@ -62,7 +62,7 @@ def process_cli():
     args = parser.parse_args()
     connection_string = f"postgresql://{args.user}:{args.password}@{args.host}:{args.port}/{args.dbname}"
     path_label_distributions = Path(args.path_label_distributions).resolve()
-    path_output_dir = Path(args.path_output_dir).resolve()
+    path_output_dir = Path(args.path_output_dir).resolve().mkdir(parents=True, exist_ok=True)
     path_output_individual = path_output_dir.joinpath("labels_individual").with_suffix(".csv")
     path_output_aggregate = path_output_dir.joinpath("labels_neighbourhood").with_suffix(".csv")
     jobs = args.jobs

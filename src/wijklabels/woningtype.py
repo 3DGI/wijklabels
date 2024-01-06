@@ -295,7 +295,7 @@ def classify_apartments(group: pd.DataFrame) -> pd.DataFrame | None:
     # determine the most likely layout.
     # 1 is double row, 0 is single row
     double_row = random.binomialvariate()
-    if vbo_per_floor == 3:
+    if vbo_per_floor <= 3:
         double_row = False
     nr_hoek = None
     if woningtype == Woningtype.VRIJSTAAND:

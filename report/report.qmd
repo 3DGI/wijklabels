@@ -24,7 +24,7 @@ The 3DBAG `2023.10.08` is based on the BAG 2.0 Extract of 08.09.2023.
 
 Only those VBO-s are selected whose usage (gebruiksdoel) includes woonfunctie.
 
-## Number of floors
+## Number of floors {#sec-floors}
 
 Required for distributing the VBO-s in the Pand.
 We compute the number of floors by dividing the gebruiksoppervlakte by the area of the roofprint taken from the 3DBAG.
@@ -105,54 +105,38 @@ The *pre-NTA8800* type is needed, because that is used by the WoON2022 study, an
 We first estimate the *NTA8800* type and then convert that to a *pre-NTA8800* type.
 The method for classifying the een- and meergezinswoningen differs significantly.
 
-### Eengezinswoningen
+### Classification of a Pand
 
-The eengezinswoningen are identified by clustering the intersecting BAG geometries.
+Each BAG Pand are classified by clustering the intersecting BAG geometries.
 For example, a row of five row-houses forms one cluster, because they form a group of connected objects.
 We determine the types *vrijstaand/2 onder 1 kap/rijwoning* from the number of buildings in the cluster.
 In case of a *rijwoning*, we determine its position *hoek/tussen* from the number intersections with other buildings in the cluster.
 
-```{python}
-import pandas as pd
-import psycopg
-from psycopg.rows import dict_row
-from matplotlib import pyplot as plt
+Misclassification occurs if the intersections are incorrectly determined, usually, because there is a small gap between BAG polygons that are supposed to be touching. 
+Thus, in order to improve the classification of eengezinswoningen, the BAG polygons need topological correction so the gaps and overlaps are corrected.
 
-from wijklabels.load import EPLoader
-from wijklabels.woningtype import Woningtype
+### Eengezinswoningen
 
-
-def to_woningtype(gebouwtype: str):
-    try:
-        return Woningtype(gebouwtype.lower())
-    except ValueError:
-        return pd.NA
-
-with psycopg.connect(conninfo="postgresql://postgres:password@localhost:8001/postgres") as conn:
-    with conn.cursor(row_factory=dict_row) as cur:
-        cur.execute("select * from wijklabels.woningtypen")
-        woningtypen_df = pd.DataFrame.from_records(
-            cur.fetchall(), index=["pand_identificatie", "vbo_identificatie"])
-
-_r = woningtypen_df.apply(lambda row: to_woningtype(row["woningtype"]), axis=1)
-woningtypen_df["woningtype"] = _r
-
-ep_df = EPLoader("/data/energylabel-ep-online/v20231101_v2_csv.csv").load()
-
-res = woningtypen_df.join(ep_df, how="inner", rsuffix="_ep")
-
-eengezins = res.loc[res["Pand_gebouwsubtype"].isna()]
-correct = eengezins.loc[eengezins["woningtype"] == eengezins["woningtype_ep"]]
-correct_pct = len(correct) / len(eengezins) * 100.0
-incorrect = eengezins.loc[eengezins["woningtype"] != eengezins["woningtype_ep"]]
-incorrect_pct = incorrect["woningtype"].value_counts() / len(incorrect)
-incorrect_pct.plot(kind="pie", autopct='%1.1f%%')
-plt.show()
-```
-
+If a pand only contains a single VBO, then we consider the VBO an *eengezinswoning* and the VBO receives the classification of the pand.
 
 ### Meergezinswoningen
 
+The meergezingswoningen consist of a single main type, *appartement*.
+If a pand contains more than one VBO, then all of its VBOs are classified as *appartement*.
+
+The *appartement* subtypes are determined from the vertical and horizonal position of the VBO within the pand.
+Firstly, the VBO-s are distributed across the floors (see @sec-floors) of the pand to determine their vertical position.
+Each floor is assigned the same number of appartements, which is calculated by dividing the number of VBO-s by the number of floors.
+We call the *number of appartements per floor* `N`.
+Then the total appartements in the pand are distributed so that the first `N` is assigned to the ground floor (*vloer*), the second `N` is assigned to the top floor (*dak*) and the rest is distributed evenly across the floors in between (*midden*).
+If a pand has the same *number of appartements per floor* as the total number of appartements, then the appartements are classified as *dakvloer*.
+
+Secondly, the appartements are distributed horizontally on each floor.
+We assume two configurations for the layout of the appartements, single row or double row.
+The choice between single or double row depends on the number of appartements per floor and a random choice.
+If the number of appartements per floor is less than or equal three, then a single row layout is chosen, otherwise there is a 50% chance for a double row layout.
+Additionally, the number of *hoek* appartements are estimated based on the classification of the pand and the previously determined layout.
+If there are remaining appartements on the floor that are not classified as *hoek*, they are classified as *tussen*.
 
 **compare to the ep-online nta8800 woningtype**
 
@@ -181,8 +165,8 @@ required inputs:
 - dwelling types:
   - types of single-vbo houses
   - types of apartements
-- mapping between the pre-nta and nta types
-- construction year
+- ~~mapping between the pre-nta and nta types~~
+- ~~construction year~~
 - form factor
 - energy label distributions
 - ~~neighborhoods~~
