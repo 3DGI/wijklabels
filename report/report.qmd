@@ -151,6 +151,9 @@ pd.pivot_table(df, index=["bouwperiode"], columns=["woningtype_pre_nta8800"],
                     aggfunc="count", fill_value="")
 ```
 
+## Vormfactor
+
+## Spreiding van energielabels
 
 ## Neighborhoods
 
@@ -162,7 +165,7 @@ Version: 2022 v1, [link to data](https://service.pdok.nl/cbs/wijkenbuurten/2022/
 required inputs:
 
 - ~~number of floors~~
-- dwelling types:
+- ~~dwelling types:~~
   - types of single-vbo houses
   - types of apartements
 - ~~mapping between the pre-nta and nta types~~
