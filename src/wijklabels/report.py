@@ -66,6 +66,7 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: str):
             validated["buurtcode"] == buurt, ["energylabel", "energylabel_ep_online"]]
         estimated = b["energylabel"].value_counts() / len(b) * 100
         truth = b["energylabel_ep_online"].value_counts() / len(b) * 100
+        # truth.index.name = "energylabel"
         b_df = pd.DataFrame({"estimated": estimated, "ep-online": truth},
                             index=[EnergyLabel.APPPP, EnergyLabel.APPP, EnergyLabel.APP,
                                    EnergyLabel.AP, EnergyLabel.A, EnergyLabel.B,

@@ -2,18 +2,39 @@
 title: "Wijklabels"
 author: "Balázs Dukai, Ravi Peters"
 date: last-modified
+bibliography: references.bib
 ---
 ```{python}
 import pandas as pd
 ```
 
+# Summary
+
+::: {.callout-important title="TODO"}
+:::
 
 # Introduction
 
 challanges:
 - the position of a VBO is not known in a pand
 
+::: {.callout-important title="TODO"}
+:::
+
+
 # Preparing the input
+
+required inputs:
+
+- [x] number of floors
+- [x] dwelling types:
+  - [x] types of single-vbo houses
+  - [x] types of apartements
+  - [x] mapping between the pre-nta and nta types
+- [x] construction year
+- [x] form factor
+- [x] energy label distributions
+- [x] neighborhoods
 
 ## BAG and 3DBAG
 
@@ -36,24 +57,7 @@ The resulting value is rounded up to the nearest whole number, which gives us th
 We can reliably estimate the number of floors in a Pand only from its roofprint area and the area of its VBO-s.
 :::
 
-```{sql-postgresql}
-CREATE TABLE wijklabels.floors AS
-WITH gb AS (SELECT pand_identificatie
-                 , sum(oppervlakte) AS gebruiksoppervlakte
-                 , count(*)         AS vbo_count
-            FROM wijklabels.pand_vbo_woonfunctie
-            GROUP BY pand_identificatie)
-SELECT gb.pand_identificatie
-     , ceil(gb.gebruiksoppervlakte / pw.b3_opp_grond)::int4 AS nr_floors
-     , gb.vbo_count
-FROM public.party_walls AS pw
-         JOIN gb ON pw.identificatie = gb.pand_identificatie
-WHERE pw.b3_opp_grond > 0.0;
-
-COMMENT ON TABLE wijklabels.floors IS 'The estimated number of floors per pand.';
-```
-
-## Dwelling types
+## Dwelling types {#sec-woningtype}
 
 Dwellings are classified into distinct types.
 The current classification, as used by the NTA8800 method, is listed below.
@@ -119,7 +123,7 @@ Thus, in order to improve the classification of eengezinswoningen, the BAG polyg
 
 If a pand only contains a single VBO, then we consider the VBO an *eengezinswoning* and the VBO receives the classification of the pand.
 
-### Meergezinswoningen
+### Meergezinswoningen {#sec-meergezins}
 
 The meergezingswoningen consist of a single main type, *appartement*.
 If a pand contains more than one VBO, then all of its VBOs are classified as *appartement*.
@@ -138,7 +142,24 @@ If the number of appartements per floor is less than or equal three, then a sing
 Additionally, the number of *hoek* appartements are estimated based on the classification of the pand and the previously determined layout.
 If there are remaining appartements on the floor that are not classified as *hoek*, they are classified as *tussen*.
 
+::: {.callout-important title="TODO"}
 **compare to the ep-online nta8800 woningtype**
+
+correct eengezinswoningen 87%
+correct meergezinswoningen 26%
+:::
+
+### Conversion of appartement types to pre-NTA8800 types
+
+The WoON2022 study uses the pre-NTA8800 dwelling types, while the EP-Online database uses the NTA8800 dwelling types for the energy labels that are calculated with the NTA8800 method.
+This work relies on the results of the WoON2022 study to estimate the energy label of dwellings, therefore we convert the previously determined NTA8800 appartement type to pre-NTA8800 types.
+Since there is no direct relation between the two classification, we can only estimate the pre-NTA8800 types.
+
+We assign the pre-NTA8800 type to the appartement based on the distribution of pre-NTA8800 types in the EP-Online database and the construction date of the dwelling, see @fig-woningtype-bouwjaar.
+For example, if the dwelling was built in the period of 1965-1974, there is an 84% chance that it receives the *flatwoning (overig)* pre-NTA8800 type.
+
+![Spreiding van pre-NTA8800 meergezinswoningtypen in de EP-Online database, @_EP_2023](images/pre_nta8800_apartement_bouwjaar.png){#fig-woningtype-bouwjaar}
+
 
 ## Construction year
 
@@ -151,31 +172,63 @@ pd.pivot_table(df, index=["bouwperiode"], columns=["woningtype_pre_nta8800"],
                     aggfunc="count", fill_value="")
 ```
 
-## Vormfactor
+## Vormfactor {#sec-vormfactor}
 
-## Spreiding van energielabels
+The vormfactor is calculated as the fraction of the verliesoppervlakte and gebruiksoppervlakte.
+The verliesoppervlakte is the sum of all sufrace areas that envelope the dwelling, except the surfaces that are shared with another dwelling.
+The gebruiksoppervlakte is the area that is registered for the VBO in the BAG (VBO's `oppervlakte`).
+
+We compute the vormfactor for each Pand.
+The required surface areas for calculating the verliesoppervlakte are part of the 3DBAG since version `2023.10.08`.
+The vormfactor of an eengezinswoning is equivalent to the vormfactor of the Pand.
+
+For appartements, we assign a portion of the surface areas to each appartement, depending on their type (see @sec-meergezins).
+The total roof surface area is divided equally among the appartements on the roof floor.
+Only 95% of the total wall surface area is used to account for wall surfaces that cover hallways and other non-dwelling spaces in the pand.
+The wall surface area is then divided among each appartement in a way that the appartements on the hoek are assigned approximately 3x the wall surface area of a tussen appartement.
+The total ground surface area is divided equally among the appartements on the ground floor.
+
+## Spreiding van energielabels {#sec-spreiding}
+
+The WoON2022 study describes a distribution of energy labels for each dwelling type and construction period.
+The distribution is two-dimensional, one dimension is the energy label, the second dimension is the vormfactor of the dwelling.
+However, the described distributions are not continuous.
+For example, in case of Flatwoningen from the period 1965-1974, there is no data in the vormfactor range 1,00-1,50 and labels A+++-D, see @fig-woon2022-spreiding.
+
+The energy label distributions were extracted from the Excel file *Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx*, which we received from RVO.
+
+![Energy label distribution of flatwoningen, @RVO_Voorbeeldwoningen_2022](images/woon2022_spreiding.png){#fig-woon2022-spreiding}
 
 ## Neighborhoods
 
-The neighborhood boundaries are retrieved from CBS.
+The neighborhood boundaries are retrieved from the Centraal Bureau voor de Statistiek.
+The BAG Pand objects are assigned to a neighborhood with an intersection test.
+Every BAG Pand is assigned to only one neighborhood.
 
-Version: 2022 v1, [link to data](https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg)
+Version of CBS Wijken en Buurten: 2022 v1, [link to data](https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg)
 
-
-required inputs:
-
-- ~~number of floors~~
-- ~~dwelling types:~~
-  - types of single-vbo houses
-  - types of apartements
-- ~~mapping between the pre-nta and nta types~~
-- ~~construction year~~
-- form factor
-- energy label distributions
-- ~~neighborhoods~~
 
 # Estimating the energy labels
 
+In order to determine the accurate energy label for a dwelling, the dwelling needs to be surveyed in-person by a qualified professional.
+This is not feasible to do on a national scale.
+However, we can estimate the type of the dwelling (@sec-woningtype) and we know the construction period from the BAG.
+In addition, we can calculate the vormfactor for eengezinswoningen accurately, and estimate the vormfactor for meergezinswoningen (see @sec-vormfactor).
+Finally, from @RVO_Voorbeeldwoningen_2022 we have a distribution of energy labels for each combination of the three variables, dwelling type, construction period and vormfactor.
+Then the energy label of an individual dwelling is selected based on the likelyhood of all labels in across the three variables.
+
+The individual labels are aggregated per neighborhood to estimate the energy label distributions for each neighborhood in the Netherlands.
+
+@_EP_2023
+
 # Results
 
+::: {.callout-important title="TODO"}
+:::
+
 **number of vbo did not get label because distribution**
+
+# References
+
+::: {#refs}
+:::

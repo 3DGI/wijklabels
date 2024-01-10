@@ -88,7 +88,8 @@ class VBOLoader:
 
     def __load_file(self) -> pd.DataFrame:
         return pd.read_csv(self.file, index_col=self.__index_col,
-                           dtype={"oorspronkelijkbouwjaar": 'Int64'}, na_values=(r"\N", ))
+                           dtype={"oorspronkelijkbouwjaar": 'Int64'},
+                           na_values=(r"\N",))
 
     def __load_sql(self) -> pd.DataFrame:
         sql_select_vbo = load_sql("select_verblijfsobject.sql")
@@ -176,64 +177,6 @@ class EPLoader:
         20 - gebouwtype (woningtype)
         21 - gebouwsubtype (woningsubtype)
         """
-
-        def to_energylabel(energieklasse: str):
-            try:
-                return EnergyLabel(energieklasse)
-            except ValueError:
-                return pd.NA
-
-        def to_woningtype(gebouwtype: str):
-            if (gebouwtype == "Twee-onder-één-kap" or
-                    gebouwtype == "Twee-onder-een-kap / rijwoning hoek"):
-                return Woningtype.TWEE_ONDER_EEN_KAP
-            else:
-                try:
-                    return Woningtype(gebouwtype.lower())
-                except ValueError:
-                    return pd.NA
-
-        def parse_gebouwtype(row):
-            if pd.notnull(row["Pand_gebouwtype"]):
-                gebouwtype = row["Pand_gebouwtype"].strip().lower()
-                if (gebouwtype == "Twee-onder-één-kap".lower() or
-                        gebouwtype == "Twee-onder-een-kap / rijwoning hoek".lower()):
-                    return Woningtype.TWEE_ONDER_EEN_KAP
-                elif (gebouwtype == "Appartement".lower()):
-                    if pd.notnull(row["Pand_gebouwsubtype"]):
-                        subtype = row["Pand_gebouwsubtype"].strip().lower()
-                        return Woningtype(f"{gebouwtype} - {subtype}")
-                    else:
-                        return pd.NA
-                else:
-                    try:
-                        return Woningtype(gebouwtype)
-                    except ValueError:
-                        return pd.NA
-            else:
-                return pd.NA
-
-        def to_huisnummer(hnr: str):
-            try:
-                return int(hnr)
-            except ValueError:
-                return np.nan
-
-        def to_identificatie(id):
-            if len(id) > 1:
-                return f"NL.IMBAG.Pand.{id}"
-            else:
-                return pd.NA
-
-        def to_vbo_identifiactie(id):
-            if len(id) > 1:
-                return f"NL.IMBAG.Verblijfsobject.{id}"
-            else:
-                return pd.NA
-
-        def to_date(d):
-            return pd.to_datetime(d, format="%Y%m%d")
-
         usecols = [0, 5, 11, 12, 13, 14, 16, 19, 20, 21]
         converters = {
             "Pand_opnamedatum": to_date,
@@ -255,4 +198,69 @@ class EPLoader:
         # The new NTA method was in place since 2021-01-01
         start_nta8800_method = pd.to_datetime("20210101", format="%Y%m%d")
         columns_index = ["pand_identificatie", "vbo_identificatie"]
-        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method].dropna(axis="rows", how="any", subset=columns_index).set_index(columns_index)
+        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method].dropna(
+            axis="rows", how="any", subset=columns_index).set_index(columns_index)
+
+
+def to_energylabel(energieklasse: str):
+    try:
+        return EnergyLabel(energieklasse)
+    except ValueError:
+        return pd.NA
+
+
+def to_woningtype_ep_online(gebouwtype: str):
+    if (gebouwtype == "Twee-onder-één-kap" or
+            gebouwtype == "Twee-onder-een-kap / rijwoning hoek"):
+        return Woningtype.TWEE_ONDER_EEN_KAP
+    else:
+        try:
+            return Woningtype(gebouwtype.lower())
+        except ValueError:
+            return pd.NA
+
+
+def parse_gebouwtype(row):
+    if pd.notnull(row["Pand_gebouwtype"]):
+        gebouwtype = row["Pand_gebouwtype"].strip().lower()
+        if (gebouwtype == "Twee-onder-één-kap".lower() or
+                gebouwtype == "Twee-onder-een-kap / rijwoning hoek".lower()):
+            return Woningtype.TWEE_ONDER_EEN_KAP
+        elif (gebouwtype == "Appartement".lower()):
+            if pd.notnull(row["Pand_gebouwsubtype"]):
+                subtype = row["Pand_gebouwsubtype"].strip().lower()
+                return Woningtype(f"{gebouwtype} - {subtype}")
+            else:
+                return pd.NA
+        else:
+            try:
+                return Woningtype(gebouwtype)
+            except ValueError:
+                return pd.NA
+    else:
+        return pd.NA
+
+
+def to_huisnummer(hnr: str):
+    try:
+        return int(hnr)
+    except ValueError:
+        return np.nan
+
+
+def to_identificatie(id):
+    if len(id) > 1:
+        return f"NL.IMBAG.Pand.{id}"
+    else:
+        return pd.NA
+
+
+def to_vbo_identifiactie(id):
+    if len(id) > 1:
+        return f"NL.IMBAG.Verblijfsobject.{id}"
+    else:
+        return pd.NA
+
+
+def to_date(d):
+    return pd.to_datetime(d, format="%Y%m%d")
