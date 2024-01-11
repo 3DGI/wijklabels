@@ -22,7 +22,8 @@ def join_with_ep_online(estimated_labels_csv_path: Path,
                         ep_online_csv_path: Path) -> pd.DataFrame:
     """Join the the dataframe with the estimated labels onto the EP-Online dataframe."""
     estimated_labels = pd.read_csv(estimated_labels_csv_path,
-                                   converters={"energylabel": to_energylabel}).set_index(
+                                   converters={
+                                       "energylabel": to_energylabel}).set_index(
         ["vbo_identificatie", "pand_identificatie"]
     )
     eploader = EPLoader(file=ep_online_csv_path)
@@ -32,8 +33,34 @@ def join_with_ep_online(estimated_labels_csv_path: Path,
 
     _v = estimated_labels.join(groundtruth["energylabel"], how="left",
                                rsuffix="_ep_online", validate="1:m")
-    validated = _v.loc[(_v["energylabel_ep_online"].notna() & _v["energylabel"].notna())]
+    validated = _v.loc[
+        (_v["energylabel_ep_online"].notna() & _v["energylabel"].notna())]
     return validated
+
+
+def calculate_exact_matches(df_with_truth: pd.DataFrame):
+    nr_exact = len(df_with_truth.loc[df_with_truth["energylabel"] == df_with_truth[
+        "energylabel_ep_online"]])
+    nr_total = len(df_with_truth.loc[df_with_truth["energylabel_ep_online"].notnull()])
+    return nr_exact / nr_total
+
+
+def calculate_exact_matches_eengezins(df_with_truth: pd.DataFrame):
+    nr_exact = len(df_with_truth.loc[(
+        (df_with_truth["energylabel"] == df_with_truth["energylabel_ep_online"]) &
+        (~df_with_truth["woningtype"].str.contains("appartement"))
+    ) ,])
+    nr_total = len(df_with_truth.loc[df_with_truth["energylabel_ep_online"].notnull()])
+    return nr_exact / nr_total
+
+
+def calculate_exact_matches_meergezins(df_with_truth: pd.DataFrame):
+    nr_exact = len(df_with_truth.loc[(
+        (df_with_truth["energylabel"] == df_with_truth["energylabel_ep_online"]) &
+        (df_with_truth["woningtype"].str.contains("appartement"))
+    ) ,])
+    nr_total = len(df_with_truth.loc[df_with_truth["energylabel_ep_online"].notnull()])
+    return nr_exact / nr_total
 
 
 parser_validate = argparse.ArgumentParser(prog='wijklabels-validate')
@@ -56,11 +83,19 @@ def validate_cli():
     log.info(f"Writing output to {p_out}")
     df_with_truth.to_csv(p_out)
 
+    exact_accuracy = calculate_exact_matches(df_with_truth)
+    log.info(f"Exact match accuracy {round(exact_accuracy * 100)}%")
+    exact_accuracy_eengezins = calculate_exact_matches_eengezins(df_with_truth)
+    log.info(f"Exact match accuracy for eengezinswoningen {round(exact_accuracy_eengezins * 100)}%")
+    exact_accuracy_meergezins = calculate_exact_matches_meergezins(df_with_truth)
+    log.info(f"Exact match accuracy for meergezinswoningen {round(exact_accuracy_meergezins * 100)}%")
+
     # Aggregate per buurt
     log.info("Aggregating the neigbourhoods")
     buurten_labels_wide = aggregate_to_buurt(df_with_truth,
                                              col_labels="energylabel_ep_online")
-    p_out = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood_ep_online").with_suffix(".csv")
+    p_out = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood_ep_online").with_suffix(
+        ".csv")
     log.info(f"Writing output to {p_out}")
     buurten_labels_wide.to_csv(p_out)
 
