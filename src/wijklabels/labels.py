@@ -22,17 +22,17 @@ LongLabels = pd.DataFrame
 
 
 class EnergyLabel(OrderedEnum):
-    APPPP = "A++++"
-    APPP = "A+++"
-    APP = "A++"
-    AP = "A+"
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-    E = "E"
-    F = "F"
     G = "G"
+    F = "F"
+    E = "E"
+    D = "D"
+    C = "C"
+    B = "B"
+    A = "A"
+    AP = "A+"
+    APP = "A++"
+    APPP = "A+++"
+    APPPP = "A++++"
 
     def __str__(self):
         return self.value
