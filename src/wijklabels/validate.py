@@ -38,29 +38,21 @@ def join_with_ep_online(estimated_labels_csv_path: Path,
     return validated
 
 
-def calculate_exact_matches(df_with_truth: pd.DataFrame):
-    nr_exact = len(df_with_truth.loc[df_with_truth["energylabel"] == df_with_truth[
-        "energylabel_ep_online"]])
+def calculate_accuracy(df_with_truth: pd.DataFrame, within, woningtype=None):
+    matches = df_with_truth.apply(
+        lambda row: row.energylabel.within(row.energylabel_ep_online, within),
+        axis=1)
+    if woningtype is None:
+        types_selected = df_with_truth.apply(lambda row: True, axis=1)
+    elif woningtype == "eengezins":
+        types_selected = ~df_with_truth["woningtype"].str.contains("appartement")
+    elif woningtype == "meergezins":
+        types_selected = df_with_truth["woningtype"].str.contains("appartement")
+    else:
+        raise NotImplementedError
+    nr_matches = (matches & types_selected).sum()
     nr_total = len(df_with_truth.loc[df_with_truth["energylabel_ep_online"].notnull()])
-    return nr_exact / nr_total
-
-
-def calculate_exact_matches_eengezins(df_with_truth: pd.DataFrame):
-    nr_exact = len(df_with_truth.loc[(
-        (df_with_truth["energylabel"] == df_with_truth["energylabel_ep_online"]) &
-        (~df_with_truth["woningtype"].str.contains("appartement"))
-    ) ,])
-    nr_total = len(df_with_truth.loc[df_with_truth["energylabel_ep_online"].notnull()])
-    return nr_exact / nr_total
-
-
-def calculate_exact_matches_meergezins(df_with_truth: pd.DataFrame):
-    nr_exact = len(df_with_truth.loc[(
-        (df_with_truth["energylabel"] == df_with_truth["energylabel_ep_online"]) &
-        (df_with_truth["woningtype"].str.contains("appartement"))
-    ) ,])
-    nr_total = len(df_with_truth.loc[df_with_truth["energylabel_ep_online"].notnull()])
-    return nr_exact / nr_total
+    return nr_matches / nr_total
 
 
 parser_validate = argparse.ArgumentParser(prog='wijklabels-validate')
@@ -83,12 +75,21 @@ def validate_cli():
     log.info(f"Writing output to {p_out}")
     df_with_truth.to_csv(p_out)
 
-    exact_accuracy = calculate_exact_matches(df_with_truth)
-    log.info(f"Exact match accuracy {round(exact_accuracy * 100)}%")
-    exact_accuracy_eengezins = calculate_exact_matches_eengezins(df_with_truth)
-    log.info(f"Exact match accuracy for eengezinswoningen {round(exact_accuracy_eengezins * 100)}%")
-    exact_accuracy_meergezins = calculate_exact_matches_meergezins(df_with_truth)
-    log.info(f"Exact match accuracy for meergezinswoningen {round(exact_accuracy_meergezins * 100)}%")
+    within_range = 0
+    accuracy_exact = calculate_accuracy(df_with_truth, within=within_range)
+    log.info(f"Exact match accuracy {round(accuracy_exact * 100)}%")
+    accuracy_exact_eengezins = calculate_accuracy(df_with_truth, within=within_range, woningtype="eengezins")
+    log.info(f"Exact match accuracy for eengezinswoningen {round(accuracy_exact_eengezins * 100)}%")
+    accuracy_exact_meergezins = calculate_accuracy(df_with_truth, within=within_range, woningtype="meergezins")
+    log.info(f"Exact match accuracy for meergezinswoningen {round(accuracy_exact_meergezins * 100)}%")
+
+    within_range = 1
+    accuracy_one_dev = calculate_accuracy(df_with_truth, within=within_range)
+    log.info(f"Accuracy within one label distance {round(accuracy_one_dev * 100)}%")
+    accuracy_one_dev_eengezins = calculate_accuracy(df_with_truth, within=within_range, woningtype="eengezins")
+    log.info(f"Accuracy within one label distance for eengezinswoningen {round(accuracy_one_dev_eengezins * 100)}%")
+    accuracy_one_dev_meergezins = calculate_accuracy(df_with_truth, within=within_range, woningtype="meergezins")
+    log.info(f"Accuracy within one label distance for meergezinswoningen {round(accuracy_one_dev_meergezins * 100)}%")
 
     # Aggregate per buurt
     log.info("Aggregating the neigbourhoods")
