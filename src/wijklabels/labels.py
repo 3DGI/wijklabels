@@ -40,6 +40,17 @@ class EnergyLabel(OrderedEnum):
     def __repr__(self):
         return self.__str__()
 
+    def within(self, other, range: int):
+        """Test if the other label is within the provided range of labels.
+        For example, the labels C, B, A are within the range of 1 of the
+        label B. The labels D, C, B, A, A+ are within the range of 2 of the label B.
+        The label B is in the range of 0 of the label B.
+        The label-list is not recycled for the range, thus for the label G, the range of
+        2 are G, F, E.
+        """
+        member_list = self.__class__._member_list()
+        return member_list.index(self) - range <= member_list.index(other) <= member_list.index(self) + range
+
 
 def parse_energylabel_ditributions(excelloader) -> LabelDistributions:
     """Parse the energy label distributions from the excel file.
