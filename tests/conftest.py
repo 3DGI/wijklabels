@@ -18,5 +18,5 @@ def vbo_df(data_dir):
 
 @pytest.fixture(scope='session')
 def excelloader(data_dir):
-    file = data_dir / "Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx"
+    file = data_dir / "input" / "energielabel_spreiding_subset.xlsx"
     return ExcelLoader(file=file)

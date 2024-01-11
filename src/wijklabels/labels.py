@@ -130,24 +130,24 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
         totals = df["TOTAAL"]
         # Drop the last column that contains the total per vormfactor
         df.drop(columns=["TOTAAL"], inplace=True)
-        normalized = df.div(totals, axis="index")
+        normalized = df.div(totals, axis="index").replace(0.0, nan)
         dfs_bins = []
-        for row in normalized.itertuples():
+        for row in normalized.iterrows():
             # probabilities from A++++ to G
-            probabilities = list(row[1:])
-            bin_max = [probabilities[0], ]
-            bin_min = [0.0, ]
-            for i, p in enumerate(probabilities[1:], start=1):
-                _bmax = bin_max[i - 1] + p
-                _bmin = bin_max[i - 1]
-                bin_max.append(_bmax)
-                bin_min.append(_bmin)
+            probabilities = row[1]
+            bin_max = probabilities.cumsum()
+            bin_max_continuous = bin_max[bin_max.notna()].to_list()
+            # shift the max values to get the lower range for each label
+            bin_max_continuous.insert(0, 0.0)
+            bin_max_continuous.pop()
+            bin_min = pd.Series(bin_max_continuous, index=bin_max[bin_max.notna()].index)
             df_bins = pd.DataFrame(
-                data={"vormfactor": row.Index, "energylabel": list(EnergyLabel),
+                data={"vormfactor": row[0], "energylabel": list(EnergyLabel),
                       "bin_min": bin_min, "bin_max": bin_max}
             )
             df_bins.set_index(["vormfactor", "energylabel"], inplace=True)
-            dfs_bins.append(df_bins)
+            if not df_bins.bin_max.isnull().all():
+                dfs_bins.append(df_bins)
         # convert to long format
         normalized_long = normalized.melt(var_name="energylabel",
                                           value_name="probability", ignore_index=False)
@@ -181,6 +181,6 @@ def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800, bouwperiode
         if len(label) > 1:
             log.error(f"multiple labels {label} found for {(woningtype, bouwperiode, vormfactor)} and {random_number}, returning None")
         return label.item() if len(label) == 1 else None
-    except KeyError as e:
-        log.error(f"{e}")
+    except KeyError:
+        # There is no data in the label distributions for this
         return None

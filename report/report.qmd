@@ -215,7 +215,7 @@ This is not feasible to do on a national scale.
 However, we can estimate the type of the dwelling (@sec-woningtype) and we know the construction period from the BAG.
 In addition, we can calculate the vormfactor for eengezinswoningen accurately, and estimate the vormfactor for meergezinswoningen (see @sec-vormfactor).
 Finally, from @RVO_Voorbeeldwoningen_2022 we have a distribution of energy labels for each combination of the three variables, dwelling type, construction period and vormfactor.
-Then the energy label of an individual dwelling is selected based on the likelyhood of all labels in across the three variables.
+Then the energy label of an individual dwelling is selected based on the likelihood of all labels in across the three variables.
 
 The individual labels are aggregated per neighborhood to estimate the energy label distributions for each neighborhood in the Netherlands.
 
@@ -225,6 +225,13 @@ The individual labels are aggregated per neighborhood to estimate the energy lab
 
 ::: {.callout-important title="TODO"}
 :::
+
+2024-01-11 12:10:24,432 - VALIDATION - Exact match accuracy 21%
+2024-01-11 12:10:44,756 - VALIDATION - Exact match accuracy for eengezinswoningen 14%
+2024-01-11 12:11:04,649 - VALIDATION - Exact match accuracy for meergezinswoningen 7%
+2024-01-11 12:11:30,708 - VALIDATION - Accuracy within one label distance 51%
+2024-01-11 12:11:51,157 - VALIDATION - Accuracy within one label distance for eengezinswoningen 32%
+2024-01-11 12:12:11,350 - VALIDATION - Accuracy within one label distance for meergezinswoningen 18%
 
 **number of vbo did not get label because distribution**
 
