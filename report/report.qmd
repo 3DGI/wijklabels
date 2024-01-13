@@ -226,12 +226,13 @@ The individual labels are aggregated per neighborhood to estimate the energy lab
 ::: {.callout-important title="TODO"}
 :::
 
-2024-01-11 12:10:24,432 - VALIDATION - Exact match accuracy 21%
-2024-01-11 12:10:44,756 - VALIDATION - Exact match accuracy for eengezinswoningen 14%
-2024-01-11 12:11:04,649 - VALIDATION - Exact match accuracy for meergezinswoningen 7%
-2024-01-11 12:11:30,708 - VALIDATION - Accuracy within one label distance 51%
-2024-01-11 12:11:51,157 - VALIDATION - Accuracy within one label distance for eengezinswoningen 32%
-2024-01-11 12:12:11,350 - VALIDATION - Accuracy within one label distance for meergezinswoningen 18%
+2024-01-11 15:15:45,637 - VALIDATION - Missing energy label because of gap in energy label distributions in Voorbeeldwoningen 2022: 14%
+2024-01-11 15:16:07,916 - VALIDATION - Exact match accuracy 21%
+2024-01-11 15:16:25,426 - VALIDATION - Exact match accuracy for eengezinswoningen 14%
+2024-01-11 15:16:43,994 - VALIDATION - Exact match accuracy for meergezinswoningen 7%
+2024-01-11 15:17:05,301 - VALIDATION - Accuracy within one label distance 51%
+2024-01-11 15:17:23,757 - VALIDATION - Accuracy within one label distance for eengezinswoningen 32%
+2024-01-11 15:17:42,356 - VALIDATION - Accuracy within one label distance for meergezinswoningen 18%
 
 **number of vbo did not get label because distribution**
 

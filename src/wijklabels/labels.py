@@ -192,12 +192,8 @@ def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800,
     `random_number` falls into.
     """
     try:
-        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(
-            f"bin_min <= {random_number} < bin_max").energylabel
-        if len(label) > 1:
-            log.error(
-                f"multiple labels {label} found for {(woningtype, bouwperiode, vormfactor)} and {random_number}, returning None")
-        return label.item() if len(label) == 1 else None
+        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query("probability == probability.max()").energylabel.iloc[0]
+        return label
     except KeyError:
         # There is no data in the label distributions for this
         return None
