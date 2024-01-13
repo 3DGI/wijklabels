@@ -14,7 +14,7 @@ import pandas as pd
 from openpyxl import load_workbook, Workbook
 
 from wijklabels import Bbox
-from wijklabels.woningtype import Woningtype, to_woningtype
+from wijklabels.woningtype import Woningtype
 from wijklabels.labels import EnergyLabel
 
 
@@ -148,7 +148,8 @@ class WoningtypeLoader:
 
     def load(self) -> pd.DataFrame:
         df = pd.read_csv(self.file, header=0,
-                         converters={"woningtype": to_woningtype, "identificatie": str,
+                         converters={"woningtype": Woningtype.from_str,
+                                     "identificatie": str,
                                      "vbo_identificatie": str})
         return df
 
@@ -180,7 +181,7 @@ class EPLoader:
         usecols = [0, 5, 11, 12, 13, 14, 16, 19, 20, 21]
         converters = {
             "Pand_opnamedatum": to_date,
-            "Pand_energieklasse": to_energylabel,
+            "Pand_energieklasse": EnergyLabel.from_str,
             "Pand_bagpandid": to_identificatie,
             "Pand_bagverblijfsobjectid": to_vbo_identifiactie,
             "Pand_postcode": str,
@@ -200,13 +201,6 @@ class EPLoader:
         columns_index = ["pand_identificatie", "vbo_identificatie"]
         return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method].dropna(
             axis="rows", how="any", subset=columns_index).set_index(columns_index)
-
-
-def to_energylabel(energieklasse: str):
-    try:
-        return EnergyLabel(energieklasse)
-    except ValueError:
-        return pd.NA
 
 
 def to_woningtype_ep_online(gebouwtype: str):

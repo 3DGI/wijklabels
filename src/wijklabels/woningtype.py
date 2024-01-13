@@ -18,12 +18,6 @@ log = logging.getLogger("main")
 # The actual woningtype classification is done in the classify_woningtype_full.sql
 # script.
 
-def to_woningtype(w):
-    try:
-        return Woningtype(w)
-    except ValueError:
-        return NA
-
 
 class Woningtype(StrEnum):
     """The classification per NTA method, since 2021-01-01"""
@@ -39,6 +33,17 @@ class Woningtype(StrEnum):
     APPARTEMENT_TUSSENMIDDEN = "appartement - tussenmidden"
     APPARTEMENT_TUSSENDAK = "appartement - tussendak"
     APPARTEMENT_TUSSENDAKVLOER = "appartement - tussendakvloer"
+
+    @classmethod
+    def from_str(cls, string: str):
+        """Converts a string to an Woningtype
+
+        :returns: a Woningtype object or pandas.NA if the string is invalid Woningtype
+        """
+        try:
+            return cls(string)
+        except ValueError:
+            return pd.NA
 
 
 class WoningtypePreNTA8800(StrEnum):
@@ -79,6 +84,18 @@ class WoningtypePreNTA8800(StrEnum):
             else:
                 raise ValueError(
                     f"cannot determine apartement type from {oorspronkelijkbouwjaar=}, {woningtype=}")
+
+    @classmethod
+    def from_str(cls, string: str):
+        """Converts a string to an WoningtypePreNTA8800
+
+        :returns: a WoningtypePreNTA8800 object or pandas.NA if the string is invalid
+            WoningtypePreNTA8800
+        """
+        try:
+            return cls(string)
+        except ValueError:
+            return pd.NA
 
 
 # The distribution of these types are compoted from the EP-Online data, from the records
@@ -191,6 +208,18 @@ class Bouwperiode(OrderedEnum):
                 return cls((1992, 9999))
             else:
                 raise ValueError(oorspronkelijkbouwjaar, woningtype)
+
+    @classmethod
+    def from_str(cls, string: str):
+        """Converts a string to an Bouwperiode, where the string must represent a tuple
+        of integers of a valid Bouwperiode, e.g. '(1946, 1964)'.
+
+        :returns: a Bouwperiode object or pandas.NA if the string is invalid Bouwperiode
+        """
+        try:
+            return cls(eval(string))
+        except ValueError:
+            return pd.NA
 
 
 def distribute_vbo_on_floor(group: pd.DataFrame) -> pd.DataFrame | None:

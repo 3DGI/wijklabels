@@ -113,6 +113,27 @@ class VormfactorClass(OrderedEnum):
         except IndexError:
             log.error(f"couldn't classify vormfactor {vormfactor}")
 
+    @classmethod
+    def from_str(cls, string: str):
+        """Converts a string to a VormfactorClass
+
+        :returns: a VormfactorClass object or pandas.NA if the string is invalid
+            VormfactorClass
+        """
+        try:
+            if "inf" in string:
+                vormfactors_str = string.strip("()").split(", ")
+                if "inf" in vormfactors_str[0]:
+                    vf_tuple = float(vormfactors_str[0]), eval(vormfactors_str[1])
+                else:
+                    vf_tuple = eval(vormfactors_str[0]), float(vormfactors_str[1])
+                return cls(vf_tuple)
+            else:
+                return cls(eval(string))
+        except ValueError:
+            return pd.NA
+
+
 
 def vormfactorclass(vof):
     try:

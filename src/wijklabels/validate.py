@@ -5,9 +5,9 @@ import logging
 import pandas as pd
 
 from wijklabels.report import aggregate_to_buurt, plot_comparison
-from wijklabels.load import EPLoader, to_energylabel, ExcelLoader
+from wijklabels.load import EPLoader, ExcelLoader
 from wijklabels.labels import parse_energylabel_ditributions, \
-    reshape_for_classification
+    reshape_for_classification, EnergyLabel
 
 # Logger for data validation messages
 log = logging.getLogger("VALIDATION")
@@ -52,6 +52,7 @@ parser_validate.add_argument('path_estimated_labels_csv')
 parser_validate.add_argument('path_ep_online_csv')
 parser_validate.add_argument('path_label_distributions_xlsx')
 parser_validate.add_argument('path_output_dir')
+parser_validate.add_argument('-e', '--energylabel', default="energylabel")
 parser_validate.add_argument('--plot', type=str,
                              help="Produce a diagram for each neighborhood, comparing the estimated labels to the EP-Online labels. The diagrams are placed into the provided directory.")
 
@@ -65,9 +66,14 @@ def validate_cli():
     PATH_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     log.info("Loading data")
     estimated_labels_df = pd.read_csv(
-        p_el, converters={"energylabel": to_energylabel}).set_index(
+        p_el, converters={args.energylabel: EnergyLabel.from_str}).set_index(
         ["vbo_identificatie", "pand_identificatie"]
     )
+    if args.energylabel != "energylabel":
+        if "energylabel" in estimated_labels_df.columns:
+            estimated_labels_df.rename(columns={"energylabel": "energylabel_bak"}, inplace=True)
+        estimated_labels_df.rename(columns={args.energylabel: "energylabel"}, inplace=True)
+
     ep_online_df = EPLoader(file=p_ep).load()
     df_with_truth = join_with_ep_online(estimated_labels=estimated_labels_df,
                                         ep_online=ep_online_df)

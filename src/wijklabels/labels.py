@@ -14,9 +14,6 @@ from wijklabels.vormfactor import VormfactorClass
 
 log = logging.getLogger()
 
-# label_distributions_path = '/home/balazs/Development/wijklabels/resources/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx'
-# excelloader = load.ExcelLoader(file=label_distributions_path)
-
 LabelDistributions = dict[tuple[WoningtypePreNTA8800, Bouwperiode], pd.DataFrame]
 LongLabels = pd.DataFrame
 
@@ -49,7 +46,20 @@ class EnergyLabel(OrderedEnum):
         2 are G, F, E.
         """
         member_list = self.__class__._member_list()
-        return member_list.index(self) - within <= member_list.index(other) <= member_list.index(self) + within
+        min_label_index = member_list.index(self) - within
+        max_label_index = member_list.index(self) + within
+        return min_label_index <= member_list.index(other) <= max_label_index
+
+    @classmethod
+    def from_str(cls, string: str):
+        """Converts a string to an EnergyLabel
+
+        :returns: a EnergyLabel object or pandas.NA if the string is invalid EnergyLabel
+        """
+        try:
+            return cls(string)
+        except ValueError:
+            return pd.NA
 
 
 def parse_energylabel_ditributions(excelloader) -> LabelDistributions:
@@ -140,7 +150,8 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
             # shift the max values to get the lower range for each label
             bin_max_continuous.insert(0, 0.0)
             bin_max_continuous.pop()
-            bin_min = pd.Series(bin_max_continuous, index=bin_max[bin_max.notna()].index)
+            bin_min = pd.Series(bin_max_continuous,
+                                index=bin_max[bin_max.notna()].index)
             df_bins = pd.DataFrame(
                 data={"vormfactor": row[0], "energylabel": list(EnergyLabel),
                       "bin_min": bin_min, "bin_max": bin_max}
@@ -159,14 +170,18 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
     df = pd.concat(dfs)
     df.reset_index(inplace=True)
     result_df = df[
-        ["woningtype_pre_nta8800", "bouwperiode", "vormfactor", "energylabel", "probability",
+        ["woningtype_pre_nta8800", "bouwperiode", "vormfactor", "energylabel",
+         "probability",
          "bin_min", "bin_max"]]
-    result_df.set_index(["woningtype_pre_nta8800", "bouwperiode", "vormfactor"], inplace=True)
+    result_df.set_index(["woningtype_pre_nta8800", "bouwperiode", "vormfactor"],
+                        inplace=True)
     return result_df.sort_index(inplace=False)
 
 
-def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800, bouwperiode: Bouwperiode,
-                   vormfactor: VormfactorClass, random_number: float) -> EnergyLabel | None:
+def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800,
+                   bouwperiode: Bouwperiode,
+                   vormfactor: VormfactorClass,
+                   random_number: float) -> EnergyLabel | None:
     """Assign an energy label to the provided properties (woningtype, bouwperiode,
     vormfactor) and the computed random number.
     For the given woningtype, bouwperiode and vormfactor, the energy labels have the
@@ -177,9 +192,11 @@ def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800, bouwperiode
     `random_number` falls into.
     """
     try:
-        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(f"bin_min <= {random_number} < bin_max").energylabel
+        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(
+            f"bin_min <= {random_number} < bin_max").energylabel
         if len(label) > 1:
-            log.error(f"multiple labels {label} found for {(woningtype, bouwperiode, vormfactor)} and {random_number}, returning None")
+            log.error(
+                f"multiple labels {label} found for {(woningtype, bouwperiode, vormfactor)} and {random_number}, returning None")
         return label.item() if len(label) == 1 else None
     except KeyError:
         # There is no data in the label distributions for this

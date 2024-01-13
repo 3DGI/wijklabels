@@ -38,6 +38,8 @@ parser.add_argument('password')
 parser.add_argument('table', type=str, default='wijklabels.input')
 parser.add_argument('-j', '--jobs', type=int, default=4)
 
+# Set seed for the random number generator that is used by the label estimation
+random.seed(1, version=2)
 
 def process_cli():
     columns = [
@@ -100,7 +102,7 @@ def process_cli():
     with ProcessPoolExecutor(max_workers=jobs) as executor:
         records = itertools.chain.from_iterable(
             executor.map(
-                estimate_labels_one_pand,
+                process_one_pand,
                 itertools.repeat(connection_string, nr_pand),
                 itertools.repeat(table, nr_pand),
                 pand_identificatie_all,
@@ -122,12 +124,12 @@ def process_cli():
     buurten_labels_wide.to_csv(path_output_aggregate)
 
 
-def estimate_labels_one_pand(connection_str: str,
-                             table: str,
-                             pand_identificatie: str,
-                             columns_index: list[str],
-                             columns_excluded: list[str],
-                             distributions: pd.DataFrame) -> list[dict] | None:
+def process_one_pand(connection_str: str,
+                     table: str,
+                     pand_identificatie: str,
+                     columns_index: list[str],
+                     columns_excluded: list[str],
+                     distributions: pd.DataFrame) -> list[dict] | None:
     """Compute some of the required attributes and then estimate the energy labels for
     the Verblijfsobjecten in one Pand.
 
