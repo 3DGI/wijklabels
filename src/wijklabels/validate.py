@@ -60,6 +60,14 @@ parser_validate.add_argument('--plot', type=str,
 
 def validate_cli():
     args = parser_validate.parse_args()
+    args = parser_validate.parse_args([
+        "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
+        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+        "/data/wijklabels/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
+        "/home/balazs/Development/wijklabels/tests/data/output",
+        "--plot",
+        "/home/balazs/Development/wijklabels/tests/data/output/plot_comparison"
+    ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     p_el = Path(args.path_estimated_labels_csv).resolve()
     p_dist = Path(args.path_label_distributions_xlsx).resolve()
@@ -79,9 +87,15 @@ def validate_cli():
     df_with_truth = join_with_ep_online(estimated_labels=estimated_labels_df,
                                         ep_online=ep_online_df)
 
-    excelloader = ExcelLoader(file=p_dist)
-    _d = parse_energylabel_ditributions(excelloader)
-    distributions = reshape_for_classification(_d)
+    log.info("Computing estimated label distance to EP-Online labels")
+    df_with_truth.loc[:, "energylabel_distance"] = df_with_truth.apply(
+        lambda row: row["energylabel"].distance(row["energylabel_ep_online"]),
+        axis=1
+    )
+
+    # excelloader = ExcelLoader(file=p_dist)
+    # _d = parse_energylabel_ditributions(excelloader)
+    # distributions = reshape_for_classification(_d)
 
     p_out = PATH_OUTPUT_DIR.joinpath("labels_individual_ep_online").with_suffix(".csv")
     log.info(f"Writing output to {p_out}")

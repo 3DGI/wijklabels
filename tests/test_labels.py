@@ -31,3 +31,16 @@ def test_reshape_for_classification(excelloader):
 )
 def test_within(_self, other, range, result):
     assert _self.within(other, range) == result
+
+
+@mark.parametrize(
+    ("_self", "other", "result"),
+    (
+            (EnergyLabel.B, EnergyLabel.B, 0),
+            (EnergyLabel.A, EnergyLabel.D, -3),
+            (EnergyLabel.D, EnergyLabel.A, 3),
+            (EnergyLabel.G, EnergyLabel.APPPP, 10),
+    )
+)
+def test_distance(_self, other, result):
+    assert _self.distance(other) == result

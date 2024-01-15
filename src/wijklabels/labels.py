@@ -50,6 +50,17 @@ class EnergyLabel(OrderedEnum):
         max_label_index = member_list.index(self) + within
         return min_label_index <= member_list.index(other) <= max_label_index
 
+    def distance(self, other) -> int:
+        """Compute the distance to the other label.
+        The distance is signed, where going from a worse label (e.g. F) towards a
+        better label (e.g. A) is positive, the other way around is negative distance.
+        Thus, the distance `A --> D` is `-3`, the distance `A --> A` is `0`.
+
+        :returns int: The distance between the current label and the other label.
+        """
+        member_list = self.__class__._member_list()
+        return (member_list.index(self) - member_list.index(other)) * -1
+
     @classmethod
     def from_str(cls, string: str):
         """Converts a string to an EnergyLabel
