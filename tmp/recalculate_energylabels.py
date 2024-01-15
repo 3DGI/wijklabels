@@ -19,12 +19,12 @@ parser.add_argument("-o", "--output")
 parser.add_argument("-j", "--jobs", type=int, default=4)
 
 if __name__ == "__main__":
-    # args = parser.parse_args()
-    args = parser.parse_args([
-        "-i", "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
-        "-d", "/home/balazs/Development/wijklabels/tests/data/input/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
-        "-o", "/home/balazs/Development/wijklabels/tests/data/output/labels_individual_newlabels.csv"
-    ])
+    args = parser.parse_args()
+    # args = parser.parse_args([
+    #     "-i", "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
+    #     "-d", "/home/balazs/Development/wijklabels/tests/data/input/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
+    #     "-o", "/home/balazs/Development/wijklabels/tests/data/output/labels_individual_newlabels.csv"
+    # ])
     random.seed(1, version=2)
 
     columns_index = ["pand_identificatie", "vbo_identificatie"]
