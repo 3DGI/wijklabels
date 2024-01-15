@@ -8,7 +8,7 @@ import logging
 import pandas as pd
 from numpy import nan
 
-from wijklabels import OrderedEnum
+from wijklabels import OrderedEnum, LabelEstimationMethod
 from wijklabels.woningtype import Woningtype, WoningtypePreNTA8800, Bouwperiode
 from wijklabels.vormfactor import VormfactorClass
 
@@ -179,9 +179,8 @@ def reshape_for_classification(label_distributions: LabelDistributions) -> LongL
 
 
 def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800,
-                   bouwperiode: Bouwperiode,
-                   vormfactor: VormfactorClass,
-                   random_number: float) -> EnergyLabel | None:
+                   bouwperiode: Bouwperiode, vormfactor: VormfactorClass,
+                   random_number: float, method: LabelEstimationMethod) -> EnergyLabel | None:
     """Assign an energy label to the provided properties (woningtype, bouwperiode,
     vormfactor) and the computed random number.
     For the given woningtype, bouwperiode and vormfactor, the energy labels have the
@@ -190,10 +189,29 @@ def estimate_label(df: LongLabels, woningtype: WoningtypePreNTA8800,
     original study, and here they are cumulative ranges on the range of (0,1).
     Then the input `random_number` is assigned the energy label which bin the
     `random_number` falls into.
+    :param method:
     """
-    try:
-        label = df.loc[(woningtype, bouwperiode, vormfactor), :].query("probability == probability.max()").energylabel.iloc[0]
-        return label
-    except KeyError:
-        # There is no data in the label distributions for this
-        return None
+    if method == LabelEstimationMethod.MAX_PROBABILITY:
+        # Choose the label with the max. probability from the distribution for the
+        # (woningtype, bouwperiode, vormfactor) tuple
+        try:
+            label = df.loc[(woningtype, bouwperiode, vormfactor), :].query("probability == probability.max()").energylabel.iloc[0]
+            return label
+        except KeyError:
+            # There is no data in the label distributions for this
+            return None
+    elif method == LabelEstimationMethod.DISTRIBUTION:
+        # Choose a label from the distribution for the
+        # (woningtype, bouwperiode, vormfactor) tuple
+        try:
+            label = df.loc[(woningtype, bouwperiode, vormfactor), :].query(
+                f"bin_min <= {random_number} < bin_max").energylabel
+            if len(label) > 1:
+                log.error(
+                    f"multiple labels {label} found for {(woningtype, bouwperiode, vormfactor)} and {random_number}, returning None")
+            return label.item() if len(label) == 1 else None
+        except KeyError:
+            # There is no data in the label distributions for this
+            return None
+    else:
+        raise ValueError(f"Unknown method {method}")

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import ticker as mtick, pyplot as plt
 
+from wijklabels import AggregateUnit
 from wijklabels.labels import EnergyLabel
 
 COLORS = {"#1a9641": EnergyLabel.APPPP,
@@ -58,15 +59,27 @@ def plot_buurts(dir_plots: str, df: pd.DataFrame):
         plt.savefig(f"{dir_plots}/{filename}.png")
 
 
-def plot_comparison(validated: pd.DataFrame, dir_plots: str):
+def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
+                    aggregate_level: AggregateUnit):
     # Compare estimated to groundtruth in plots
-    Path(dir_plots).mkdir(exist_ok=True)
-    for buurt in validated["buurtcode"].unique():
+    dir_plots.mkdir(exist_ok=True)
+    if aggregate_level == AggregateUnit.BUURT:
+        aggregate_id_column = "buurtcode"
+    elif aggregate_level == AggregateUnit.WIJK:
+        aggregate_id_column = "wijkcode"
+    elif aggregate_level == AggregateUnit.GEMEENTE:
+        aggregate_id_column = "gemeentecode"
+    elif aggregate_level == AggregateUnit.NL:
+        aggregate_id_column = "landcode"
+    else:
+        raise ValueError(f"Unknown aggregate level: {aggregate_level}")
+    for aggregate_id in validated[aggregate_id_column].unique():
         b = validated.loc[
-            validated["buurtcode"] == buurt, ["energylabel", "energylabel_ep_online"]]
+            validated[aggregate_id_column] == aggregate_id,
+            ["energylabel", "energylabel_ep_online"]
+        ]
         estimated = b["energylabel"].value_counts() / len(b) * 100
         truth = b["energylabel_ep_online"].value_counts() / len(b) * 100
-        # truth.index.name = "energylabel"
         b_df = pd.DataFrame({"estimated": estimated, "ep-online": truth},
                             index=[EnergyLabel.APPPP, EnergyLabel.APPP, EnergyLabel.APP,
                                    EnergyLabel.AP, EnergyLabel.A, EnergyLabel.B,
@@ -80,9 +93,8 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: str):
         ax.set_yticks([10, 20, 30, 40, 50, 60, 70, 80])
         plt.grid(visible=True, which="major", axis="y", zorder=0)
         plt.title(f"Nr. woningen: {len(b)}", fontsize=10)
-        plt.suptitle(buurt, fontsize=14)
+        plt.suptitle(aggregate_id, fontsize=14)
         plt.tight_layout()
-        filename = ''.join(e for e in buurt if e.isalnum())
-        plt.savefig(
-            f"{dir_plots}/{filename}.png")
+        filename = ''.join(e for e in aggregate_id if e.isalnum())
+        plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}.png")
         plt.close()

@@ -9,6 +9,7 @@ import pandas as pd
 import psycopg
 from psycopg.rows import dict_row
 
+from wijklabels import LabelEstimationMethod
 from wijklabels.report import aggregate_to_buurt
 from wijklabels.load import ExcelLoader
 from wijklabels.vormfactor import calculate_surface_areas, vormfactor, \
@@ -37,6 +38,9 @@ parser.add_argument('user')
 parser.add_argument('password')
 parser.add_argument('table', type=str, default='wijklabels.input')
 parser.add_argument('-j', '--jobs', type=int, default=4)
+parser.add_argument('-m', '--method', type=LabelEstimationMethod,
+                    choices=list(map(str, LabelEstimationMethod)),
+                    default="distribution")
 
 # Set seed for the random number generator that is used by the label estimation
 random.seed(1, version=2)
@@ -108,7 +112,8 @@ def process_cli():
                 pand_identificatie_all,
                 itertools.repeat(columns_index, nr_pand),
                 itertools.repeat(columns_excluded, nr_pand),
-                itertools.repeat(distributions, nr_pand)
+                itertools.repeat(distributions, nr_pand),
+                itertools.repeat(args.method, nr_pand)
             )
         )
     df_labels_individual = pd.DataFrame.from_records(records, index=columns_index)
@@ -129,7 +134,8 @@ def process_one_pand(connection_str: str,
                      pand_identificatie: str,
                      columns_index: list[str],
                      columns_excluded: list[str],
-                     distributions: pd.DataFrame) -> list[dict] | None:
+                     distributions: pd.DataFrame,
+                     method: LabelEstimationMethod) -> list[dict] | None:
     """Compute some of the required attributes and then estimate the energy labels for
     the Verblijfsobjecten in one Pand.
 
@@ -161,7 +167,7 @@ def process_one_pand(connection_str: str,
 
         determine_construction_period(pand_df)
 
-        estimate_labels(pand_df, distributions)
+        estimate_labels(pand_df, distributions, method)
 
         return pand_df.reset_index().to_dict("records")
     except BaseException as e:
@@ -169,7 +175,8 @@ def process_one_pand(connection_str: str,
         return None
 
 
-def estimate_labels(pand_df, distributions: pd.DataFrame) -> None:
+def estimate_labels(pand_df, distributions: pd.DataFrame,
+                    method: LabelEstimationMethod) -> None:
     """Estimate the energy label for each Verblijfsobject in the Pand.
 
     Adds the 'energylabel' column to the input dataframe.
@@ -179,7 +186,8 @@ def estimate_labels(pand_df, distributions: pd.DataFrame) -> None:
                                    woningtype=row["woningtype_pre_nta8800"],
                                    bouwperiode=row["bouwperiode"],
                                    vormfactor=row["vormfactorclass"],
-                                   random_number=random.random()),
+                                   random_number=random.random(),
+                                   method=method),
         axis=1
     )
 

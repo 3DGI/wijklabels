@@ -100,7 +100,7 @@ CREATE INDEX vbo_identificatie_idx ON wijklabels.woningtypen (vbo_identificatie)
 /* Buurten
    */
 CREATE OR REPLACE VIEW wijklabels.pand_in_buurt AS
-SELECT p.identificatie, b.buurtcode, b.buurtnaam
+SELECT p.identificatie, 'NL' AS landcode, b.gemeentecode, b.wijkcode, b.buurtcode, b.buurtnaam
 FROM lvbag.pandactueelbestaand AS p
          INNER JOIN public.buurten AS b
                     ON st_intersects(st_centroid(p.geometrie), b.geom);
@@ -133,6 +133,9 @@ SELECT p.pand_identificatie
      , p.oppervlakte
      , p.geometrie
      , w.woningtype
+     , b.landcode
+     , b.gemeentecode
+     , b.wijkcode
      , b.buurtcode
      , f.nr_floors
      , f.vbo_count

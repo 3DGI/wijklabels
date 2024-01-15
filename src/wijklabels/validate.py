@@ -4,6 +4,7 @@ import logging
 
 import pandas as pd
 
+from wijklabels import AggregateUnit
 from wijklabels.report import aggregate_to_buurt, plot_comparison
 from wijklabels.load import EPLoader, ExcelLoader
 from wijklabels.labels import parse_energylabel_ditributions, \
@@ -118,8 +119,16 @@ def validate_cli():
     if args.plot is not None:
         p = Path(args.plot).resolve()
         p.mkdir(parents=True, exist_ok=True)
-        log.info(f"Writing plots to {p}")
-        plot_comparison(df_with_truth, p)
+
+        # Plot NL
+        log.info(f"Writing plot of the Netherlands to {p}")
+        plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.NL)
+        log.info(f"Writing plots of municipalities to {p}")
+        plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.GEMEENTE)
+        log.info(f"Writing plots of wijken to {p}")
+        plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.WIJK)
+        log.info(f"Writing plots of neighborhoods to {p}")
+        plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.BUURT)
 
 
 if __name__ == "__main__":

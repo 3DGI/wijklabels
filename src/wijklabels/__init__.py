@@ -1,5 +1,5 @@
 from typing import Tuple
-from enum import Enum
+from enum import Enum, StrEnum
 import functools
 
 Bbox = Tuple[float, float, float, float]
@@ -21,3 +21,15 @@ class OrderedEnum(Enum):
             member_list = self.__class__._member_list()
             return member_list.index(self) < member_list.index(other)
         return NotImplemented
+
+
+class AggregateUnit(StrEnum):
+    NL = "nl"
+    GEMEENTE = "gemeente"
+    WIJK = "wijk"
+    BUURT = "buurt"
+
+
+class LabelEstimationMethod(StrEnum):
+    MAX_PROBABILITY = "max_probability"
+    DISTRIBUTION = "distribution"
