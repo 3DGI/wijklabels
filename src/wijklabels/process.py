@@ -187,7 +187,16 @@ def estimate_labels(pand_df, distributions: pd.DataFrame,
                                    bouwperiode=row["bouwperiode"],
                                    vormfactor=row["vormfactorclass"],
                                    random_number=random.random(),
-                                   method=method),
+                                   method=LabelEstimationMethod.DISTRIBUTION),
+        axis=1
+    )
+    pand_df["energylabel_max_prob"] = pand_df.apply(
+        lambda row: estimate_label(df=distributions,
+                                   woningtype=row["woningtype_pre_nta8800"],
+                                   bouwperiode=row["bouwperiode"],
+                                   vormfactor=row["vormfactorclass"],
+                                   random_number=random.random(),
+                                   method=LabelEstimationMethod.MAX_PROBABILITY),
         axis=1
     )
 
