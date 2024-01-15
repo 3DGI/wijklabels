@@ -88,7 +88,11 @@ def validate_cli():
                                         ep_online=ep_online_df)
 
     log.info("Computing estimated label distance to EP-Online labels")
-    df_with_truth.loc[:, "energylabel_distance"] = df_with_truth.apply(
+    # df_with_truth.loc[:, "energylabel_dist_ep_est"] = df_with_truth.apply(
+    #     lambda row: row["energylabel_ep_online"].distance(row["energylabel"]),
+    #     axis=1
+    # )
+    df_with_truth.loc[:, "energylabel_dist_est_ep"] = df_with_truth.apply(
         lambda row: row["energylabel"].distance(row["energylabel_ep_online"]),
         axis=1
     )

@@ -101,56 +101,44 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
         plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}.png")
         plt.close()
 
-        # # Plot distances
-        # b = validated.loc[
+        # Plot distances
+        def _plot_dist(grouped, t):
+            fig, ax = plt.subplots(figsize=(8, 6))
+            boxplot = ax.boxplot(x=[group.values for name, group in grouped],
+                                 labels=grouped.groups.keys(),
+                                 patch_artist=True,
+                                 medianprops={'color': 'black'},
+                                 zorder=3)
+            ax.set_xticks(ticks=range(11, 0, -1), labels=list(reversed(EnergyLabel)))
+            ax.set_xlim(12, 0)
+            if t == "_ep_est":
+                ax.set_xlabel("Energielabel in EP-Online")
+                ax.set_ylabel("Afwijking geschatte energielabel")
+            else:
+                ax.set_xlabel("Geschatte energielabel")
+                ax.set_ylabel("Afwijking EP-Online")
+            ax.set_yticks(range(-10, 11, 1))
+            # ax.annotate("EP-Online", xy=(10.5, 0.1), xycoords="data",
+            #             fontsize="large",
+            #             color='#154273')
+            # Assign colors to each box in the boxplot
+            for box, color in zip(boxplot['boxes'], reversed(COLORS)):
+                box.set_facecolor(color)
+            plt.axhline(y=0.0, color='#154273', linestyle='-')
+            plt.grid(visible=True, which="major", axis="y", zorder=0)
+            plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
+            plt.suptitle("Afwijking van de geschatte labels van de EP-Online labels", fontsize=14)
+            plt.tight_layout()
+            plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist{t}.png")
+            plt.close()
+
+        # grouped_ep_est = validated.loc[
         #     validated[aggregate_id_column] == aggregate_id,
-        #     ["energylabel_distance"]
-        # ]
-        # estimated = b["energylabel_distance"].value_counts() / len(b) * 100
-        # b_df = pd.DataFrame( estimated,
-        #                     index=[EnergyLabel.APPPP, EnergyLabel.APPP, EnergyLabel.APP,
-        #                            EnergyLabel.AP, EnergyLabel.A, EnergyLabel.B,
-        #                            EnergyLabel.C, EnergyLabel.D,
-        #                            EnergyLabel.E, EnergyLabel.F, EnergyLabel.G])
-        # ax = b_df.plot(kind="bar",
-        #                rot=0,
-        #                xlabel="",
-        #                zorder=3)
-        # ax.set_yticks(list(range(11)))
-        # plt.style.use('seaborn-v0_8-muted')
-        # plt.grid(visible=True, which="major", axis="y", zorder=0)
-        # plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
-        # plt.suptitle("Afwijking tussen geschat en EP-Online energielabels", fontsize=14)
-        # plt.tight_layout()
-        # filename = ''.join(e for e in aggregate_id if e.isalnum())
-        # plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist.png")
-        # plt.close()
-
-        grouped = validated.loc[
+        #     ["energylabel_ep_online", "energylabel_dist_ep_est"]
+        # ].groupby("energylabel_ep_online")["energylabel_dist_ep_est"]
+        # _plot_dist(grouped_ep_est, "_ep_est")
+        grouped_est_ep = validated.loc[
             validated[aggregate_id_column] == aggregate_id,
-            ["energylabel", "energylabel_distance"]
-        ].groupby("energylabel")["energylabel_distance"]
-        fig, ax = plt.subplots(figsize=(8, 6))
-        boxplot = ax.boxplot(x=[group.values for name, group in grouped],
-                             labels=grouped.groups.keys(),
-                             patch_artist=True,
-                             medianprops={'color': 'black'},
-                             zorder=3
-                             )
-        ax.set_xticks(ticks=range(11, 0, -1), labels=list(reversed(EnergyLabel)))
-        ax.set_xlim(11, 0)
-        ax.set_yticks(range(-10, 11, 1))
-        ax.annotate("EP-Online", xy=(10.5, 0.1), xycoords="data", fontsize="large",
-                    color='#154273')
-
-        # Assign colors to each box in the boxplot
-        for box, color in zip(boxplot['boxes'], reversed(COLORS)):
-            box.set_facecolor(color)
-
-        plt.axhline(y=0.0, color='#154273', linestyle='-')
-        plt.grid(visible=True, which="major", axis="y", zorder=0)
-        plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
-        plt.suptitle("Afwijking tussen geschat en EP-Online energielabels", fontsize=14)
-        plt.tight_layout()
-        plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist.png")
-        plt.close()
+            ["energylabel", "energylabel_dist_est_ep"]
+        ].groupby("energylabel")["energylabel_dist_est_ep"]
+        _plot_dist(grouped_est_ep, "_est_ep")
