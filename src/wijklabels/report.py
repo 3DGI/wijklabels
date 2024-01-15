@@ -126,7 +126,10 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
         # plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist.png")
         # plt.close()
 
-        grouped = validated.groupby("energylabel")["energylabel_distance"]
+        grouped = validated.loc[
+            validated[aggregate_id_column] == aggregate_id,
+            ["energylabel", "energylabel_distance"]
+        ].groupby("energylabel")["energylabel_distance"]
         fig, ax = plt.subplots(figsize=(8, 6))
         boxplot = ax.boxplot(x=[group.values for name, group in grouped],
                              labels=grouped.groups.keys(),
