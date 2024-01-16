@@ -11,6 +11,8 @@ from wijklabels.report import (aggregate_to_unit, plot_comparison,
 from wijklabels.load import EPLoader, ExcelLoader
 from wijklabels.labels import parse_energylabel_ditributions, \
     reshape_for_classification, EnergyLabel
+from wijklabels.vormfactor import VormfactorClass
+from wijklabels.woningtype import WoningtypePreNTA8800, Bouwperiode
 
 # Logger for data validation messages
 log = logging.getLogger("VALIDATION")
@@ -63,14 +65,6 @@ parser_validate.add_argument('--plot', action='store_true',
 
 def validate_cli():
     args = parser_validate.parse_args()
-    # args = parser_validate.parse_args([
-    #     "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
-    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-    #     "/data/wijklabels/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
-    #     "/home/balazs/Development/wijklabels/tests/data/output",
-    #     "--plot",
-    #     "/home/balazs/Development/wijklabels/tests/data/output/plot_comparison"
-    # ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     p_el = Path(args.path_estimated_labels_csv).resolve()
     p_dist = Path(args.path_label_distributions_xlsx).resolve()
@@ -78,7 +72,13 @@ def validate_cli():
     PATH_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     log.info("Loading data")
     estimated_labels_df = pd.read_csv(
-        p_el, converters={args.energylabel: EnergyLabel.from_str}).set_index(
+        p_el,
+        converters={
+            args.energylabel: EnergyLabel.from_str,
+            "bouwperiode": Bouwperiode.from_str,
+            "vormfactorclass": VormfactorClass.from_str,
+            "woningtype_pre_nta8800": WoningtypePreNTA8800.from_str
+        }).set_index(
         ["vbo_identificatie", "pand_identificatie"]
     )
     if args.energylabel not in estimated_labels_df.columns:
@@ -95,13 +95,28 @@ def validate_cli():
     log.info("Computing estimated label distance to EP-Online labels")
     distance_column = "energylabel_dist_est_ep"
     df_with_truth.loc[:, distance_column] = df_with_truth.apply(
-        lambda row: row["energylabel"].distance(row["energylabel_ep_online"]),
+        lambda row: row["energylabel_ep_online"].distance(row["energylabel"]),
         axis=1
     )
 
-    # excelloader = ExcelLoader(file=p_dist)
-    # _d = parse_energylabel_ditributions(excelloader)
-    # distributions = reshape_for_classification(_d)
+    log.info("Comparing the EP-Online labels to the Voorbeeldwoningen 2022 distributions")
+    excelloader = ExcelLoader(file=p_dist)
+    _d = parse_energylabel_ditributions(excelloader)
+    distributions = reshape_for_classification(_d)
+
+    def _ep_in_dist(df_dist, row):
+        el_ep_online = row['energylabel_ep_online']
+        try:
+            return df_dist.loc[
+            (row["woningtype_pre_nta8800"], row["bouwperiode"], row["vormfactorclass"]),
+            :].query("energylabel == @el_ep_online").probability.notnull().values[0]
+        except KeyError:
+            return False
+
+    df_with_truth["ep_online_label_in_distributions"] = df_with_truth.apply(
+        lambda row: _ep_in_dist(distributions, row),
+        axis=1
+    )
 
     p_out = PATH_OUTPUT_DIR.joinpath("labels_individual_ep_online").with_suffix(".csv")
     log.info(f"Writing output to {p_out}")
@@ -126,6 +141,28 @@ def validate_cli():
     log.info(f"Accuracy within one label distance for eengezinswoningen {round(accuracy_one_dev_eengezins * 100)}%")
     accuracy_one_dev_meergezins = calculate_accuracy(df_with_truth, within=within_range, woningtype="meergezins")
     log.info(f"Accuracy within one label distance for meergezinswoningen {round(accuracy_one_dev_meergezins * 100)}%")
+
+    nr_impossible_labels = len(df_with_truth[df_with_truth["ep_online_label_in_distributions"] == False])
+    nr_total = len(df_with_truth)
+    log.info(f"Labels in EP-Online that do not have a corresponding probability in the Voorbeeldwoningen 2022 data: {round(nr_impossible_labels / nr_total * 100)}%")
+
+    possible_labels = df_with_truth[df_with_truth["ep_online_label_in_distributions"] == True]
+    within_range = 0
+    accuracy_exact = calculate_accuracy(possible_labels, within=within_range)
+    log.info(f"Exact match accuracy of possible labels {round(accuracy_exact * 100)}%")
+    accuracy_exact_eengezins = calculate_accuracy(possible_labels, within=within_range, woningtype="eengezins")
+    log.info(f"Exact match accuracy of possible labels for eengezinswoningen {round(accuracy_exact_eengezins * 100)}%")
+    accuracy_exact_meergezins = calculate_accuracy(possible_labels, within=within_range, woningtype="meergezins")
+    log.info(f"Exact match accuracy of possible labels for meergezinswoningen {round(accuracy_exact_meergezins * 100)}%")
+
+    within_range = 1
+    accuracy_one_dev = calculate_accuracy(possible_labels, within=within_range)
+    log.info(f"Accuracy within one label distance of possible labels {round(accuracy_one_dev * 100)}%")
+    accuracy_one_dev_eengezins = calculate_accuracy(possible_labels, within=within_range, woningtype="eengezins")
+    log.info(f"Accuracy within one label distance of possible labels for eengezinswoningen {round(accuracy_one_dev_eengezins * 100)}%")
+    accuracy_one_dev_meergezins = calculate_accuracy(possible_labels, within=within_range, woningtype="meergezins")
+    log.info(f"Accuracy within one label distance of possible labels for meergezinswoningen {round(accuracy_one_dev_meergezins * 100)}%")
+
 
     # Aggregate per buurt
     log.info("Aggregating the neigbourhoods")
@@ -160,6 +197,39 @@ def validate_cli():
     log.info(f"Writing output to {p_out}")
     df_distance_stats.join(df_distributions_units).to_csv(p_out)
 
+    # Possible labels only
+    log.info("Aggregating the neigbourhoods of possible labels")
+    gen_dist_nl = aggregate_to_unit(possible_labels, "energylabel",
+                                    AggregateUnit.NL)
+    gen_dist_gem = aggregate_to_unit(possible_labels, "energylabel",
+                                    AggregateUnit.GEMEENTE)
+    gen_dist_wij = aggregate_to_unit(possible_labels, "energylabel",
+                                    AggregateUnit.WIJK)
+    gen_dist_buu = aggregate_to_unit(possible_labels, "energylabel",
+                                    AggregateUnit.BUURT)
+    df_distributions_units = pd.DataFrame.from_records(
+        itertools.chain(gen_dist_nl, gen_dist_gem, gen_dist_wij, gen_dist_buu),
+        index="unit_code"
+    )
+
+    log.info("Analysing estimated and EP-Online deviations")
+    gen_nl = calculate_distance_stats_for_area(possible_labels, AggregateUnit.NL,
+                                               distance_column)
+    gen_gem = calculate_distance_stats_for_area(possible_labels, AggregateUnit.GEMEENTE,
+                                                distance_column)
+    gen_wij = calculate_distance_stats_for_area(possible_labels, AggregateUnit.WIJK,
+                                                distance_column)
+    gen_buu = calculate_distance_stats_for_area(possible_labels, AggregateUnit.BUURT,
+                                                distance_column)
+    df_distance_stats = pd.DataFrame.from_records(
+        itertools.chain(gen_nl, gen_gem, gen_wij, gen_buu),
+        index="unit_code"
+    )
+
+    p_out = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood_ep_online_possible").with_suffix(".csv")
+    log.info(f"Writing output to {p_out}")
+    df_distance_stats.join(df_distributions_units).to_csv(p_out)
+
     if args.plot:
         p = PATH_OUTPUT_DIR.joinpath("plots")
         p.mkdir(parents=True, exist_ok=True)
@@ -173,6 +243,19 @@ def validate_cli():
         plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.WIJK)
         log.info(f"Writing plots of neighborhoods to {p}")
         plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.BUURT)
+
+        p = PATH_OUTPUT_DIR.joinpath("plots_possible")
+        p.mkdir(parents=True, exist_ok=True)
+
+        # Plot NL
+        log.info(f"Writing plot of the Netherlands to {p}")
+        plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.NL)
+        log.info(f"Writing plots of municipalities to {p}")
+        plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.GEMEENTE)
+        log.info(f"Writing plots of wijken to {p}")
+        plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.WIJK)
+        log.info(f"Writing plots of neighborhoods to {p}")
+        plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.BUURT)
 
 
 if __name__ == "__main__":
