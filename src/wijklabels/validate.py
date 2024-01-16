@@ -1,11 +1,13 @@
 import argparse
+import itertools
 from pathlib import Path
 import logging
 
 import pandas as pd
 
 from wijklabels import AggregateUnit
-from wijklabels.report import aggregate_to_buurt, plot_comparison
+from wijklabels.report import (aggregate_to_unit, plot_comparison,
+                               calculate_distance_stats_for_area)
 from wijklabels.load import EPLoader, ExcelLoader
 from wijklabels.labels import parse_energylabel_ditributions, \
     reshape_for_classification, EnergyLabel
@@ -53,21 +55,22 @@ parser_validate.add_argument('path_estimated_labels_csv')
 parser_validate.add_argument('path_ep_online_csv')
 parser_validate.add_argument('path_label_distributions_xlsx')
 parser_validate.add_argument('path_output_dir')
-parser_validate.add_argument('-e', '--energylabel', default="energylabel")
-parser_validate.add_argument('--plot', type=str,
+parser_validate.add_argument('-e', '--energylabel', default="energylabel",
+                             help="Name of the column that contains the energy labels.")
+parser_validate.add_argument('--plot', action='store_true',
                              help="Produce a diagram for each neighborhood, comparing the estimated labels to the EP-Online labels. The diagrams are placed into the provided directory.")
 
 
 def validate_cli():
     args = parser_validate.parse_args()
-    args = parser_validate.parse_args([
-        "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
-        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-        "/data/wijklabels/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
-        "/home/balazs/Development/wijklabels/tests/data/output",
-        "--plot",
-        "/home/balazs/Development/wijklabels/tests/data/output/plot_comparison"
-    ])
+    # args = parser_validate.parse_args([
+    #     "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
+    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+    #     "/data/wijklabels/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
+    #     "/home/balazs/Development/wijklabels/tests/data/output",
+    #     "--plot",
+    #     "/home/balazs/Development/wijklabels/tests/data/output/plot_comparison"
+    # ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     p_el = Path(args.path_estimated_labels_csv).resolve()
     p_dist = Path(args.path_label_distributions_xlsx).resolve()
@@ -78,6 +81,8 @@ def validate_cli():
         p_el, converters={args.energylabel: EnergyLabel.from_str}).set_index(
         ["vbo_identificatie", "pand_identificatie"]
     )
+    if args.energylabel not in estimated_labels_df.columns:
+        raise ValueError(f"Did not find the required energy label column {args.energylabel} in the input")
     if args.energylabel != "energylabel":
         if "energylabel" in estimated_labels_df.columns:
             estimated_labels_df.rename(columns={"energylabel": "energylabel_bak"}, inplace=True)
@@ -88,11 +93,8 @@ def validate_cli():
                                         ep_online=ep_online_df)
 
     log.info("Computing estimated label distance to EP-Online labels")
-    # df_with_truth.loc[:, "energylabel_dist_ep_est"] = df_with_truth.apply(
-    #     lambda row: row["energylabel_ep_online"].distance(row["energylabel"]),
-    #     axis=1
-    # )
-    df_with_truth.loc[:, "energylabel_dist_est_ep"] = df_with_truth.apply(
+    distance_column = "energylabel_dist_est_ep"
+    df_with_truth.loc[:, distance_column] = df_with_truth.apply(
         lambda row: row["energylabel"].distance(row["energylabel_ep_online"]),
         axis=1
     )
@@ -127,15 +129,39 @@ def validate_cli():
 
     # Aggregate per buurt
     log.info("Aggregating the neigbourhoods")
-    buurten_labels_wide = aggregate_to_buurt(df_with_truth,
-                                             col_labels="energylabel_ep_online")
-    p_out = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood_ep_online").with_suffix(
-        ".csv")
-    log.info(f"Writing output to {p_out}")
-    buurten_labels_wide.to_csv(p_out)
+    gen_dist_nl = aggregate_to_unit(df_with_truth, "energylabel",
+                                    AggregateUnit.NL)
+    gen_dist_gem = aggregate_to_unit(df_with_truth, "energylabel",
+                                    AggregateUnit.GEMEENTE)
+    gen_dist_wij = aggregate_to_unit(df_with_truth, "energylabel",
+                                    AggregateUnit.WIJK)
+    gen_dist_buu = aggregate_to_unit(df_with_truth, "energylabel",
+                                    AggregateUnit.BUURT)
+    df_distributions_units = pd.DataFrame.from_records(
+        itertools.chain(gen_dist_nl, gen_dist_gem, gen_dist_wij, gen_dist_buu),
+        index="unit_code"
+    )
 
-    if args.plot is not None:
-        p = Path(args.plot).resolve()
+    log.info("Analysing estimated and EP-Online deviations")
+    gen_nl = calculate_distance_stats_for_area(df_with_truth, AggregateUnit.NL,
+                                               distance_column)
+    gen_gem = calculate_distance_stats_for_area(df_with_truth, AggregateUnit.GEMEENTE,
+                                                distance_column)
+    gen_wij = calculate_distance_stats_for_area(df_with_truth, AggregateUnit.WIJK,
+                                                distance_column)
+    gen_buu = calculate_distance_stats_for_area(df_with_truth, AggregateUnit.BUURT,
+                                                distance_column)
+    df_distance_stats = pd.DataFrame.from_records(
+        itertools.chain(gen_nl, gen_gem, gen_wij, gen_buu),
+        index="unit_code"
+    )
+
+    p_out = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood_ep_online").with_suffix(".csv")
+    log.info(f"Writing output to {p_out}")
+    df_distance_stats.join(df_distributions_units).to_csv(p_out)
+
+    if args.plot:
+        p = PATH_OUTPUT_DIR.joinpath("plots")
         p.mkdir(parents=True, exist_ok=True)
 
         # Plot NL

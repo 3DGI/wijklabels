@@ -21,23 +21,46 @@ COLORS = {"#1a9641": EnergyLabel.APPPP,
           }
 
 
-def aggregate_to_buurt(df: pd.DataFrame, col_labels: str) -> pd.DataFrame:
-    buurten_counts = df[["buurtcode"]].value_counts()
-    buurten_labels_groups = df[["buurtcode", col_labels]].groupby(
-        ["buurtcode", col_labels])
-    buurten_labels_distribution = (
-            buurten_labels_groups.value_counts() / buurten_counts).to_frame(
-        name="fraction")
-    buurten_labels_wide = buurten_labels_distribution.reset_index(level=1).pivot(
-        columns=col_labels, values="fraction")
-    for label in EnergyLabel:
-        if label not in buurten_labels_wide:
-            buurten_labels_wide[label] = np.nan
-    buurten_labels_wide = buurten_labels_wide[
-        [EnergyLabel.APPPP, EnergyLabel.APPP, EnergyLabel.APP,
-         EnergyLabel.AP, EnergyLabel.A, EnergyLabel.B, EnergyLabel.C, EnergyLabel.D,
-         EnergyLabel.E, EnergyLabel.F, EnergyLabel.G]]
-    return buurten_labels_wide
+def calculate_distance_stats_for_area(validated: pd.DataFrame,
+                                      aggregate_level: AggregateUnit,
+                                      distance_column: str):
+    aggregate_id_column = aggregate_column_name(aggregate_level)
+    for aggregate_id in validated[aggregate_id_column].unique():
+        yield {
+            "unit": str(aggregate_level),
+            "unit_code": aggregate_id,
+            "woning_count": len(validated.loc[((validated[distance_column].notnull()) & (
+                        validated[aggregate_id_column] == aggregate_id)), :]),
+            "afwijking_median": validated.loc[
+                validated[aggregate_id_column] == aggregate_id, [
+                    distance_column]].median().values[0],
+            "afwijking_mean": validated.loc[
+                validated[aggregate_id_column] == aggregate_id, [
+                    distance_column]].mean().values[0],
+            "afwijking_std": validated.loc[
+                validated[aggregate_id_column] == aggregate_id, [
+                    distance_column]].std().values[0],
+            "afwijking_min": validated.loc[
+                validated[aggregate_id_column] == aggregate_id, [
+                    distance_column]].min().values[0],
+            "afwijking_max": validated.loc[
+                validated[aggregate_id_column] == aggregate_id, [
+                    distance_column]].max().values[0]
+        }
+
+
+def aggregate_to_unit(validated: pd.DataFrame, energylabel_col: str,
+                      aggregate_level: AggregateUnit) -> pd.DataFrame:
+    aggregate_id_column = aggregate_column_name(aggregate_level)
+    for aggregate_id in validated[aggregate_id_column].unique():
+        df_unit = validated.loc[((validated[energylabel_col].notnull()) & (validated[aggregate_id_column] == aggregate_id)), :]
+        cnt = len(df_unit)
+        label_distribution = (df_unit[energylabel_col].value_counts() / cnt).to_dict()
+        for label in EnergyLabel:
+            if label not in label_distribution:
+                label_distribution[label] = np.nan
+        label_distribution["unit_code"] = aggregate_id
+        yield label_distribution
 
 
 def plot_buurts(dir_plots: str, df: pd.DataFrame):
@@ -63,16 +86,8 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
                     aggregate_level: AggregateUnit):
     # Compare estimated to groundtruth in plots
     dir_plots.mkdir(exist_ok=True)
-    if aggregate_level == AggregateUnit.BUURT:
-        aggregate_id_column = "buurtcode"
-    elif aggregate_level == AggregateUnit.WIJK:
-        aggregate_id_column = "wijkcode"
-    elif aggregate_level == AggregateUnit.GEMEENTE:
-        aggregate_id_column = "gemeentecode"
-    elif aggregate_level == AggregateUnit.NL:
-        aggregate_id_column = "landcode"
-    else:
-        raise ValueError(f"Unknown aggregate level: {aggregate_level}")
+    aggregate_id_column = aggregate_column_name(aggregate_level)
+    plt.style.use('seaborn-v0_8-muted')
     for aggregate_id in validated[aggregate_id_column].unique():
         # Plot both distributions side by side
         b = validated.loc[
@@ -118,9 +133,6 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
                 ax.set_xlabel("Geschatte energielabel")
                 ax.set_ylabel("Afwijking EP-Online")
             ax.set_yticks(range(-10, 11, 1))
-            # ax.annotate("EP-Online", xy=(10.5, 0.1), xycoords="data",
-            #             fontsize="large",
-            #             color='#154273')
             # Assign colors to each box in the boxplot
             for box, color in zip(boxplot['boxes'], reversed(COLORS)):
                 box.set_facecolor(color)
@@ -132,13 +144,22 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
             plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist{t}.png")
             plt.close()
 
-        # grouped_ep_est = validated.loc[
-        #     validated[aggregate_id_column] == aggregate_id,
-        #     ["energylabel_ep_online", "energylabel_dist_ep_est"]
-        # ].groupby("energylabel_ep_online")["energylabel_dist_ep_est"]
-        # _plot_dist(grouped_ep_est, "_ep_est")
         grouped_est_ep = validated.loc[
             validated[aggregate_id_column] == aggregate_id,
             ["energylabel", "energylabel_dist_est_ep"]
         ].groupby("energylabel")["energylabel_dist_est_ep"]
         _plot_dist(grouped_est_ep, "_est_ep")
+
+
+def aggregate_column_name(aggregate_level):
+    if aggregate_level == AggregateUnit.BUURT:
+        aggregate_id_column = "buurtcode"
+    elif aggregate_level == AggregateUnit.WIJK:
+        aggregate_id_column = "wijkcode"
+    elif aggregate_level == AggregateUnit.GEMEENTE:
+        aggregate_id_column = "gemeentecode"
+    elif aggregate_level == AggregateUnit.NL:
+        aggregate_id_column = "landcode"
+    else:
+        raise ValueError(f"Unknown aggregate level: {aggregate_level}")
+    return aggregate_id_column
