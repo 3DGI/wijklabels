@@ -6,6 +6,9 @@ bibliography: references.bib
 ---
 ```{python}
 import pandas as pd
+import numpy as np
+
+from wijklabels.woningtype import Bouwperiode
 ```
 
 # Summary
@@ -167,10 +170,39 @@ The WoON2022 study determines at most seven construction year periods, depending
 We used the *energy label distributions data* as a reference for the periods.
 
 ```{python}
-df = pd.read_csv('/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv', usecols=["bouwperiode", "woningtype", "woningtype_pre_nta8800"])
-pd.pivot_table(df, index=["bouwperiode"], columns=["woningtype_pre_nta8800"],
-                    aggfunc="count", fill_value="")
+#| label: tbl-count-period-type
+#| tbl-cap: Antaal (en percentage) van woningen per bouwperiode en woningtype
+
+df = pd.read_csv(
+    '/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv',
+    usecols=["bouwperiode", "woningtype", "woningtype_pre_nta8800"],
+    converters={
+      "bouwperiode": Bouwperiode.from_str
+    }
+)
+total = df.count().iloc[0]  # count non-NA (!) cells
+pt_crosstab = pd.crosstab(
+    df["bouwperiode"],
+    columns=df["woningtype_pre_nta8800"],
+    margins=True,
+    margins_name="Totaal"
+)
+ct = pt_crosstab.apply(
+    lambda col: list(map(lambda cnt: f"{cnt} ({round(cnt / total * 100)}%)", col))
+).replace(
+    "0 (0%)", ""
+).reset_index(
+    drop=False
+)
+ct.columns.name = "Woningtype"
+ct["Bouwperiode"] = ct["bouwperiode"].apply(
+    lambda bp: bp.format_pretty() if bp != "Totaal" else bp
+)
+ct.drop("bouwperiode", axis=1, inplace=True)
+ct.set_index("Bouwperiode", inplace=True)
+ct
 ```
+
 
 ## Vormfactor {#sec-vormfactor}
 

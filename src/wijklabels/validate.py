@@ -65,6 +65,13 @@ parser_validate.add_argument('--plot', action='store_true',
 
 def validate_cli():
     args = parser_validate.parse_args()
+    args = parser_validate.parse_args([
+        "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
+        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+        "/data/wijklabels/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
+        "/home/balazs/Development/wijklabels/tests/data/output/distribution",
+        "-e", "energylabel"
+    ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     p_el = Path(args.path_estimated_labels_csv).resolve()
     p_dist = Path(args.path_label_distributions_xlsx).resolve()
@@ -94,7 +101,7 @@ def validate_cli():
 
     log.info("Computing estimated label distance to EP-Online labels")
     distance_column = "energylabel_dist_est_ep"
-    df_with_truth.loc[:, distance_column] = df_with_truth.apply(
+    df_with_truth[distance_column] = df_with_truth.apply(
         lambda row: row["energylabel_ep_online"].distance(row["energylabel"]),
         axis=1
     )
@@ -104,6 +111,7 @@ def validate_cli():
     _d = parse_energylabel_ditributions(excelloader)
     distributions = reshape_for_classification(_d)
 
+    # Compare individual addresses
     def _ep_in_dist(df_dist, row):
         el_ep_online = row['energylabel_ep_online']
         try:
@@ -178,8 +186,21 @@ def validate_cli():
         itertools.chain(gen_dist_nl, gen_dist_gem, gen_dist_wij, gen_dist_buu),
         index="unit_code"
     )
+    ## ep-online
+    gen_dist_nl = aggregate_to_unit(df_with_truth, "energylabel_ep_online",
+                                    AggregateUnit.NL)
+    gen_dist_gem = aggregate_to_unit(df_with_truth, "energylabel_ep_online",
+                                    AggregateUnit.GEMEENTE)
+    gen_dist_wij = aggregate_to_unit(df_with_truth, "energylabel_ep_online",
+                                    AggregateUnit.WIJK)
+    gen_dist_buu = aggregate_to_unit(df_with_truth, "energylabel_ep_online",
+                                    AggregateUnit.BUURT)
+    df_distributions_units_ep_online = pd.DataFrame.from_records(
+        itertools.chain(gen_dist_nl, gen_dist_gem, gen_dist_wij, gen_dist_buu),
+        index="unit_code"
+    )
 
-    log.info("Analysing estimated and EP-Online deviations")
+    log.info("Analysing estimated and EP-Online deviations (per address)")
     gen_nl = calculate_distance_stats_for_area(df_with_truth, AggregateUnit.NL,
                                                distance_column)
     gen_gem = calculate_distance_stats_for_area(df_with_truth, AggregateUnit.GEMEENTE,
@@ -192,6 +213,29 @@ def validate_cli():
         itertools.chain(gen_nl, gen_gem, gen_wij, gen_buu),
         index="unit_code"
     )
+
+    log.info("Analysing estimated and EP-Online deviations (aggregated)")
+    df_dist_long_est = pd.melt(df_distributions_units.reset_index(), id_vars=["unit_code"],
+                           value_vars=list(EnergyLabel), var_name="energylabel",
+                           value_name="probability").set_index(
+        ["unit_code", "energylabel"])
+    df_dist_long_ep = pd.melt(df_distributions_units_ep_online.reset_index(),
+                                     id_vars=["unit_code"],
+                                     value_vars=list(EnergyLabel),
+                                     var_name="energylabel",
+                                     value_name="probability").set_index(
+        ["unit_code", "energylabel"])
+    df_dist_long = df_dist_long_est.join(df_dist_long_ep, rsuffix="_ep_online")
+    df_dist_long["difference"] = df_dist_long["probability"] - df_dist_long["probability_ep_online"]
+    (df_dist_long.loc[("NL", ), "difference"] * 100).plot(kind="bar", stacked=False)
+    plt.show()
+
+    (df_dist_long.loc[("BU05182665", ), "difference"] * 100).plot(kind="bar", stacked=False)
+    plt.show()
+
+    p = plot_buurt(df_distributions_units_ep_online, "BU05182665")
+    plt.show()
+
 
     p_out = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood_ep_online").with_suffix(".csv")
     log.info(f"Writing output to {p_out}")

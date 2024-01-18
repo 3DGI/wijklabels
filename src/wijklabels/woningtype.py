@@ -146,6 +146,14 @@ class Bouwperiode(OrderedEnum):
     def __str__(self):
         return str(self.value)
 
+    def format_pretty(self):
+        s = " - ".join(map(str, self.value))
+        if "0" == s[0]:
+            s = s.replace("0 -", "<")
+        elif "9999" in s:
+            s = s.replace("- 9999", "<")
+        return s
+
     @classmethod
     def from_year_type(cls, oorspronkelijkbouwjaar: int,
                        woningtype: WoningtypePreNTA8800):
@@ -208,6 +216,68 @@ class Bouwperiode(OrderedEnum):
                 return cls((1992, 9999))
             else:
                 raise ValueError(oorspronkelijkbouwjaar, woningtype)
+
+    @classmethod
+    def from_year_type_new(cls, oorspronkelijkbouwjaar: int, woningtype: Woningtype):
+        """Classify the oorspronkelijkbouwjaar of a BAG object into the 8 construction
+        year periods that are defined in the 2022 update of the WoON2018 study.
+        Using the NTA8800 woningtypen.
+        All classes are inclusive of their date limits."""
+        if woningtype == Woningtype.VRIJSTAAND or woningtype == Woningtype.TWEE_ONDER_EEN_KAP:
+            if oorspronkelijkbouwjaar <= 1964:
+                return cls((0, 1964))
+            elif 1965 <= oorspronkelijkbouwjaar <= 1974:
+                return cls((1965, 1974))
+            elif 1975 <= oorspronkelijkbouwjaar <= 1991:
+                return cls((1975, 1991))
+            elif 1992 <= oorspronkelijkbouwjaar <= 2005:
+                return cls((1992, 2005))
+            elif 2006 <= oorspronkelijkbouwjaar <= 2014:
+                return cls((2006, 2014))
+            elif 2015 <= oorspronkelijkbouwjaar:
+                return cls((2015, 9999))
+            else:
+                raise ValueError(oorspronkelijkbouwjaar, woningtype)
+        else:
+            if oorspronkelijkbouwjaar <= 1945:
+                return cls((0, 1945))
+            elif 1946 <= oorspronkelijkbouwjaar <= 1964:
+                return cls((1946, 1964))
+            elif 1965 <= oorspronkelijkbouwjaar <= 1974:
+                return cls((1965, 1974))
+            elif 1975 <= oorspronkelijkbouwjaar <= 1991:
+                return cls((1975, 1991))
+            elif 1992 <= oorspronkelijkbouwjaar <= 2005:
+                return cls((1992, 2005))
+            elif 2006 <= oorspronkelijkbouwjaar <= 2014:
+                return cls((2006, 2014))
+            elif 2015 <= oorspronkelijkbouwjaar:
+                return cls((2015, 9999))
+            else:
+                raise ValueError(oorspronkelijkbouwjaar, woningtype)
+
+    @classmethod
+    def from_year(cls, oorspronkelijkbouwjaar: int):
+        """Classify the oorspronkelijkbouwjaar of a BAG object into the 8 construction
+        year periods that are defined in the 2022 update of the WoON2018 study.
+        Without considering the woningtype.
+        All classes are inclusive of their date limits."""
+        if oorspronkelijkbouwjaar <= 1945:
+            return cls((0, 1945))
+        elif 1946 <= oorspronkelijkbouwjaar <= 1964:
+            return cls((1946, 1964))
+        elif 1965 <= oorspronkelijkbouwjaar <= 1974:
+            return cls((1965, 1974))
+        elif 1975 <= oorspronkelijkbouwjaar <= 1991:
+            return cls((1975, 1991))
+        elif 1992 <= oorspronkelijkbouwjaar <= 2005:
+            return cls((1992, 2005))
+        elif 2006 <= oorspronkelijkbouwjaar <= 2014:
+            return cls((2006, 2014))
+        elif 2015 <= oorspronkelijkbouwjaar:
+            return cls((2015, 9999))
+        else:
+            raise ValueError(oorspronkelijkbouwjaar)
 
     @classmethod
     def from_str(cls, string: str):

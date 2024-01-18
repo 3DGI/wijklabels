@@ -55,10 +55,11 @@ def aggregate_to_unit(validated: pd.DataFrame, energylabel_col: str,
     for aggregate_id in validated[aggregate_id_column].unique():
         df_unit = validated.loc[((validated[energylabel_col].notnull()) & (validated[aggregate_id_column] == aggregate_id)), :]
         cnt = len(df_unit)
-        label_distribution = (df_unit[energylabel_col].value_counts() / cnt).to_dict()
+        dist = df_unit[energylabel_col].value_counts() / cnt
         for label in EnergyLabel:
-            if label not in label_distribution:
-                label_distribution[label] = np.nan
+            if label not in dist:
+                dist.loc[label] = np.nan
+        label_distribution = dist.sort_index(ascending=False).to_dict()
         label_distribution["unit_code"] = aggregate_id
         yield label_distribution
 
@@ -80,6 +81,22 @@ def plot_buurts(dir_plots: str, df: pd.DataFrame):
         plt.tight_layout()
         filename = ''.join(e for e in buurt if e.isalnum())
         plt.savefig(f"{dir_plots}/{filename}.png")
+
+
+def plot_buurt(df: pd.DataFrame, buurt: str):
+    ax = (df.loc[buurt] * 100).plot(
+        kind="bar",
+        title=buurt,
+        color=COLORS,
+        rot=0,
+        xlabel="",
+        zorder=3
+    )
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=100, decimals=0))
+    ax.set_yticks([10, 20, 30, 40, 50, 60, 70, 80])
+    plt.grid(visible=True, which="major", axis="y", zorder=0)
+    plt.tight_layout()
+    return ax
 
 
 def plot_comparison(validated: pd.DataFrame, dir_plots: Path,

@@ -10,7 +10,6 @@ import psycopg
 from psycopg.rows import dict_row
 
 from wijklabels import LabelEstimationMethod
-from wijklabels.report import aggregate_to_buurt
 from wijklabels.load import ExcelLoader
 from wijklabels.vormfactor import calculate_surface_areas, vormfactor, \
     vormfactorclass
@@ -120,13 +119,6 @@ def process_cli():
 
     log.info(f"Writing individual labels to {path_output_individual}")
     df_labels_individual.to_csv(path_output_individual)
-
-    log.info("Aggregating by neighborhood")
-    buurten_labels_wide = aggregate_to_buurt(df_labels_individual,
-                                             col_labels="energylabel")
-
-    log.info(f"Writing neighbourhood labels to {path_output_aggregate}")
-    buurten_labels_wide.to_csv(path_output_aggregate)
 
 
 def process_one_pand(connection_str: str,
