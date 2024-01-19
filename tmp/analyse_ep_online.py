@@ -161,15 +161,27 @@ if __name__ == '__main__':
         "buurtcode"
     )["oorspronkelijkbouwjaar"].median(
     )
-    plt.scatter(
-        x=bouwperiode_median,
-        y=buurt_coverage
+    bp_df = pd.concat(
+        [buurt_coverage, bouwperiode_median],
+        axis=1
+    ).rename(
+        columns={
+            0: "coverage",
+            "oorspronkelijkbouwjaar": "bouwjaar_median"
+        }
+    )
+    bp_df.plot(
+        kind="scatter",
+        x="bouwjaar_median",
+        y="coverage",
+        alpha=0.5
     )
     plt.xlabel("Median bouwjaar in de buurt")
     plt.ylabel("Energielabeldekking in de buurt (%)")
     plt.suptitle("Energielabeldekking per median bouwjaar in de buurten",
                  fontsize=14)
     plt.title("EP-Online v20231101_v2")
+    plt.show()
     plt.savefig("coverage_year_dist.png")
 
     # # Aggregate per year and type
