@@ -29,19 +29,20 @@ log.addHandler(ch)
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    # args = parser.parse_args([
-    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-    #     "-d", "postgres",
-    #     "--host", "localhost",
-    #     "-p", "8001",
-    #     "-u", "postgres",
-    #     "--password", "password"
-    # ])
+    args = parser.parse_args([
+        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+        "-d", "postgres",
+        "--host", "localhost",
+        "-p", "8001",
+        "-u", "postgres",
+        "--password", "password"
+    ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     connection_string = f"postgresql://{args.user}:{args.password}@{args.host}:{args.port}/{args.dbname}"
 
     plt.style.use('seaborn-v0_8-muted')
 
+    log.info("Loading data")
     ep_online_df = EPLoader(file=p_ep).load()
 
     columns_index = ["pand_identificatie", "vbo_identificatie"]
@@ -133,12 +134,11 @@ if __name__ == '__main__':
                 columns=["buurtcode", "pand_with_label_cnt"],
                 index="buurtcode"
             )
-    buurt_coverage_df = pd.DataFrame(
+    buurt_coverage = pd.Series(
         index=buurt_pand_df.index,
         data=buurt_pand_label_df["pand_with_label_cnt"] / buurt_pand_df["pand_cnt"] * 100,
-        columns=["label_coverage"]
-    )
-    buurt_coverage_df.plot(
+    ).sort_index()
+    buurt_coverage.plot(
         kind="density",
         legend=False
     )
@@ -146,7 +146,31 @@ if __name__ == '__main__':
                  fontsize=14)
     plt.title("EP-Online v20231101_v2")
     plt.xlabel("Percentage panden met een energielabel in de buurten (%)")
+    plt.xlim(-5, 100)
     plt.savefig("coverage_dist.png")
+
+    log.info("Analysing the coverage and construction years in neighborhoods")
+    with psycopg.connect(connection_string) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT pand_identificatie, buurtcode, oorspronkelijkbouwjaar FROM wijklabels.input;")
+            buurt_pand_df = pd.DataFrame.from_records(
+                cur.fetchall(),
+                columns=["pand_identificatie", "buurtcode", "oorspronkelijkbouwjaar"],
+            )
+    bouwperiode_median = buurt_pand_df.groupby(
+        "buurtcode"
+    )["oorspronkelijkbouwjaar"].median(
+    )
+    plt.scatter(
+        x=bouwperiode_median,
+        y=buurt_coverage
+    )
+    plt.xlabel("Median bouwjaar in de buurt")
+    plt.ylabel("Energielabeldekking in de buurt (%)")
+    plt.suptitle("Energielabeldekking per median bouwjaar in de buurten",
+                 fontsize=14)
+    plt.title("EP-Online v20231101_v2")
+    plt.savefig("coverage_year_dist.png")
 
     # # Aggregate per year and type
     # total = joined_df.count().iloc[0]
