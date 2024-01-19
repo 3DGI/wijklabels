@@ -181,7 +181,6 @@ if __name__ == '__main__':
     plt.suptitle("Energielabeldekking per median bouwjaar in de buurten",
                  fontsize=14)
     plt.title("EP-Online v20231101_v2")
-    plt.show()
     plt.savefig("coverage_year_dist.png")
 
     # # Aggregate per year and type
