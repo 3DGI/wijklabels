@@ -29,14 +29,14 @@ log.addHandler(ch)
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    args = parser.parse_args([
-        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-        "-d", "postgres",
-        "--host", "localhost",
-        "-p", "8001",
-        "-u", "postgres",
-        "--password", "password"
-    ])
+    # args = parser.parse_args([
+    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+    #     "-d", "postgres",
+    #     "--host", "localhost",
+    #     "-p", "8001",
+    #     "-u", "postgres",
+    #     "--password", "password"
+    # ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     connection_string = f"postgresql://{args.user}:{args.password}@{args.host}:{args.port}/{args.dbname}"
 
