@@ -6,12 +6,17 @@
    psql -U <user> -p 5432 -h localhost -d <db> -c "COMMENT ON TABLE public.buurten IS 'CBS buurten 2022 imported from https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg';"
 
    RVO shared walls project output.
-   It comes in a large CSV which is loaded into the 'public.shared_walls' table
+   It comes in a large CSV which is loaded into the 'public.party_walls' table
    http://godzilla.bk.tudelft.nl/tmp/3dbag_v20231008_rvo_export.zip
    psql -U <user> -p <port> -h localhost -d <db> -f create_party_walls_table.sql
    psql -U <user> -p <port> -h localhost -d <db> -c "\copy public.party_walls FROM '3dbag_v20231008_rvo_export.csv' DELIMITER ',' CSV HEADER;"
    psql -U <user> -p <port> -h localhost -d <db> -c "ALTER TABLE public.party_walls ADD PRIMARY KEY (identificatie);"
    psql -U <user> -p <port> -h localhost -d <db> -c "COMMENT ON TABLE public.party_walls IS '3D BAG party walls data generated for RVO, imported from the delivered CSV, from 3DBAG v20231008';"
+
+   EP-Online data.
+   The EP-Online CSV export https://www.ep-online.nl/PublicData is read into the 'public.ep_online' table.
+   Any import method works, I used ogr2ogr, which requires that the CSV driver is enabled.
+   ogr2ogr -f PostgreSQL PG:"dbname=..." -nln "public.ep_online" v20231101_v2_csv.csv
    */
 
 CREATE SCHEMA IF NOT EXISTS wijklabels;
@@ -156,3 +161,28 @@ WHERE pw._betrouwbaar IS TRUE;
 COMMENT ON TABLE wijklabels.input IS 'The input data with all the attributes needed for the energy label estimation.';
 
 CREATE INDEX input_pand_identificatie_idx ON wijklabels.input (pand_identificatie);
+
+/* Join the EP-Online data with geometry and the neighborhoods.
+   */
+CREATE TABLE wijklabels.ep_online_pand AS
+WITH nta_only AS (SELECT 'NL.IMBAG.Pand.' || pand_bagpandid AS pand_identificatie
+                       , array_agg('NL.IMBAG.Verblijfsobject.' || pand_bagverblijfsobjectid) AS vbo_identificatie
+                       , array_agg(pand_energieklasse) AS energylabel
+                  FROM public.ep_online
+                  WHERE pand_berekeningstype LIKE 'NTA 8800%'
+                  GROUP BY pand_bagpandid)
+SELECT pand_identificatie
+     , n.energylabel
+     , p.oorspronkelijkbouwjaar
+     , b.buurtcode
+     , p.geometrie
+FROM nta_only AS n
+         INNER JOIN lvbag.pandactueelbestaand AS p
+                    ON n.pand_identificatie = p.identificatie
+         INNER JOIN public.buurten AS b ON st_intersects(st_centroid(p.geometrie), b.geom);
+
+COMMENT ON TABLE wijklabels.ep_online_pand IS 'The EP-Online data joined with the Pand geometries and neighborhoods.';
+
+ALTER TABLE wijklabels.ep_online_pand ADD PRIMARY KEY (pand_identificatie);
+
+CREATE INDEX ep_online_pand_geometrie_idx ON wijklabels.ep_online_pand USING gist (geometrie);

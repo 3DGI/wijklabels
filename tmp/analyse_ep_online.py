@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import logging
 
 import pandas as pd
 import psycopg
@@ -17,16 +18,25 @@ parser.add_argument("-u", '--user')
 parser.add_argument('--password')
 parser.add_argument('--table', type=str, default='wijklabels.input')
 
+# Logger for data validation messages
+log = logging.getLogger("VALIDATION")
+log.setLevel(logging.INFO)
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
 if __name__ == '__main__':
     args = parser.parse_args()
-    # args = parser.parse_args([
-    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-    #     "-d", "postgres",
-    #     "--host", "localhost",
-    #     "-p", "8001",
-    #     "-u", "postgres",
-    #     "--password", "password"
-    # ])
+    args = parser.parse_args([
+        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+        "-d", "postgres",
+        "--host", "localhost",
+        "-p", "8001",
+        "-u", "postgres",
+        "--password", "password"
+    ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     connection_string = f"postgresql://{args.user}:{args.password}@{args.host}:{args.port}/{args.dbname}"
 
@@ -55,7 +65,7 @@ if __name__ == '__main__':
         axis=1
     )
 
-    # Compare year distributions
+    log.info("Comparing distributions per bouwperiode")
     periods_sorted = [b.format_pretty() for b in Bouwperiode][2:-1]
     periods_sorted.insert(0, '< 1945')
 
@@ -103,10 +113,40 @@ if __name__ == '__main__':
         ticks=range(-50, 60, 10),
         labels=[str(i) for i in range(-50, 60, 10)]
     )
-    plt.xlabel("Percentage (%) van het heele dataset")
+    plt.xlabel("Percentage (%) van het hele dataset")
     plt.ylabel("Bouwperiode")
     plt.suptitle("Spreiding van woningen per bouwperiode", fontsize=14)
     plt.savefig("bouwperiode_dist.png")
+
+    log.info("Analysing the coverage in neighborhoods")
+    with psycopg.connect(connection_string) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT buurtcode, count(identificatie) pand_cnt FROM wijklabels.pand_in_buurt GROUP BY buurtcode ORDER BY buurtcode;")
+            buurt_pand_df = pd.DataFrame.from_records(
+                cur.fetchall(),
+                columns=["buurtcode", "pand_cnt"],
+                index="buurtcode"
+            )
+            cur.execute("SELECT buurtcode, count(pand_identificatie) pand_with_label_cnt FROM wijklabels.ep_online_pand GROUP BY buurtcode ORDER BY buurtcode;")
+            buurt_pand_label_df = pd.DataFrame.from_records(
+                cur.fetchall(),
+                columns=["buurtcode", "pand_with_label_cnt"],
+                index="buurtcode"
+            )
+    buurt_coverage_df = pd.DataFrame(
+        index=buurt_pand_df.index,
+        data=buurt_pand_label_df["pand_with_label_cnt"] / buurt_pand_df["pand_cnt"] * 100,
+        columns=["label_coverage"]
+    )
+    buurt_coverage_df.plot(
+        kind="density",
+        legend=False
+    )
+    plt.suptitle("Spreiding van de energielabeldekking van panden in de buurten",
+                 fontsize=14)
+    plt.title("EP-Online v20231101_v2")
+    plt.xlabel("Percentage panden met een energielabel in de buurten (%)")
+    plt.savefig("coverage_dist.png")
 
     # # Aggregate per year and type
     # total = joined_df.count().iloc[0]
