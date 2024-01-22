@@ -174,23 +174,6 @@ if __name__ == '__main__':
         }
     )
 
-    #v1
-    plt.hist2d(
-        x=bp_df["bouwjaar_median"].astype('Int64', errors="ignore"),
-        y=bp_df["coverage"],
-        bins=[
-            [i.value[0] for i in periods_sorted][1:] + [2020,],
-            [i*10 for i in list(range(0, 6, 1))]
-        ]
-    )
-    plt.xlabel("Median bouwjaar in de buurt")
-    plt.ylabel("Energielabeldekking in de buurt (%)")
-    plt.suptitle("Energielabeldekking per median bouwjaar in de buurten",
-                 fontsize=14)
-    plt.title("EP-Online v20231101_v2")
-    plt.savefig("coverage_year_dist_hist.png")
-    plt.close()
-
     bp_df.plot(
         kind="scatter",
         x="bouwjaar_median",
@@ -204,6 +187,23 @@ if __name__ == '__main__':
                  fontsize=14)
     plt.title("EP-Online v20231101_v2")
     plt.savefig("coverage_year_dist.png")
+    plt.close()
+
+    #v1
+    plt.hist2d(
+        x=bp_df["bouwjaar_median"],
+        y=bp_df["coverage"],
+        bins=[
+            [i.value[0] for i in periods_sorted][1:] + [2020,],
+            [float(i*10) for i in list(range(0, 6, 1))]
+        ]
+    )
+    plt.xlabel("Median bouwjaar in de buurt")
+    plt.ylabel("Energielabeldekking in de buurt (%)")
+    plt.suptitle("Energielabeldekking per median bouwjaar in de buurten",
+                 fontsize=14)
+    plt.title("EP-Online v20231101_v2")
+    plt.savefig("coverage_year_dist_hist.png")
     plt.close()
 
     # # Aggregate per year and type
