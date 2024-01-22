@@ -176,7 +176,7 @@ if __name__ == '__main__':
 
     #v1
     plt.hist2d(
-        x=bp_df["bouwjaar_median"].astype('Int64'),
+        x=bp_df["bouwjaar_median"].astype('Int64', errors="ignore"),
         y=bp_df["coverage"],
         bins=[
             [i.value[0] for i in periods_sorted][1:] + [2020,],
