@@ -67,8 +67,9 @@ if __name__ == '__main__':
     )
 
     log.info("Comparing distributions per bouwperiode")
-    periods_sorted = [b.format_pretty() for b in Bouwperiode][2:-1]
-    periods_sorted.insert(0, '< 1945')
+    periods_sorted = [b for b in Bouwperiode][2:-1]
+    periods_sorted.insert(0, Bouwperiode.UNTIL_1945)
+    periods_sorted_pretty = [b.format_pretty() for b in periods_sorted]
 
     ep_online_bouwperiode = joined_df["oorspronkelijkbouwjaar"].map(
         lambda x: Bouwperiode.from_year(x).format_pretty(),
@@ -80,7 +81,7 @@ if __name__ == '__main__':
         columns="bouwperiode",
         normalize=True
     ).loc[
-        periods_sorted
+        periods_sorted_pretty
     ]
     bag_df_bouwperiode = bag_df["oorspronkelijkbouwjaar"].map(
         lambda x: Bouwperiode.from_year(x).format_pretty(),
@@ -92,7 +93,7 @@ if __name__ == '__main__':
         columns="bouwperiode",
         normalize=True
     ).loc[
-        periods_sorted
+        periods_sorted_pretty
     ]
 
     fig = plt.figure(figsize=(9, 7))
@@ -118,6 +119,7 @@ if __name__ == '__main__':
     plt.ylabel("Bouwperiode")
     plt.suptitle("Spreiding van woningen per bouwperiode", fontsize=14)
     plt.savefig("bouwperiode_dist.png")
+    plt.close()
 
     log.info("Analysing the coverage in neighborhoods")
     with psycopg.connect(connection_string) as conn:
@@ -148,6 +150,7 @@ if __name__ == '__main__':
     plt.xlabel("Percentage panden met een energielabel in de buurten (%)")
     plt.xlim(-5, 100)
     plt.savefig("coverage_dist.png")
+    plt.close()
 
     log.info("Analysing the coverage and construction years in neighborhoods")
     with psycopg.connect(connection_string) as conn:
@@ -170,18 +173,38 @@ if __name__ == '__main__':
             "oorspronkelijkbouwjaar": "bouwjaar_median"
         }
     )
-    bp_df.plot(
-        kind="scatter",
-        x="bouwjaar_median",
-        y="coverage",
-        alpha=0.5
+
+    #v1
+    plt.hist2d(
+        x=bp_df["bouwjaar_median"].astype('Int64'),
+        y=bp_df["coverage"],
+        bins=[
+            [i.value[0] for i in periods_sorted][1:] + [2020,],
+            [i*10 for i in list(range(0, 6, 1))]
+        ]
     )
     plt.xlabel("Median bouwjaar in de buurt")
     plt.ylabel("Energielabeldekking in de buurt (%)")
     plt.suptitle("Energielabeldekking per median bouwjaar in de buurten",
                  fontsize=14)
     plt.title("EP-Online v20231101_v2")
+    plt.savefig("coverage_year_dist_hist.png")
+    plt.close()
+
+    bp_df.plot(
+        kind="scatter",
+        x="bouwjaar_median",
+        y="coverage",
+        alpha=0.5
+    )
+    plt.xlim(1944, 2016)
+    plt.xlabel("Median bouwjaar in de buurt")
+    plt.ylabel("Energielabeldekking in de buurt (%)")
+    plt.suptitle("Energielabeldekking per median bouwjaar in de buurten",
+                 fontsize=14)
+    plt.title("EP-Online v20231101_v2")
     plt.savefig("coverage_year_dist.png")
+    plt.close()
 
     # # Aggregate per year and type
     # total = joined_df.count().iloc[0]
