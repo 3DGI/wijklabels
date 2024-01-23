@@ -227,14 +227,7 @@ def validate_cli():
         ["unit_code", "energylabel"])
     df_dist_long = df_dist_long_est.join(df_dist_long_ep, rsuffix="_ep_online")
     df_dist_long["difference"] = df_dist_long["probability"] - df_dist_long["probability_ep_online"]
-    (df_dist_long.loc[("NL", ), "difference"] * 100).plot(kind="bar", stacked=False)
-    plt.show()
 
-    (df_dist_long.loc[("BU05182665", ), "difference"] * 100).plot(kind="bar", stacked=False)
-    plt.show()
-
-    p = plot_buurt(df_distributions_units_ep_online, "BU05182665")
-    plt.show()
 
 
     p_out = PATH_OUTPUT_DIR.joinpath("labels_neighbourhood_ep_online").with_suffix(".csv")
