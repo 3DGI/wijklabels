@@ -180,6 +180,12 @@ We compute the vormfactor for each Pand. The required surface areas for calculat
 
 For appartements, we assign a portion of the surface areas to each appartement, depending on their type (see @sec-meergezins). The total roof surface area is divided equally among the appartements on the roof floor. Only 95% of the total wall surface area is used to account for wall surfaces that cover hallways and other non-dwelling spaces in the pand. The wall surface area is then divided among each appartement in a way that the appartements on the hoek are assigned approximately 3x the wall surface area of a tussen appartement. The total ground surface area is divided equally among the appartements on the ground floor.
 
+## Neighborhoods
+
+The neighborhood boundaries are retrieved from the Centraal Bureau voor de Statistiek. The BAG Pand objects are assigned to a neighborhood with an intersection test. Every BAG Pand is assigned to only one neighborhood.
+
+Version of CBS Wijken en Buurten: 2022 v1, [link to data](https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg)
+
 ## Spreiding van energielabels {#sec-spreiding}
 
 The WoON2022 study describes a distribution of energy labels for each dwelling type and construction period. The distribution is two-dimensional, one dimension is the energy label, the second dimension is the vormfactor of the dwelling. However, the described distributions are not continuous. For example, in case of Flatwoningen from the period 1965-1974, there is no data in the vormfactor range 1,00-1,50 and labels A+++-D, see @fig-woon2022-spreiding.
@@ -188,11 +194,23 @@ The energy label distributions were extracted from the Excel file *Illustraties 
 
 ![Energy label distribution of flatwoningen, @RVO_Voorbeeldwoningen_2022](images/woon2022_spreiding.png){#fig-woon2022-spreiding}
 
-## Neighborhoods
+## Energy labels from EP-Online
 
-The neighborhood boundaries are retrieved from the Centraal Bureau voor de Statistiek. The BAG Pand objects are assigned to a neighborhood with an intersection test. Every BAG Pand is assigned to only one neighborhood.
+*"EP-Online is de officiële landelijke database waarin energielabels en energieprestatie-indicatoren van gebouwen zijn opgenomen." @_EP_2023* 
+We use the energy labels from EP-Online as "ground truth" for the validation of our estimated labels.
+Therefore, we assessed if we can consider the set of dwellings with a registered label on EP-Online a reliable reliable reference for comparison.
 
-Version of CBS Wijken en Buurten: 2022 v1, [link to data](https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg)
+The EP-Online database contains energy labels that were determined using different methods.
+We only use the labels that were determined with the NTA8800 method.
+That is, the `Pand_berekeningstype` contains `NTA 8800`.
+In total, these records constitue to *1.284.241* VBOs.
+
+@fig-dist-bag-ep-online shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all construction year periods.
+This indicates that the registered energy labels in EP-Online represent well the complete set of dwellings in the Netherlands, when considering the construction period.
+
+![Spreiding van woningen per bouwperiode in de BAG en in de EP-Online gegevens](images/bouwperiode_dist.png){#fig-dist-bag-ep-online}
+
+
 
 # Estimating the energy labels
 
@@ -214,8 +232,7 @@ The validation process measures the following aspects.
 
 -   The median, mean, standard deviation, minimum and maximum of *deviations* per neighborhood, and for the complete data set.
 
-Due to the gaps in the energy label distributions that are presented in @RVO_Voorbeeldwoningen_2022, there are situations where it is impossible to estimate the correct label for a VBO. For example, the VBO has a registered label *B* in EP-Online, however, @RVO_Voorbeeldwoningen_2022 does not have data for label *B* and the parameters of the VBO. We consider such labels *impossible*, since with our method and the limitations of the @RVO_Voorbeeldwoningen_2022 data, it is not possible to assign the correct label. 
-Measuring the *impossible* labels allows us to evaluate the impact of the gaps in the @RVO_Voorbeeldwoningen_2022 data and the sensitivity or our method.
+Due to the gaps in the energy label distributions that are presented in @RVO_Voorbeeldwoningen_2022 (see @sec-spreiding), there are situations where it is impossible to estimate the correct label for a VBO. For example, the VBO has a registered label *B* in EP-Online, however, @RVO_Voorbeeldwoningen_2022 does not have data for label *B* and the parameters of the VBO. We consider such labels *impossible*, since with our method and the limitations of the @RVO_Voorbeeldwoningen_2022 data, it is not possible to assign the correct label. Measuring the *impossible* labels allows us to evaluate the impact of the gaps in the @RVO_Voorbeeldwoningen_2022 data and the sensitivity or our method.
 
 # Results
 

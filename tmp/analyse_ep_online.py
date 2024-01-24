@@ -29,14 +29,14 @@ log.addHandler(ch)
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    # args = parser.parse_args([
-    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-    #     "-d", "postgres",
-    #     "--host", "localhost",
-    #     "-p", "8001",
-    #     "-u", "postgres",
-    #     "--password", "password"
-    # ])
+    args = parser.parse_args([
+        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+        "-d", "postgres",
+        "--host", "localhost",
+        "-p", "8001",
+        "-u", "postgres",
+        "--password", "password"
+    ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     connection_string = f"postgresql://{args.user}:{args.password}@{args.host}:{args.port}/{args.dbname}"
 
@@ -44,25 +44,27 @@ if __name__ == '__main__':
 
     log.info("Loading data")
     ep_online_df = EPLoader(file=p_ep).load()
+    log.info(f"Loaded {len(ep_online_df)} records from EP-Online")
 
     columns_index = ["pand_identificatie", "vbo_identificatie"]
     with psycopg.connect(connection_string) as conn:
         with conn.cursor() as cur:
-            cur.execute(f"select pand_identificatie, vbo_identificatie, oorspronkelijkbouwjaar from {args.table}")
+            cur.execute(f"SELECT pand_identificatie, vbo_identificatie, oorspronkelijkbouwjaar, CASE WHEN vbo_count > 1 THEN 'appartement' ELSE woningtype END AS woningtype FROM {args.table};")
             bag_df = pd.DataFrame.from_records(
                 cur.fetchall(),
-                columns=["pand_identificatie", "vbo_identificatie", "oorspronkelijkbouwjaar"],
+                columns=["pand_identificatie", "vbo_identificatie", "oorspronkelijkbouwjaar", "woningtype"],
                 index=columns_index
             )
 
     joined_df = ep_online_df.join(
         bag_df,
-        how="inner"
+        how="inner",
+        lsuffix="_ep_online"
     )
     joined_df["bouwperiode"] = joined_df.apply(
         lambda row: Bouwperiode.from_year_type_new(
-            row["oorspronkelijkbouwjaar"], row["woningtype"]
-        ) if pd.notnull(row["oorspronkelijkbouwjaar"]) and pd.notnull(row["woningtype"]) else pd.NA,
+            row["oorspronkelijkbouwjaar"], row["woningtype_ep_online"]
+        ) if pd.notnull(row["oorspronkelijkbouwjaar"]) and pd.notnull(row["woningtype_ep_online"]) else pd.NA,
         axis=1
     )
 
@@ -115,11 +117,106 @@ if __name__ == '__main__':
         ticks=range(-50, 60, 10),
         labels=[str(i) for i in range(-50, 60, 10)]
     )
+    plt.xticks(
+        ticks=range(-55, 60, 10),
+        minor=True,
+    )
     plt.xlabel("Percentage (%) van het hele dataset")
     plt.ylabel("Bouwperiode")
     plt.suptitle("Spreiding van woningen per bouwperiode", fontsize=14)
     plt.savefig("bouwperiode_dist.png")
     plt.close()
+
+    log.info("Comparing distributions per woningtype")
+    ep_online_woningtype = joined_df["woningtype_ep_online"].map(
+        lambda x: "appartement" if "appartement" in x else x.value,
+        na_action="ignore"
+    )
+    ep_online_woningtype.name = "woningtype"
+    ep_online_woningtype_dist = pd.crosstab(
+        ep_online_woningtype,
+        columns="woningtype",
+        normalize=True
+    )
+    bag_df_woningtype_dist = pd.crosstab(
+        joined_df["woningtype"],
+        columns="woningtype",
+        normalize=True
+    )
+
+    fig = plt.figure(figsize=(12, 7))
+    plt.barh(
+        y=bag_df_woningtype_dist.index,
+        width=bag_df_woningtype_dist.woningtype.values * -100,
+        label="BAG",
+        zorder=3
+    )
+    plt.barh(
+        y=ep_online_woningtype_dist.index,
+        width=ep_online_woningtype_dist.woningtype.values * 100,
+        label="EP-Online",
+        zorder=3
+    )
+    plt.legend(loc="best")
+    plt.grid(which="major", axis="x", zorder=0)
+    plt.xticks(
+        ticks=range(-90, 100, 10),
+        labels=[str(i) for i in range(-90, 100, 10)],
+    )
+    plt.xticks(
+        ticks=range(-95, 100, 5),
+        minor=True,
+    )
+    plt.xlabel("Percentage (%) van het hele dataset")
+    plt.ylabel("woningtype")
+    plt.suptitle("Spreiding van woningen per woningtype", fontsize=14)
+    plt.savefig("woningtype_dist.png")
+    plt.close()
+
+    log.info("Comparing distributions per woningtype")
+    with psycopg.connect(connection_string) as conn:
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT buurtcode, count(identificatie) vbo_cnt FROM wijklabels.vbo_in_buurt GROUP BY buurtcode ORDER BY buurtcode;")
+            buurt_vbo_df = pd.DataFrame.from_records(
+                cur.fetchall(),
+                columns=["buurtcode", "vbo_cnt"],
+                index="buurtcode"
+            )
+            cur.execute("SELECT buurtcode, count(vbo_identificatie) vbo_with_label_cnt FROM wijklabels.ep_online_vbo GROUP BY buurtcode ORDER BY buurtcode;")
+            buurt_vbo_label_df = pd.DataFrame.from_records(
+                cur.fetchall(),
+                columns=["buurtcode", "vbo_with_label_cnt"],
+                index="buurtcode"
+            )
+    buurt_coverage = pd.Series(
+        index=buurt_vbo_df.index,
+        data=buurt_vbo_label_df["vbo_with_label_cnt"] / buurt_vbo_df["vbo_cnt"] * 100,
+    ).sort_index()
+
+    plt.boxplot(
+        buurt_coverage,
+        vert=False
+    )
+    plt.suptitle("Energielabeldekking van woningen in de buurten",
+                 fontsize=14)
+    plt.title("EP-Online v20231101_v2")
+    plt.xlabel("Percentage woningen met een energielabel in de buurten (%)")
+    plt.savefig("coverage_vbo_dist.png")
+    plt.close()
+
+    buurt_coverage.plot(
+        kind="density",
+        legend=False
+    )
+    plt.suptitle("Spreiding van de energielabeldekking van woningen in de buurten",
+                 fontsize=14)
+    plt.title("EP-Online v20231101_v2")
+    plt.xlabel("Percentage woningen met een energielabel in de buurten (%)")
+    plt.xlim(-5, 100)
+    plt.show()
+    plt.savefig("coverage_dist.png")
+    plt.close()
+
 
     log.info("Analysing the coverage in neighborhoods")
     with psycopg.connect(connection_string) as conn:
@@ -205,26 +302,3 @@ if __name__ == '__main__':
     plt.title("EP-Online v20231101_v2")
     plt.savefig("coverage_year_dist_hist.png")
     plt.close()
-
-    # # Aggregate per year and type
-    # total = joined_df.count().iloc[0]
-    # pt_crosstab = pd.crosstab(
-    #     joined_df["bouwperiode"],
-    #     columns=joined_df["woningtype"],
-    #     margins=True,
-    #     margins_name="Totaal"
-    # )
-    # ct = pt_crosstab.apply(
-    #     lambda col: list(map(lambda cnt: f"{cnt} ({round(cnt / total * 100)}%)", col))
-    # ).replace(
-    #     "0 (0%)", ""
-    # ).reset_index(
-    #     drop=False
-    # )
-    # ct.columns.name = "Woningtype"
-    # ct["Bouwperiode"] = ct["bouwperiode"].apply(
-    #     lambda bp: bp.format_pretty() if bp != "Totaal" else bp
-    # )
-    # ct.drop("bouwperiode", axis=1, inplace=True)
-    # ct.set_index("Bouwperiode", inplace=True)
-    # print(ct)

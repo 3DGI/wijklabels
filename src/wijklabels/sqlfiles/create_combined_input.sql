@@ -112,6 +112,14 @@ FROM lvbag.pandactueelbestaand AS p
 
 COMMENT ON VIEW wijklabels.pand_in_buurt IS 'lvbag.pandactueelbestaand objects assigned to the buurt that intersect their centroid.';
 
+CREATE OR REPLACE VIEW wijklabels.vbo_in_buurt AS
+SELECT v.identificatie, 'NL' AS landcode, b.gemeentecode, b.wijkcode, b.buurtcode, b.buurtnaam
+FROM lvbag.verblijfsobjectactueelbestaand AS v
+         INNER JOIN public.buurten AS b
+                    ON st_intersects(v.geometrie, b.geom);
+
+COMMENT ON VIEW wijklabels.vbo_in_buurt IS 'lvbag.verblijfsobjectactueelbestaand objects assigned to the buurt that intersect it.';
+
 /* Number of floors estimation.
    */
 CREATE TABLE wijklabels.floors AS
@@ -164,6 +172,27 @@ CREATE INDEX input_pand_identificatie_idx ON wijklabels.input (pand_identificati
 
 /* Join the EP-Online data with geometry and the neighborhoods.
    */
+CREATE TABLE wijklabels.ep_online_vbo AS
+WITH nta_only AS (SELECT 'NL.IMBAG.Pand.' || pand_bagpandid AS pand_identificatie
+                       , 'NL.IMBAG.Verblijfsobject.' || pand_bagverblijfsobjectid AS vbo_identificatie
+                       , pand_energieklasse AS energylabel
+                  FROM public.ep_online
+                  WHERE pand_berekeningstype LIKE 'NTA 8800%')
+SELECT pand_identificatie
+     , vbo_identificatie
+     , n.energylabel
+     , b.buurtcode
+     , p.geometrie
+FROM nta_only AS n
+         INNER JOIN lvbag.verblijfsobjectactueelbestaand AS p
+                    ON n.vbo_identificatie = p.identificatie
+         INNER JOIN public.buurten AS b ON st_intersects( p.geometrie, b.geom);
+
+COMMENT ON TABLE wijklabels.ep_online_vbo IS 'The EP-Online data joined with the Verblijfsobject geometries and neighborhoods.';
+
+CREATE INDEX ep_online_vbo_geometrie_idx ON wijklabels.ep_online_vbo USING gist (geometrie);
+
+
 CREATE TABLE wijklabels.ep_online_pand AS
 WITH nta_only AS (SELECT 'NL.IMBAG.Pand.' || pand_bagpandid AS pand_identificatie
                        , array_agg('NL.IMBAG.Verblijfsobject.' || pand_bagverblijfsobjectid) AS vbo_identificatie
