@@ -33,3 +33,7 @@ class AggregateUnit(StrEnum):
 class LabelEstimationMethod(StrEnum):
     MAX_PROBABILITY = "max_probability"
     DISTRIBUTION = "distribution"
+
+class LabelBerekeningsMethode(StrEnum):
+    NTA8800 = "NTA 8800"
+    ANDERS = "anders"

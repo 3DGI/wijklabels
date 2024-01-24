@@ -28,11 +28,7 @@ def test_vbo_load_file(data_dir):
 
 
 def test_eploader():
-    path_csv = "/data/energylabel-ep-online/subset.csv"
-    eploader = EPLoader(file=path_csv)
-    ep_df = eploader.load()
-    assert all(ep_df.loc[ep_df["identificatie"] == "NL.IMBAG.Pand.0293100000228679", "woningtype"].isna())
-    assert (ep_df.loc[ep_df["identificatie"] == "NL.IMBAG.Pand.0014100040028131", "woningtype"] == Woningtype.RIJWONING_TUSSEN).all()
-    assert (ep_df.loc[ep_df["identificatie"] == "NL.IMBAG.Pand.1742100000100812", "woningtype"] == Woningtype.RIJWONING_HOEK).all()
-    assert (ep_df.loc[ep_df["identificatie"] == "NL.IMBAG.Pand.1960100003011611", "woningtype"] == Woningtype.VRIJSTAAND).all()
-    assert (ep_df.loc[ep_df["identificatie"] == "NL.IMBAG.Pand.0855100000817726", "woningtype"] == Woningtype.TWEE_ONDER_EEN_KAP).all()
+    path_csv = "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv"
+    ep_df = EPLoader(file=path_csv).load()
+    assert (ep_df.loc[("NL.IMBAG.Pand.0518100000203280", "NL.IMBAG.Verblijfsobject.0518010000769873"), "woningtype"] == Woningtype.RIJWONING_TUSSEN).all()
+    assert (ep_df.loc[("NL.IMBAG.Pand.0518100000203249", "NL.IMBAG.Verblijfsobject.0518010000765811"), "woningtype"] == Woningtype.APPARTEMENT_TUSSENDAK).all()

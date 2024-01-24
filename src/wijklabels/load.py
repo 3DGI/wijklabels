@@ -13,7 +13,7 @@ from cjio.cityjson import CityJSON
 import pandas as pd
 from openpyxl import load_workbook, Workbook
 
-from wijklabels import Bbox
+from wijklabels import Bbox, LabelBerekeningsMethode
 from wijklabels.woningtype import Woningtype
 from wijklabels.labels import EnergyLabel
 
@@ -168,6 +168,8 @@ class EPLoader:
 
     def load(self) -> pd.DataFrame:
         """Columns in the csv, 0-indexed:
+        0 - opnamedatum
+        3 - berekeningsmethode
         5 - energy label
         11 - postcode
         12 - huisnummer
@@ -178,9 +180,10 @@ class EPLoader:
         20 - gebouwtype (woningtype)
         21 - gebouwsubtype (woningsubtype)
         """
-        usecols = [0, 5, 11, 12, 13, 14, 16, 19, 20, 21]
+        usecols = [0, 3, 5, 11, 12, 13, 14, 16, 19, 20, 21]
         converters = {
             "Pand_opnamedatum": to_date,
+            "Pand_berekeningstype": to_rekenmethode,
             "Pand_energieklasse": EnergyLabel.from_str,
             "Pand_bagpandid": to_identificatie,
             "Pand_bagverblijfsobjectid": to_vbo_identifiactie,
@@ -196,11 +199,14 @@ class EPLoader:
                            "Pand_bagpandid": "pand_identificatie",
                            "Pand_bagverblijfsobjectid": "vbo_identificatie"},
                   inplace=True)
-        # The new NTA method was in place since 2021-01-01
-        start_nta8800_method = pd.to_datetime("20210101", format="%Y%m%d")
         columns_index = ["pand_identificatie", "vbo_identificatie"]
-        return df.loc[df["Pand_opnamedatum"] >= start_nta8800_method].dropna(
-            axis="rows", how="any", subset=columns_index).set_index(columns_index)
+        return df.loc[
+            df["Pand_berekeningstype"] == LabelBerekeningsMethode.NTA8800
+        ].dropna(
+            axis="rows", how="any", subset=columns_index
+        ).set_index(
+            columns_index
+        )
 
 
 def to_woningtype_ep_online(gebouwtype: str):
@@ -258,3 +264,10 @@ def to_vbo_identifiactie(id):
 
 def to_date(d):
     return pd.to_datetime(d, format="%Y%m%d")
+
+
+def to_rekenmethode(rekenmethode):
+    if "NTA 8800" in rekenmethode:
+        return LabelBerekeningsMethode.NTA8800
+    else:
+        return LabelBerekeningsMethode.ANDERS
