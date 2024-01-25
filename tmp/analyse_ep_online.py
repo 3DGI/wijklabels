@@ -167,7 +167,7 @@ if __name__ == '__main__':
         plt.grid(which="major", axis="x", zorder=0)
         plt.xticks(
             ticks=range(-60, 70, 10),
-            labels=[str(i) for i in range(-90, 100, 10)],
+            labels=[str(i) for i in range(-60, 70, 10)],
         )
         plt.xticks(
             ticks=range(-65, 70, 5),
