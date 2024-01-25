@@ -30,33 +30,23 @@ challanges: - the position of a VBO is not known in a pand
 
 # Preparing the input
 
-required inputs:
+::: {.callout-important title="TODO"}
+Overview table of all:
 
--   [x] number of floors
--   [x] dwelling types:
-    -   [x] types of single-vbo houses
-    -   [x] types of apartements
-    -   [x] mapping between the pre-nta and nta types
--   [x] construction year
--   [x] form factor
--   [x] energy label distributions
--   [x] neighborhoods
+-   attribute name
+-   description
+-   purpose
+:::
 
 ## BAG and 3DBAG
 
-We used the [3DBAG](https://3dbag.nl) version `2023.10.08`. We used the party walls data that were computed from the same 3DBAG version and delivered as a CSV file to the RVO (`3dbag_v20231008_rvo_export.csv`).
+We used the [3DBAG](https://3dbag.nl) version `2023.10.08`. The 3DBAG `2023.10.08` is based on the BAG 2.0 Extract with a release date of *08.09.2023*. The BAG contains two object types that are relevant for this study, *Pand* and *Verblijfsobject (VBO)*. Each VBO contains information about its usage in the `gebruiksdoel` attribute. For this study, only those VBO are usere which usage includes `woonfunctie`.
 
-The 3DBAG `2023.10.08` is based on the BAG 2.0 Extract of 08.09.2023.
-
-Only those VBO-s are selected whose usage (gebruiksdoel) includes woonfunctie.
+In the span of 2023, the project "Levering databestand 3D-BAG" funded by the Rijksdienst voor Ondernemend Nederland, extended the 3DBAG with 3D surface areas. The surface information is included in the 3DBAG since version `2023.10.08`. However, we used the CSV file (`3dbag_v20231008_rvo_export.csv`) that was delivered directly to RVO. The reason for using the CSV file is purely to simplify the data preparation process.
 
 ## Number of floors {#sec-floors}
 
-Required for distributing the VBO-s in the Pand. We compute the number of floors by dividing the gebruiksoppervlakte by the area of the roofprint taken from the 3DBAG. The gebruiksoppervlakte is the sum of each VBO's `oppervlakte` in the BAG. The roofprint area is the [totale oppervlakte begane grond](https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond), without any underground parts. The resulting value is rounded up to the nearest whole number, which gives us the number of floors.
-
-::: {.callout-note title="Assumption"}
-We can reliably estimate the number of floors in a Pand only from its roofprint area and the area of its VBO-s.
-:::
+Required for distributing the VBO-s in the Pand. We compute the number of floors by dividing the gebruiksoppervlakte by the area of the roofprint taken from the 3DBAG. The gebruiksoppervlakte is the sum of each VBO's `oppervlakte` of a Pand in the BAG. The roofprint area is the [totale oppervlakte begane grond](https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond), without any underground parts. The resulting value is rounded up to the nearest whole number, which gives us the number of floors.
 
 ## Dwelling types {#sec-woningtype}
 
@@ -196,35 +186,27 @@ The energy label distributions were extracted from the Excel file *Illustraties 
 
 ## Energy labels from EP-Online
 
-*"EP-Online is de officiële landelijke database waarin energielabels en energieprestatie-indicatoren van gebouwen zijn opgenomen." @_EP_2023* 
-We use the energy labels from EP-Online as "ground truth" for the validation of our estimated labels.
-Therefore, we assessed if we can consider the set of dwellings with a registered label on EP-Online a reliable reliable reference for comparison.
+*"EP-Online is de officiële landelijke database waarin energielabels en energieprestatie-indicatoren van gebouwen zijn opgenomen." @_EP_2023* We use the energy labels from EP-Online as "ground truth" for the validation of our estimated labels. Therefore, we assessed if we can consider the set of dwellings with a registered label on EP-Online a reliable reliable reference for comparison.
 
-The EP-Online database contains energy labels that were determined using different methods.
-We only use the labels that were determined with the NTA8800 method.
-That is, the `Pand_berekeningstype` contains `NTA 8800`.
-In total, these records constitue to *1.284.241* VBOs.
+The EP-Online database contains energy labels that were determined using different methods. We only use the labels that were determined with the NTA8800 method. That is, the `Pand_berekeningstype` contains `NTA 8800`. In total, these records constitue to *1.284.241* VBOs.
 
-@fig-dist-bag-ep-online-bp shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all construction year periods.
-This indicates that the registered energy labels in EP-Online represent well the complete set of dwellings in the Netherlands, when considering the construction period.
+@fig-dist-bag-ep-online-bp shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all construction year periods. This indicates that the registered energy labels in EP-Online represent well the complete set of dwellings in the Netherlands, when considering the construction period.
 
 ![Spreiding van woningen per bouwperiode in de BAG en in de EP-Online gegevens](images/bouwperiode_dist.png){#fig-dist-bag-ep-online-bp}
 
-@fig-dist-bag-ep-online-wt shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all dwelling types.
-This indicates that the registered energy labels in EP-Online represent well the complete set of dwellings in the Netherlands, when considering the dwelling types.
-However, there are two caveats that need to be considered here.
-Firstly, the comparison does not include the apartment subtypes, only the main *apartement* type.
-This is, because there is no reliable method for determining the apartment subtypes for the complete BAG data set.
-Secondly, the dwelling types of the BAG were estimated by ourselves, because there is no authoritative dwelling type information for the whole BAG data set (see @sec-woningtype).
+@fig-dist-bag-ep-online-wt shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all dwelling types. This indicates that the registered energy labels in EP-Online represent well the complete set of dwellings in the Netherlands, when considering the dwelling types. However, there are two caveats that need to be considered here. Firstly, the comparison does not include the apartment subtypes, only the main *apartement* type. This is, because there is no reliable method for determining the apartment subtypes for the complete BAG data set. Secondly, the dwelling types of the BAG were estimated by ourselves, because there is no authoritative dwelling type information for the whole BAG data set (see @sec-woningtype).
 
 ![Spreiding van woningen per woningtype in de BAG en in de EP-Online gegevens](images/woningtype_dist.png){#fig-dist-bag-ep-online-wt}
 
-FIG shows that 50% of neighborhoods have a coverage of X-Y%, and nearly all neighborhoods have at least X% coverage.
-This indicates that nearly all neighborhoods have reference labels available in the EP-Online data set.
+FIG shows that 50% of neighborhoods have a coverage of X-Y%, and nearly all neighborhoods have at least X% coverage. This indicates that nearly all neighborhoods have reference labels available in the EP-Online data set.
+
+From the these analysis we conclude that the EP-Online database is a reliable reference for validating our estimated energy labels.
 
 # Estimating the energy labels
 
-In order to determine the accurate energy label for a dwelling, the dwelling needs to be surveyed in-person by a qualified professional. This is not feasible to do on a national scale. However, we can estimate the type of the dwelling (@sec-woningtype) and we know the construction period from the BAG. In addition, we can calculate the vormfactor for eengezinswoningen accurately, and estimate the vormfactor for meergezinswoningen (see @sec-vormfactor). Finally, from @RVO_Voorbeeldwoningen_2022 we have a distribution of energy labels for each combination of the three variables, dwelling type, construction period and vormfactor. Then the energy label of an individual dwelling is selected based on the likelihood of all labels in across the three variables.
+In order to determine the accurate energy label for a dwelling, the dwelling needs to be surveyed in-person by a qualified professional. This is not feasible to do on a national scale. However, we can estimate the type of the dwelling (@sec-woningtype) and we know the construction period from the BAG. In addition, we can calculate the vormfactor for eengezinswoningen accurately, and estimate the vormfactor for meergezinswoningen (see @sec-vormfactor). Finally, from @RVO_Voorbeeldwoningen_2022 we have a distribution of energy labels for each combination of the three parameters, dwelling type, construction period and vormfactor. Then the energy label of an individual dwelling is selected based on the likelihood of all labels in across the three variables.
+
+For example, given a dwelling with the parameters of dwelling type *Flatwoning*, construction period of *1965-1974* and a vormfactor in the range of *1,50-2,00*, the estimated energy label for the dwelling depends on the range of available labels, *C-G*, and their probability (see @fig-woon2022-spreiding).
 
 The individual labels are aggregated per neighborhood to estimate the energy label distributions for each neighborhood in the Netherlands.
 

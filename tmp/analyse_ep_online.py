@@ -29,14 +29,6 @@ log.addHandler(ch)
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    # args = parser.parse_args([
-    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-    #     "-d", "postgres",
-    #     "--host", "localhost",
-    #     "-p", "8001",
-    #     "-u", "postgres",
-    #     "--password", "password"
-    # ])
     bouwperiode = True
     woningtype = True
     coverage = True
@@ -199,26 +191,35 @@ if __name__ == '__main__':
             index=buurt_vbo_df.index,
             data=buurt_vbo_label_df["vbo_with_label_cnt"] / buurt_vbo_df["vbo_cnt"] * 100,
         ).sort_index()
-
-        plt.boxplot(
-            buurt_coverage,
-            vert=False
+        buurt_coverage_stats = buurt_coverage.describe(
+            percentiles=[.125, .25, .5, .75, .875]
         )
+        ptiles = [buurt_coverage_stats.loc["12.5%"], buurt_coverage_stats.loc["50%"],
+                  buurt_coverage_stats.loc["87.5%"]]
+
+        ax = buurt_coverage.plot(
+            kind="density",
+            legend=False,
+        )
+        plt.xticks(
+            ticks=range(30, 100, 10),
+            labels=[str(i) for i in range(30, 100, 10)],
+        )
+        plt.xticks(
+            ticks=ptiles,
+            labels=[str(round(i)) for i in ptiles],
+            minor=True
+        )
+        plt.xlim(-5, 100)
+        plt.vlines(
+            x=ptiles,
+            ymin=0, ymax=0.1,
+            colors="grey", linestyles="dashed"
+        )
+        # plt.grid(which="major", axis="x")
         plt.suptitle("Energielabeldekking van woningen in de buurten",
                      fontsize=14)
         plt.title("EP-Online v20231101_v2")
-        plt.xlabel("Percentage woningen met een energielabel in de buurten (%)")
-        plt.savefig("coverage_vbo_dist_box.png")
-        plt.close()
-
-        buurt_coverage.plot(
-            kind="density",
-            legend=False
-        )
-        plt.suptitle("Spreiding van de energielabeldekking van woningen in de buurten",
-                     fontsize=14)
-        plt.title("EP-Online v20231101_v2")
-        plt.xlabel("Percentage woningen met een energielabel in de buurten (%)")
-        plt.xlim(-5, 100)
-        plt.savefig("coverage_vbo_dist_dense.png")
+        plt.xlabel("Percentage woningen met een energielabel (%)")
+        plt.savefig("/home/bdukai/software/wijklabels/coverage_vbo_dist_dense.png")
         plt.close()
