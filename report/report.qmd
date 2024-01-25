@@ -205,12 +205,22 @@ We only use the labels that were determined with the NTA8800 method.
 That is, the `Pand_berekeningstype` contains `NTA 8800`.
 In total, these records constitue to *1.284.241* VBOs.
 
-@fig-dist-bag-ep-online shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all construction year periods.
+@fig-dist-bag-ep-online-bp shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all construction year periods.
 This indicates that the registered energy labels in EP-Online represent well the complete set of dwellings in the Netherlands, when considering the construction period.
 
-![Spreiding van woningen per bouwperiode in de BAG en in de EP-Online gegevens](images/bouwperiode_dist.png){#fig-dist-bag-ep-online}
+![Spreiding van woningen per bouwperiode in de BAG en in de EP-Online gegevens](images/bouwperiode_dist.png){#fig-dist-bag-ep-online-bp}
 
+@fig-dist-bag-ep-online-wt shows that both the BAG and the EP-Online data set have a very similar distribution of dwellings across all dwelling types.
+This indicates that the registered energy labels in EP-Online represent well the complete set of dwellings in the Netherlands, when considering the dwelling types.
+However, there are two caveats that need to be considered here.
+Firstly, the comparison does not include the apartment subtypes, only the main *apartement* type.
+This is, because there is no reliable method for determining the apartment subtypes for the complete BAG data set.
+Secondly, the dwelling types of the BAG were estimated by ourselves, because there is no authoritative dwelling type information for the whole BAG data set (see @sec-woningtype).
 
+![Spreiding van woningen per woningtype in de BAG en in de EP-Online gegevens](images/woningtype_dist.png){#fig-dist-bag-ep-online-wt}
+
+FIG shows that 50% of neighborhoods have a coverage of X-Y%, and nearly all neighborhoods have at least X% coverage.
+This indicates that nearly all neighborhoods have reference labels available in the EP-Online data set.
 
 # Estimating the energy labels
 
