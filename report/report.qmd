@@ -23,6 +23,10 @@ from wijklabels.woningtype import Bouwperiode
 
 # Introduction
 
+woon2018
+
+voorbeeldwoningen 2022
+
 challanges: - the position of a VBO is not known in a pand
 
 ::: {.callout-important title="TODO"}
@@ -38,6 +42,14 @@ Overview table of all:
 -   purpose
 :::
 
+## Spreiding van energielabels {#sec-spreiding}
+
+The @RVO_Voorbeeldwoningen_2022 study provides a representative sample of energy label distributions per dwelling type and construction period. The distribution is two-dimensional, one dimension is the energy label, the second dimension is the vormfactor of the dwelling. However, the described distributions are not continuous. For example, in case of Flatwoningen from the period 1965-1974, there is no data in the vormfactor range 1,00-1,50 and labels A+++-D, see @fig-woon2022-spreiding. Such gaps have a significant impact on the quality of our results.
+
+The energy label distributions were extracted from the Excel file `Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx`, which we received from RVO.
+
+![Energy label distribution of flatwoningen, @RVO_Voorbeeldwoningen_2022](images/woon2022_spreiding.png){#fig-woon2022-spreiding}
+
 ## BAG and 3DBAG
 
 We used the [3DBAG](https://3dbag.nl) version `2023.10.08`. The 3DBAG `2023.10.08` is based on the BAG 2.0 Extract with a release date of *08.09.2023*. The BAG contains two object types that are relevant for this study, *Pand* and *Verblijfsobject (VBO)*. Each VBO contains information about its usage in the `gebruiksdoel` attribute. For this study, only those VBO are usere which usage includes `woonfunctie`.
@@ -46,49 +58,39 @@ In the span of 2023, the project "Levering databestand 3D-BAG" funded by the Rij
 
 ## Number of floors {#sec-floors}
 
-Required for distributing the VBO-s in the Pand. We compute the number of floors by dividing the gebruiksoppervlakte by the area of the roofprint taken from the 3DBAG. The gebruiksoppervlakte is the sum of each VBO's `oppervlakte` of a Pand in the BAG. The roofprint area is the [totale oppervlakte begane grond](https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond), without any underground parts. The resulting value is rounded up to the nearest whole number, which gives us the number of floors.
+The number of floors of a Pand is required for distributing the VBO-s across the floors in a meergezinswoning. We compute the number of floors by dividing the gebruiksoppervlakte by the area of the roofprint taken from the 3DBAG. The gebruiksoppervlakte is the sum of each VBO's `oppervlakte` of a Pand in the BAG. The roofprint area is the [totale oppervlakte begane grond](https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond), without any underground parts. The resulting value is rounded up to the nearest whole number, which gives us the number of floors.
 
 ## Dwelling types {#sec-woningtype}
 
-Dwellings are classified into distinct types. The current classification, as used by the NTA8800 method, is listed below. In case of appartements, hoek/tussen refers to the horizontal position of the appartement in the building, while vloer/midden/dak/dakvloer refers to its vertical position. For the sake of simplicity, we refer to this classification as **NTA8800-types**.
+Dwellings are classified into distinct types. The current classification, as used by the NTA8800 method, is listed in @tbl-nta8800-types. In case of appartements, hoek/tussen refers to the horizontal position of the appartement in the building, while vloer/midden/dak/dakvloer refers to its vertical position. For the sake of simplicity, we refer to this classification as **NTA8800-types**.
 
-Eengezinswoningen:
+| Eengezinswoningen  | Meergezinswoningen           |
+|--------------------|------------------------------|
+| vrijstaande woning | appartement - hoekvloer      |
+| 2 onder 1 kap      | appartement - hoekmidden     |
+| rijwoning tussen   | appartement - hoekdak        |
+| rijwoning hoek     | appartement - hoekdakvloer   |
+|                    | appartement - tussenvloer    |
+|                    | appartement - tussenmidden   |
+|                    | appartement - tussendak      |
+|                    | appartement - tussendakvloer |
 
--   vrijstaande woning
--   2 onder 1 kap
--   rijwoning tussen
--   rijwoning hoek
+: Dwelling types used by the NTA8800 method {#tbl-nta8800-types}
 
-Meergezinswoningen:
+Before the introduction of the NTA8800 method, dwellings were classified slightly differently, see @tbl-pre-nta8800-types. This is the classification used by the @RVO_Voorbeeldwoningen_2022 study. For the sake of simplicity, we refer to this classification as **pre-NTA8800-types**.
 
--   appartement - hoekvloer
--   appartement - hoekmidden
--   appartement - hoekdak
--   appartement - hoekdakvloer
--   appartement - tussenvloer
--   appartement - tussenmidden
--   appartement - tussendak
--   appartement - tussendakvloer
+| Eengezinswoningen  | Meergezinswoningen |
+|--------------------|--------------------|
+| vrijstaande woning | maisonette         |
+| 2 onder 1 kap      | galerij            |
+| rijwoning tussen   | portiek            |
+| rijwoning hoek     | flat (overig)      |
 
-Before the introduction of the NTA8800 method, dwellings were classified slightly differently. This is the classification used by the WoON2022 study. For the sake of simplicity, we refer to this classification as **pre-NTA8800-types**.
-
-Eengezinswoningen:
-
--   vrijstaande woning
--   2 onder 1 kap
--   rijwoning tussen
--   rijwoning hoek
-
-Meergezinswoningen:
-
--   maisonette
--   galerij
--   portiek
--   flat (overig)
+: Dwelling types used in @RVO_Voorbeeldwoningen_2022 {#tbl-pre-nta8800-types}
 
 The types of the single family houses are equivalent before and after NTA8800. On the other hand, there is no relation between the types of the meergezingswoningen before and after NTA8800.
 
-This work requires that we know both the *NTA8800* and the *pre-NTA8800* type of each dwelling. The *pre-NTA8800* type is needed, because that is used by the WoON2022 study, and the *NTA8800* type is needed, because that is used by the validation data on EP-Online.
+This work requires that we know both the *NTA8800* and the *pre-NTA8800* type of each dwelling. The *pre-NTA8800* type is needed, because that is used by @RVO_Voorbeeldwoningen_2022, and the *NTA8800* type is needed, because that is used by the validation data on EP-Online.
 
 We first estimate the *NTA8800* type and then convert that to a *pre-NTA8800* type. The method for classifying the een- and meergezinswoningen differs significantly.
 
@@ -100,25 +102,19 @@ Misclassification occurs if the intersections are incorrectly determined, usuall
 
 ### Eengezinswoningen
 
-If a pand only contains a single VBO, then we consider the VBO an *eengezinswoning* and the VBO receives the classification of the pand.
+If a pand only contains a single VBO, then we consider the VBO an *eengezinswoning* and the VBO receives the classification of the Pand.
 
 ### Meergezinswoningen {#sec-meergezins}
 
-The meergezingswoningen consist of a single main type, *appartement*. If a pand contains more than one VBO, then all of its VBOs are classified as *appartement*.
+The meergezingswoningen consist of a single main type, *appartement*. If a Pand contains more than one VBO, then all of its VBOs are classified as *appartement*.
 
-The *appartement* subtypes are determined from the vertical and horizonal position of the VBO within the pand. Firstly, the VBO-s are distributed across the floors (see @sec-floors) of the pand to determine their vertical position. Each floor is assigned the same number of appartements, which is calculated by dividing the number of VBO-s by the number of floors. We call the *number of appartements per floor* `N`. Then the total appartements in the pand are distributed so that the first `N` is assigned to the ground floor (*vloer*), the second `N` is assigned to the top floor (*dak*) and the rest is distributed evenly across the floors in between (*midden*). If a pand has the same *number of appartements per floor* as the total number of appartements, then the appartements are classified as *dakvloer*.
+The *appartement* subtypes are determined from the vertical and horizonal position of the VBO within the pand. Firstly, the VBO-s are distributed across the floors (see @sec-floors) of the Pand to determine their vertical position. Each floor is assigned the same number of appartements, which is calculated by dividing the number of VBO-s by the number of floors. We call the *number of appartements per floor* `N`. Then the total appartements in the pand are distributed so that the first `N` is assigned to the ground floor (*vloer*), the second `N` is assigned to the top floor (*dak*) and the rest is distributed evenly across the floors in between (*midden*). If a Pand has the same *number of appartements per floor* as the total number of appartements, then the appartements are classified as *dakvloer*.
 
 Secondly, the appartements are distributed horizontally on each floor. We assume two configurations for the layout of the appartements, single row or double row. The choice between single or double row depends on the number of appartements per floor and a random choice. If the number of appartements per floor is less than or equal three, then a single row layout is chosen, otherwise there is a 50% chance for a double row layout. Additionally, the number of *hoek* appartements are estimated based on the classification of the pand and the previously determined layout. If there are remaining appartements on the floor that are not classified as *hoek*, they are classified as *tussen*.
 
-::: {.callout-important title="TODO"}
-**compare to the ep-online nta8800 woningtype**
-
-correct eengezinswoningen 87% correct meergezinswoningen 26%
-:::
-
 ### Conversion of appartement types to pre-NTA8800 types
 
-The WoON2022 study uses the pre-NTA8800 dwelling types, while the EP-Online database uses the NTA8800 dwelling types for the energy labels that are calculated with the NTA8800 method. This work relies on the results of the WoON2022 study to estimate the energy label of dwellings, therefore we convert the previously determined NTA8800 appartement type to pre-NTA8800 types. Since there is no direct relation between the two classification, we can only estimate the pre-NTA8800 types.
+The @RVO_Voorbeeldwoningen_2022 study uses the pre-NTA8800 dwelling types, while the EP-Online database uses the NTA8800 dwelling types for the energy labels that are calculated with the NTA8800 method. This work relies on the results of the @RVO_Voorbeeldwoningen_2022 study to estimate the energy label of dwellings, therefore we convert the previously determined NTA8800 appartement type to pre-NTA8800 types. Since there is no direct relation between the two classification, we can only estimate the pre-NTA8800 types.
 
 We assign the pre-NTA8800 type to the appartement based on the distribution of pre-NTA8800 types in the EP-Online database and the construction date of the dwelling, see @fig-woningtype-bouwjaar. For example, if the dwelling was built in the period of 1965-1974, there is an 84% chance that it receives the *flatwoning (overig)* pre-NTA8800 type.
 
@@ -126,7 +122,7 @@ We assign the pre-NTA8800 type to the appartement based on the distribution of p
 
 ## Construction year
 
-The WoON2022 study determines at most seven construction year periods, depending on the dwelling type. We used the *energy label distributions data* as a reference for the periods.
+The @RVO_Voorbeeldwoningen_2022 study determines at most seven construction year periods, depending on the dwelling type. We used the *energy label distributions data* as a reference for the periods.
 
 ```{python}
 #| label: tbl-count-period-type
@@ -176,14 +172,6 @@ The neighborhood boundaries are retrieved from the Centraal Bureau voor de Stati
 
 Version of CBS Wijken en Buurten: 2022 v1, [link to data](https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg)
 
-## Spreiding van energielabels {#sec-spreiding}
-
-The WoON2022 study describes a distribution of energy labels for each dwelling type and construction period. The distribution is two-dimensional, one dimension is the energy label, the second dimension is the vormfactor of the dwelling. However, the described distributions are not continuous. For example, in case of Flatwoningen from the period 1965-1974, there is no data in the vormfactor range 1,00-1,50 and labels A+++-D, see @fig-woon2022-spreiding.
-
-The energy label distributions were extracted from the Excel file *Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx*, which we received from RVO.
-
-![Energy label distribution of flatwoningen, @RVO_Voorbeeldwoningen_2022](images/woon2022_spreiding.png){#fig-woon2022-spreiding}
-
 ## Energy labels from EP-Online
 
 *"EP-Online is de officiële landelijke database waarin energielabels en energieprestatie-indicatoren van gebouwen zijn opgenomen." @_EP_2023* We use the energy labels from EP-Online as "ground truth" for the validation of our estimated labels. Therefore, we assessed if we can consider the set of dwellings with a registered label on EP-Online a reliable reliable reference for comparison.
@@ -198,7 +186,9 @@ The EP-Online database contains energy labels that were determined using differe
 
 ![Spreiding van woningen per woningtype in de BAG en in de EP-Online gegevens](images/woningtype_dist.png){#fig-dist-bag-ep-online-wt}
 
-FIG shows that 50% of neighborhoods have a coverage of X-Y%, and nearly all neighborhoods have at least X% coverage. This indicates that nearly all neighborhoods have reference labels available in the EP-Online data set.
+@fig-dist-coverage shows that 75% of neighborhoods have a coverage of 4-19%, while 50% of the neighborhoods has 8% coverage or less. Nearly all neighborhoods have at least 3% coverage. This indicates that nearly all neighborhoods have reference labels available in the EP-Online data set.
+
+![Energielabeldekking van woningen in de buurten](images/coverage_vbo_dist_dense.png){#fig-dist-coverage}
 
 From the these analysis we conclude that the EP-Online database is a reliable reference for validating our estimated energy labels.
 
@@ -228,31 +218,38 @@ Due to the gaps in the energy label distributions that are presented in @RVO_Voo
 
 # Results
 
-::: {.callout-important title="TODO"}
-:::
-
 ## Size of the input set / BAG
 
-The BAG extract of 08.09.2023 contains X Pand objects and Y Verblijfsobjecten.\
-The 3DBAG of VERSION that is based the BAG extract, contains X Pand objects.\
-The party walls dataset, that is based on the 3DBAG, contains X Pand objects.\
-There are X Pand and Y VBO with gebruiksdoel that includes `woonfunctie`.
+The BAG extract of `08.09.2023` contains *10.877.129* Pand objects and *10.144.833* Verblijfsobjecten.\
+The 3DBAG version `2023.10.08` that is based the mentioned BAG extract, contains *10.360.281* Pand objects.\
+The party walls dataset, that is based on the 3DBAG, contains *10.363.460* Pand objects.\
+There are *5.646.848* Pand and *8.721.692* VBO with gebruiksdoel that includes `woonfunctie`.
+
+## Dwelling types
+
+When comparing against the EP-Online data, our dwelling classification shows 87% accuracy for the eengezingswoningen, and 26% accuracy for the meergezinswoningen.
 
 ## Energy labels estimation
 
-From the available X input Pand objects, Y received an energy label.\
-Thus, X% of objects did not receive a label. The missing labels are caused by the gaps in energy label distributions of the @RVO_Voorbeeldwoningen_2022 .
+From the available *5.385.950* input Pand objects, *4.847.298* received an energy label.\
+Thus, *13%* of objects did not receive a label. The missing labels are caused by the gaps in energy label distributions of the @RVO_Voorbeeldwoningen_2022 .
 
-We have compared our energy label estimation to the labels available in @_EP_2023 at several spatial resolutions. We have found that the mean deviation from the @_EP_2023 labels of the neighborhood-aggregated deviations is **-1**, with a standard deviation of **0.35**.\
-In other words, on average our estimated labels are one label below the EP-Online labels, on the neighborhood level.
+We have compared our energy label estimation to the labels available in @_EP_2023. We have found that the mean deviation from the @_EP_2023 labels is **-1,2**, with a standard deviation of **2,1**.\
+In other words, on average our estimated labels are about one label below the EP-Online labels, with a standard deviation of two labels.
 
 However, if we look at the deviations per label, we get a more detailed image. @fig-nl-dist shows that our *A+++, A++++* are on average 3-5 labels overestimated, while our *E, F, G* labels are on average 2-4 labels underestimated compared to the EP-Online data.
 
 ![Deviation of the estimated labels from the EP-Online labels](images/nl_NL_dist_est_ep.png){#fig-nl-dist}
 
-### Considering only possible matches
+### Considering only possible labels
 
-Due to the gaps in the
+Due to the gaps in the energy label distributions of the @RVO_Voorbeeldwoningen_2022 study, *32%* of the dwellings have a label in EP-Online that is missing from the Voorbeeldwoningen 2022 data (see @sec-spreiding).
+In such cases, it is not possible to assign the correct energy label to the dwelling, since there is no probability for the label.
+If we limit our validation to those dwellings where the correct label does have a probability in energy label distributions, we gain insight on the impact of the gaps in the energy label distributions.
+
+When comparing only the possible labels, the mean deviation from the @_EP_2023 labels is **-0,6**, with a standard deviation of **1,6**.
+
+# Conclusion
 
 # References
 
