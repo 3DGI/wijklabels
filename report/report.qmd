@@ -241,7 +241,7 @@ However, if we look at the deviations per label, we get a more detailed image. @
 
 ![Deviation of the estimated labels from the EP-Online labels](images/nl_NL_dist_est_ep.png){#fig-nl-dist}
 
-### Considering only possible labels
+### Considering only possible labels {#sec-only-possible}
 
 Due to the gaps in the energy label distributions of the @RVO_Voorbeeldwoningen_2022 study, *32%* of the dwellings have a label in EP-Online that is missing from the Voorbeeldwoningen 2022 data (see @sec-spreiding).
 In such cases, it is not possible to assign the correct energy label to the dwelling, since there is no probability for the label.
@@ -249,7 +249,30 @@ If we limit our validation to those dwellings where the correct label does have 
 
 When comparing only the possible labels, the mean deviation from the @_EP_2023 labels is **-0,6**, with a standard deviation of **1,6**.
 
-# Conclusion
+# Conclusions
+
+This work estimates the vormfactor for individual dwellings and the energy label distribution of neighborhoods of the Netherlands.
+Due to the lack of suitable, national data, we worked with often severe assumptions on the parameters of a dwelling.
+The steps for these assumptions are listed below in their order in the energy label estimation process.
+
+1. Estimating the number of floors of a Pand.
+2. Estimating the type of a dwelling, both for eengezinswoningen and meergezinswoningen.
+3. Converting from a NTA8800 appartament type (e.g. *apartement - hoekdak*) to a pre-NTA8800 appartament type (e.g. *galerij*).
+4. Estimating the vormfactor of an appartement. Even if the exact number of floors and the correct appartement type, such as *hoekdak* were known, it wouldn't be possible to exactly calculate the vormfactor appartaments, due to the variations in internal layouts of buildings. However, it would be possible to make a much more accurate estimation.
+5. Estimating the energy label of an individual dwelling from the probability of energy labels documented in the Voorbeelwoningen 2022 study.
+
+Our findings indicate that the NTA8800 energy labels in the EP-Online database have sufficient coverage to be used as a validation set for developing large area, national methods in the future.
+However, the energy labels that were determined with the NTA8800 method use a different appartement classification than what is used by the WoON 2018 and Voorbeeldwoningen 2022 studies.
+In our method we follow the appartement classification of the NTA8800 labels, therefore a conversion between the two classification is needed.
+For the conversion we follow the statistical distribution of appartement types that we found in the EP-Online data set, because to the best of our knowledge there is no deterministic method to do this conversion.
+Therefore, the appartement type conversion in itself adds more uncertainty to the energy label estimation of appartements.
+
+Due to the lack of national data on the 3D location of apartements, our method for estimating the horizontal and vertical position of an appartement is guesswork and thus inaccurate.
+Therefore in its current state we do not recommend to use results for meergezinswoningen.
+In our results, 44% of dwellings are appartements.
+
+Our results show that the gaps in the Voorbeeldwoningen 2022 energy label distributions have a significant impact on the accuracy of the estimated labels (see @sec-only-possible).
+For this reason we recommend to adapt the Voorbeeldwoningen study so that the energy label distributions are as complete as possible.
 
 # References
 
