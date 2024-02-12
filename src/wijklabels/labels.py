@@ -61,6 +61,17 @@ class EnergyLabel(OrderedEnum):
         member_list = self.__class__._member_list()
         return (member_list.index(self) - member_list.index(other)) * -1
 
+    def adjust_with(self, distance: int):
+        """Shifts the label by `distance`"""
+        member_list = self.__class__._member_list()
+        new_pos = member_list.index(self) + distance
+        if new_pos > len(member_list) - 1:
+            return member_list[-1]
+        elif new_pos < 0:
+            return member_list[0]
+        else:
+            return member_list[new_pos]
+
     @classmethod
     def from_str(cls, string: str):
         """Converts a string to an EnergyLabel

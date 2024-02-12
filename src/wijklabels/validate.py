@@ -65,13 +65,13 @@ parser_validate.add_argument('--plot', action='store_true',
 
 def validate_cli():
     args = parser_validate.parse_args()
-    args = parser_validate.parse_args([
-        "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
-        "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
-        "/data/wijklabels/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
-        "/home/balazs/Development/wijklabels/tests/data/output/distribution",
-        "-e", "energylabel"
-    ])
+    # args = parser_validate.parse_args([
+    #     "/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv",
+    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+    #     "/data/wijklabels/Illustraties spreiding Energielabel in WoON2018 per Voorbeeldwoning 2022 - 2023 01 25.xlsx",
+    #     "/home/balazs/Development/wijklabels/tests/data/output/distribution",
+    #     "-e", "energylabel"
+    # ])
     p_ep = Path(args.path_ep_online_csv).resolve()
     p_el = Path(args.path_estimated_labels_csv).resolve()
     p_dist = Path(args.path_label_distributions_xlsx).resolve()

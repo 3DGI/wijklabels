@@ -234,7 +234,7 @@ When comparing against the EP-Online data, our dwelling classification shows 87%
 From the available *5.385.950* input Pand objects, *4.847.298* received an energy label.\
 Thus, *13%* of objects did not receive a label. The missing labels are caused by the gaps in energy label distributions of the @RVO_Voorbeeldwoningen_2022 .
 
-We have compared our energy label estimation to the labels available in @_EP_2023. @fig-nl-dist-bar shows the distribution estimated (green) and ep-online energy labels for the dwellings that are registered on ep-online. We can observe that the most common estimated energy label is *C*, making up nearly 30% of the labels. However, in the ep-online data set, the labels *A* and *C* each consitute to about 25% of the total labels.
+We have compared our energy label estimation to the labels available in @_EP_2023. @fig-nl-dist-bar shows the distribution estimated (green) and ep-online energy labels for the dwellings that are registered on ep-online. We can observe that the most common estimated energy label is *C*, making up a bit over 25% of the labels. However, in the ep-online data set, the labels *A* and *C* each consitute to about 25% of the total labels.
 
 ![Distribution of estimated and ep-online energy labels for the dwellings that are registered on ep-online](images/nl_NL.png){#fig-nl-dist-bar}
 
@@ -268,15 +268,8 @@ Due to the lack of national data on the 3D location of apartements, our method f
 Therefore in its current state we do not recommend to use results for meergezinswoningen.
 In our results, 44% of dwellings are appartements.
 
-Our results show that the gaps in the Voorbeeldwoningen 2022 energy label distributions have a significant impact on the accuracy of the estimated labels (see @sec-only-possible), impacting over 30% of the estimated labels.
+Our results show that the gaps in the Voorbeeldwoningen 2022 energy label distributions have a significant impact on the accuracy of the estimated labels (see @sec-only-possible), impacting 32% of the estimated labels.
 For this reason we recommend to adapt the Voorbeeldwoningen study so that the energy label distributions are as complete as possible.
-
-# TODOS
-
-- distribution of only the estimated labels
-- fix caption misspellings
-- compute adjusted labels and compare those, would expect a nearly zero deviation
-- compute neighborhoods of eengezinswoningen only
 
 # References
 

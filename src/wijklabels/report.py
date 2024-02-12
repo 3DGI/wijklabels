@@ -99,6 +99,42 @@ def plot_buurt(df: pd.DataFrame, buurt: str):
     return ax
 
 
+def plot_aggregate(validated: pd.DataFrame, dir_plots: Path,
+                    aggregate_level: AggregateUnit, column_energylabel="energylabel"):
+    """Plot the aggregated labels on the provided level."""
+    dir_plots.mkdir(exist_ok=True)
+    aggregate_id_column = aggregate_column_name(aggregate_level)
+    plt.style.use('seaborn-v0_8-muted')
+    for aggregate_id in validated[aggregate_id_column].unique():
+        # Plot both distributions side by side
+        b = validated.loc[
+            validated[aggregate_id_column] == aggregate_id,
+            [column_energylabel, ]
+        ]
+        estimated = b[column_energylabel].value_counts() / len(b) * 100
+        b_df = pd.DataFrame({"estimated": estimated},
+                            index=[EnergyLabel.APPPP, EnergyLabel.APPP, EnergyLabel.APP,
+                                   EnergyLabel.AP, EnergyLabel.A, EnergyLabel.B,
+                                   EnergyLabel.C, EnergyLabel.D,
+                                   EnergyLabel.E, EnergyLabel.F, EnergyLabel.G])
+        ax = b_df.plot(kind="bar",
+                       rot=0,
+                       color={"estimated": COLORS},
+                       xlabel="",
+                       zorder=3)
+        ax.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=100, decimals=0))
+        ax.set_yticks([10, 20, 30, 40, 50, 60, 70, 80])
+        ax.get_legend().remove()
+        plt.style.use('seaborn-v0_8-muted')
+        plt.grid(visible=True, which="major", axis="y", zorder=0)
+        plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
+        plt.suptitle("Spreiding van energielabels", fontsize=14)
+        plt.tight_layout()
+        filename = ''.join(e for e in aggregate_id if e.isalnum())
+        plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_estimated.png")
+        plt.close()
+
+
 def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
                     aggregate_level: AggregateUnit):
     # Compare estimated to groundtruth in plots
@@ -145,9 +181,9 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
             ax.set_xlim(12, 0)
             if t == "_ep_est":
                 ax.set_xlabel("Energielabel in EP-Online")
-                ax.set_ylabel("Afwijking geschatte energielabel")
+                ax.set_ylabel("Afwijking geschatt energielabel")
             else:
-                ax.set_xlabel("Geschatte energielabel")
+                ax.set_xlabel("Geschatt energielabel")
                 ax.set_ylabel("Afwijking EP-Online")
             ax.set_yticks(range(-10, 11, 1))
             # Assign colors to each box in the boxplot
@@ -156,7 +192,7 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
             plt.axhline(y=0.0, color='#154273', linestyle='-')
             plt.grid(visible=True, which="major", axis="y", zorder=0)
             plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
-            plt.suptitle("Afwijking van de geschatte labels van de EP-Online labels", fontsize=14)
+            plt.suptitle("Afwijking van de geschatt labels van de EP-Online labels", fontsize=14)
             plt.tight_layout()
             plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist{t}.png")
             plt.close()
