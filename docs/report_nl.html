@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Balázs Dukai, Ravi Peters">
-<meta name="dcterms.date" content="2024-02-12">
+<meta name="dcterms.date" content="2024-02-13">
 
 <title>Wijklabels</title>
 <style>
@@ -161,7 +161,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 12, 2024</p>
+      <p class="date">February 13, 2024</p>
     </div>
   </div>
   
@@ -173,7 +173,7 @@ div.csl-indent {
 </header>
 
 
-<div id="e0beda12" class="cell" data-execution_count="1">
+<div id="e0beda12" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -214,8 +214,8 @@ Figure&nbsp;1: Energielabel spreiding flatwoningen, <span class="citation" data-
 </section>
 <section id="bouwjaar" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="bouwjaar"><span class="header-section-number">2.3</span> Bouwjaar</h2>
-<p>De <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie bepaalt maximaal zeven bouwjaarperioden, afhankelijk van het woningtype. We houden dezelfde perioden aan voor het categoriseren van de gebouwen op hun bouwjaar. De perioden staan in <strong>?@tbl-telling-periode-type</strong> samen met het aantal woningen in de resultaten.</p>
-<div class="cell" data-execution_count="2">
+<p>De <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie bepaalt maximaal zeven bouwjaarperioden, afhankelijk van het woningtype. We houden dezelfde perioden aan voor het categoriseren van de gebouwen op hun bouwjaar. De perioden staan in <a href="#tbl-count-period-type" class="quarto-xref">Table&nbsp;1</a> samen met het aantal woningen in de resultaten.</p>
+<div class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(</span>
@@ -247,7 +247,7 @@ Figure&nbsp;1: Energielabel spreiding flatwoningen, <span class="citation" data-
 <span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>ct.set_index(<span class="st">"Bouwperiode"</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>ct</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
-<div id="tbl-count-period-type" class="cell quarto-float anchored" data-execution_count="2">
+<div id="tbl-count-period-type" class="cell quarto-float anchored" data-execution_count="3">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-count-period-type-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: Aantal (en percentage) van woningen per bouwperiode en woningtype
@@ -568,7 +568,7 @@ Table&nbsp;3: Woningtypes gebruikt in <span class="citation" data-cites="RVO_Voo
 <section id="sec-meergezins" class="level3" data-number="3.2.3">
 <h3 data-number="3.2.3" class="anchored" data-anchor-id="sec-meergezins"><span class="header-section-number">3.2.3</span> Meergezinswoningen</h3>
 <p>De meergezinswoningen bestaan uit één hoofdtype, <em>appartement</em>. Als een Pand meer dan één VBO bevat, dan worden al zijn VBO’s geclassificeerd als <em>appartement</em>.</p>
-<p>De <em>appartement</em> subtypes worden bepaald door de verticale en horizontale positie van de VBO binnen het pand. Eerst worden de VBO’s verspreid over de verdiepingen (zie <strong>?@sec-vloeren</strong>) van het pand om hun verticale positie te bepalen. Elke verdieping krijgt hetzelfde aantal appartementen toegewezen, dat wordt berekend door het aantal VBO’s te delen door het aantal verdiepingen. We noemen het <em>aantal appartementen per verdieping</em> <code>N</code>. Vervolgens wordt het totaal aantal appartementen in het pand zo verdeeld dat de eerste <code>N</code> wordt toegewezen aan de begane grond (<em>vloer</em>), de tweede <code>N</code> wordt toegewezen aan de bovenste verdieping (<em>dak</em>) en de rest wordt gelijkmatig verdeeld over de tussenliggende verdiepingen (<em>midden</em>). Als een <code>N</code> gelijk is aan het totaal aantal appartementen, dan worden de appartementen geclassificeerd als <em>dakvloer</em>.</p>
+<p>De <em>appartement</em> subtypes worden bepaald door de verticale en horizontale positie van de VBO binnen het pand. Eerst worden de VBO’s verspreid over de verdiepingen (zie <a href="#sec-floors" class="quarto-xref">Section&nbsp;3.1</a>) van het pand om hun verticale positie te bepalen. Elke verdieping krijgt hetzelfde aantal appartementen toegewezen, dat wordt berekend door het aantal VBO’s te delen door het aantal verdiepingen. We noemen het <em>aantal appartementen per verdieping</em> <code>N</code>. Vervolgens wordt het totaal aantal appartementen in het pand zo verdeeld dat de eerste <code>N</code> wordt toegewezen aan de begane grond (<em>vloer</em>), de tweede <code>N</code> wordt toegewezen aan de bovenste verdieping (<em>dak</em>) en de rest wordt gelijkmatig verdeeld over de tussenliggende verdiepingen (<em>midden</em>). Als een <code>N</code> gelijk is aan het totaal aantal appartementen, dan worden de appartementen geclassificeerd als <em>dakvloer</em>.</p>
 <p>Ten tweede zijn de appartementen horizontaal verdeeld over elke verdieping. We gaan uit van twee configuraties voor de indeling van de appartementen, enkele rij of dubbele rij. De keuze tussen enkele of dubbele rij hangt af van het aantal appartementen per verdieping en een willekeurige keuze. Als het aantal appartementen per verdieping kleiner of gelijk is aan drie, dan wordt gekozen voor een indeling met enkele rij, anders is er 50% kans op een indeling met dubbele rij. Nu wordt het aantal <em>hoek</em> appartementen geschat op basis van de indeling van het pand en de eerder bepaalde indeling. Als er nog appartementen op de verdieping zijn die niet als <em>hoek</em> zijn ingedeeld, worden ze als <em>tussen</em> ingedeeld.</p>
 </section>
 </section>
@@ -591,7 +591,7 @@ Figure&nbsp;4: Spreiding van pre-NTA8800 meergezinswoningtypen in de EP-Online d
 <h2 data-number="3.4" class="anchored" data-anchor-id="sec-vormfactor"><span class="header-section-number">3.4</span> Vormfactor</h2>
 <p>De vormfactor wordt berekend als de fractie van de verliesoppervlakte en gebruiksoppervlakte. De verliesoppervlakte is de som van alle oppervlakken die de woning omhullen, behalve de oppervlakken die worden gedeeld met een andere woning. De gebruiksoppervlakte is de oppervlakte die voor de VBO is geregistreerd in de BAG (de <code>oppervlakte</code> van de VBO).</p>
 <p>We berekenen de vormfactor voor elk Pand. De vereiste oppervlakten voor het berekenen van de verliesoppervlakte maken deel uit van de 3DBAG sinds versie <code>2023.10.08</code>. De vormfactor van een eengezinswoning is gelijk aan de vormfactor van het Pand.</p>
-<p>Voor appartementen wijzen we een deel van de oppervlakten toe aan elk appartement, afhankelijk van het type (zie <strong>?@sec-meergezinswoningen</strong>). Het totale dakoppervlak wordt gelijk verdeeld over de appartementen op de dakverdieping. Slechts 95% van het totale muuroppervlak wordt gebruikt om rekening te houden met muuroppervlakken die gangen en andere niet-woonruimten in het pand bedekken. Het muuroppervlak wordt vervolgens verdeeld over de appartementen, zodanig dat de appartementen op de hoek ongeveer 3x het muuroppervlak van een tussenappartement krijgen. Het totale grondoppervlak wordt gelijk verdeeld over de appartementen op de begane grond.</p>
+<p>Voor appartementen wijzen we een deel van de oppervlakten toe aan elk appartement, afhankelijk van het type (zie <a href="#sec-meergezins" class="quarto-xref">Section&nbsp;3.2.3</a>). Het totale dakoppervlak wordt gelijk verdeeld over de appartementen op de dakverdieping. Slechts 95% van het totale muuroppervlak wordt gebruikt om rekening te houden met muuroppervlakken die gangen en andere niet-woonruimten in het pand bedekken. Het muuroppervlak wordt vervolgens verdeeld over de appartementen, zodanig dat de appartementen op de hoek ongeveer 3x het muuroppervlak van een tussenappartement krijgen. Het totale grondoppervlak wordt gelijk verdeeld over de appartementen op de begane grond.</p>
 </section>
 <section id="het-schatten-van-de-energielabels" class="level2" data-number="3.5">
 <h2 data-number="3.5" class="anchored" data-anchor-id="het-schatten-van-de-energielabels"><span class="header-section-number">3.5</span> Het schatten van de energielabels</h2>
@@ -621,18 +621,27 @@ Figure&nbsp;4: Spreiding van pre-NTA8800 meergezinswoningtypen in de EP-Online d
 <section id="schatting-van-energielabels" class="level2" data-number="5.2">
 <h2 data-number="5.2" class="anchored" data-anchor-id="schatting-van-energielabels"><span class="header-section-number">5.2</span> Schatting van energielabels</h2>
 <p>Van de beschikbare <em>5.385.950</em> Pandobjecten die zijn ingevoerd, hebben <em>4.847.298</em> een energielabel ontvangen. Dus <em>13%</em> van de objecten heeft geen label ontvangen. De ontbrekende labels worden veroorzaakt door de hiaten in de energielabelverdelingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> .</p>
-<p>We hebben onze energielabelschatting vergeleken met de labels die beschikbaar zijn in <span class="citation" data-cites="_EP_2023"><span>“<span>EP-Online</span>”</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span>. <strong>?@fig-nl-dist-bar</strong> toont de spreiding geschatte (groen) en ep-online energielabels voor de woningen die geregistreerd zijn op ep-online. We kunnen zien dat het meest voorkomende geschatte energielabel <em>C</em> is, iets meer dan 25% van de labels. In de ep-online dataset vormen de labels <em>A</em> en <em>C</em> echter elk ongeveer 25% van de totale labels.</p>
-<p><img src="images/nl_NL.png" id="fig-nl-dist-bar" class="img-fluid" alt="Spreiding van geschatte en ep-online energielabels voor de woningen die geregistreerd zijn op ep-online">.</p>
+<p>We hebben onze energielabelschatting vergeleken met de labels die beschikbaar zijn in <span class="citation" data-cites="_EP_2023"><span>“<span>EP-Online</span>”</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span>. De <a href="#fig-dist-bar" class="quarto-xref">Figure&nbsp;5</a> toont de spreiding geschatte (groen) en ep-online energielabels voor de woningen die geregistreerd zijn op ep-online. We kunnen zien dat het meest voorkomende geschatte energielabel <em>C</em> is, iets meer dan 25% van de labels. In de ep-online dataset vormen de labels <em>A</em> en <em>C</em> echter elk ongeveer 25% van de totale labels.</p>
+<div id="fig-dist-bar" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dist-bar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/nl_NL.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dist-bar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Spreiding van geschatte en ep-online energielabels voor de woningen die geregistreerd zijn op ep-online
+</figcaption>
+</figure>
+</div>
 <p>We hebben vastgesteld dat de gemiddelde afwijking van de <span class="citation" data-cites="_EP_2023"><span>“<span>EP-Online</span>”</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span> labels <strong>-1,2</strong> is, met een standaardafwijking van <strong>2,1</strong>.<br>
 Met andere woorden, gemiddeld liggen onze geschatte labels ongeveer één label onder de EP-Online labels, met een standaardafwijking van twee labels.</p>
-<p>Als we echter kijken naar de afwijkingen per label, krijgen we een gedetailleerder beeld. <a href="#fig-nl-dist" class="quarto-xref">Figure&nbsp;5</a> laat zien dat onze <em>A++, A++++</em> labels gemiddeld 3-5 labels overschat zijn, terwijl onze <em>E, F, G</em> labels gemiddeld 2-4 labels onderschat zijn ten opzichte van de EP-Online data.</p>
+<p>Als we echter kijken naar de afwijkingen per label, krijgen we een gedetailleerder beeld. <a href="#fig-nl-dist" class="quarto-xref">Figure&nbsp;6</a> laat zien dat onze <em>A++, A++++</em> labels gemiddeld 3-5 labels overschat zijn, terwijl onze <em>E, F, G</em> labels gemiddeld 2-4 labels onderschat zijn ten opzichte van de EP-Online data.</p>
 <div id="fig-nl-dist" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-nl-dist-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/nl_NL_dist_est_ep.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nl-dist-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Afwijking van de geschatte labels van de EP-Online labels
+Figure&nbsp;6: Afwijking van de geschatte labels van de EP-Online labels
 </figcaption>
 </figure>
 </div>
