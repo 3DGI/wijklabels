@@ -24,3 +24,5 @@ venv*
 /report/report.Rproj
 /report/_environment
 .Rproj.user
+
+/.quarto/
