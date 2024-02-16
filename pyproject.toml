@@ -26,7 +26,7 @@ dependencies = [
     "psycopg==3.1.14",
     "psycopg-pool==3.2.0"
 ]
-optional-dependencies = { develop = ["pytest", "tox", "jupyter", "jupyter-cache"] }
+optional-dependencies = { develop = ["pytest", "tox", "jupyter", "jupyter-cache"], dashboard = ["geopandas==0.14.3", "folium==0.15.1", "plotly==5.18.0", "dash==2.15.0", "dash_leaflet==1.0.15"] }
 
 [project.urls]
 "Homepage" = "https://github.com/3DGI/wijklabels"
