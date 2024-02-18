@@ -20,7 +20,7 @@ render:
     set -euxo pipefail
     export QUARTO_PYTHON="$(pwd)/venv_312/bin/python3.12"
     source "$(pwd)/venv_312/bin/activate"
-    quarto render ./report/report.qmd --execute --output-dir ../docs
+    quarto render ./report/report_nl.qmd --execute --output-dir ../docs
 
 # Preview the report with Quarto. Requires that a Python3.12 virtualenv is set up in the 'venv_312' directory.
 preview $QUARTO_PYTHON="../venv_312/bin/python3.12":
@@ -28,4 +28,4 @@ preview $QUARTO_PYTHON="../venv_312/bin/python3.12":
     set -euxo pipefail
     export QUARTO_PYTHON="$(pwd)/venv_312/bin/python3.12"
     source "$(pwd)/venv_312/bin/activate"
-    quarto preview ./report/report.qmd
+    quarto preview ./report/report_nl.qmd

@@ -211,7 +211,7 @@ Voor iedere woning hebben we een woningtype bepaald.
 #| tbl-cap: Aantal (en percentage) van woningen per bouwperiode en woningtype
 
 df = pd.read_csv(
-    '/home/balazs/Development/wijklabels/tests/data/output/labels_individual.csv',
+    '/data/wijklabels/labels_individual.csv',
     usecols=["bouwperiode", "woningtype", "woningtype_pre_nta8800"],
     converters={
       "bouwperiode": Bouwperiode.from_str
@@ -289,6 +289,56 @@ In onze studie is 44% van de woningen een appartement.
 
 Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie @sec-only-possible). Op basis van de Ep-Online data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022. Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten.
 Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.
+
+# Bijlage
+
+@tbl-individual-head bevat een voorbeeld van alle attributen die we voor elke woning hebben berekend. Deze gegevens staan in het bestand `labels_individual.csv`. Daarnaast bevat @tbl-attributes een beschrijving van elk attribuut. Tot slot, @tbl-neighborhood-head bevat een voorbeeld van de spreiding van de geleverde energielabels in het bestand `labels_neighborhood.csv`.
+
+```{python}
+#| label: tbl-individual-head
+#| tbl-cap: Overzicht van de berekende attributen
+
+df = pd.read_csv(
+    '/data/wijklabels/labels_individual_head.csv'
+).drop(columns=["energylabel_max_prob"])
+df
+```
+
+| Attribute              | Beschrijving                                                                                                             |
+|------------------------|--------------------------------------------------------------------------------------------------------------------------|
+| pand_identificatie     | BAG Pand identificatie                                                                                                   |
+| vbo_identificatie      | BAG Verblijfsobject identificatie                                                                                        |
+| oorspronkelijkbouwjaar | BAG Pand bouwjaar                                                                                                        |
+| oppervlakte            | BAG Verblijfsobject oppervlakte                                                                                          |
+| woningtype             | Geschat woningtype, gem. NTA8800                                                                                         |
+| landcode               | Landcode, altijd “NL”                                                                                                    |
+| gemeentecode           | CBS gemeentecode                                                                                                         |
+| wijkcode               | CBS wijkcode                                                                                                             |
+| buurtcode              | CBS buurtcode                                                                                                            |
+| nr_floors              | Geschat aantal verdiepingen                                                                                              |
+| vbo_count              | Aantal verblijfsobjecten in het Pand                                                                                     |
+| b3_opp_buitenmuur      | 3DBAG totale oppervlakte van de buitenmuren, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_buitenmuur               |
+| b3_opp_dak_plat        | 3DBAG totale oppervlakte van de platte delen van het dak, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_plat    |
+| b3_opp_dak_schuin      | 3DBAG totale oppervlakte van de schuine delen van het dak, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_schuin |
+| b3_opp_grond           | 3DBAG totale oppervlakte begane grond, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond                          |
+| b3_opp_scheidingsmuur  | 3DBAG totale oppervlakte van de pandscheidende muren, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_scheidingsmuur  |
+| woningtype_pre_nta8800 | Geschat woningtype, pre-NTA8800 methode                                                                                  |
+| vormfactor             | Geschat vormfactor                                                                                                       |
+| vormfactorclass        | Geschat vormfactor, gegroepeerd volgens Voorbeeldwoningen 2022                                                           |
+| bouwperiode            | BAG Pand bouwjaar, gegroepeerd volgens Voorbeeldwoningen 2022                                                            |
+| energylabel            | Geschat energielabel                                                                                                     |
+
+: Beschrijving van de berekende attributen {#tbl-attributes}
+
+```{python}
+#| label: tbl-neighborhood-head
+#| tbl-cap: Voorbeeld van de spreiding van de geleverde energielabels.
+
+df = pd.read_csv(
+    '/data/wijklabels/labels_neighborhood_head.csv'
+)
+df
+```
 
 # Referenties
 
