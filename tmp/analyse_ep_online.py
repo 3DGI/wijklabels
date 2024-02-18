@@ -123,7 +123,7 @@ if __name__ == '__main__':
             width=0.25
         )
         plt.legend(loc="best")
-        plt.grid(which="major", axis="x", zorder=0)
+        plt.grid(which="major", axis="y", zorder=0)
         plt.ylabel("Percentage (%) van het hele dataset")
         plt.xticks(x+0.125, bag_df_bouwperiode_dist.index)
         plt.xlabel("Bouwperiode")
@@ -166,7 +166,7 @@ if __name__ == '__main__':
             width=0.25
         )
         plt.legend(loc="best")
-        plt.grid(which="major", axis="x", zorder=0)
+        plt.grid(which="major", axis="y", zorder=0)
         plt.ylabel("Percentage (%) van het hele dataset")
         plt.xticks(x + 0.125, bag_df_woningtype_dist.index)
         plt.xlabel("woningtype")
