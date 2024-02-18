@@ -274,12 +274,12 @@ def validate_cli():
         # Plot NL
         log.info(f"Writing plot of the Netherlands to {p}")
         plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.NL)
-        log.info(f"Writing plots of municipalities to {p}")
-        plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.GEMEENTE)
-        log.info(f"Writing plots of wijken to {p}")
-        plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.WIJK)
-        log.info(f"Writing plots of neighborhoods to {p}")
-        plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.BUURT)
+        # log.info(f"Writing plots of municipalities to {p}")
+        # plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.GEMEENTE)
+        # log.info(f"Writing plots of wijken to {p}")
+        # plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.WIJK)
+        # log.info(f"Writing plots of neighborhoods to {p}")
+        # plot_comparison(df_with_truth, p, aggregate_level=AggregateUnit.BUURT)
 
         p = PATH_OUTPUT_DIR.joinpath("plots_possible")
         p.mkdir(parents=True, exist_ok=True)
@@ -287,12 +287,12 @@ def validate_cli():
         # Plot NL
         log.info(f"Writing plot of the Netherlands to {p}")
         plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.NL)
-        log.info(f"Writing plots of municipalities to {p}")
-        plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.GEMEENTE)
-        log.info(f"Writing plots of wijken to {p}")
-        plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.WIJK)
-        log.info(f"Writing plots of neighborhoods to {p}")
-        plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.BUURT)
+        # log.info(f"Writing plots of municipalities to {p}")
+        # plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.GEMEENTE)
+        # log.info(f"Writing plots of wijken to {p}")
+        # plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.WIJK)
+        # log.info(f"Writing plots of neighborhoods to {p}")
+        # plot_comparison(possible_labels, p, aggregate_level=AggregateUnit.BUURT)
 
 
 if __name__ == "__main__":

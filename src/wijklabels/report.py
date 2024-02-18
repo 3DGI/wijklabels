@@ -192,7 +192,7 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
             plt.axhline(y=0.0, color='#154273', linestyle='-')
             plt.grid(visible=True, which="major", axis="y", zorder=0)
             plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
-            plt.suptitle("Afwijking van de geschatt labels van de EP-Online labels", fontsize=14)
+            plt.suptitle("Afwijking van de geschatte labels van de EP-Online labels", fontsize=14)
             plt.tight_layout()
             plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist{t}.png")
             plt.close()

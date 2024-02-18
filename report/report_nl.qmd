@@ -1,8 +1,23 @@
 ---
 title: "Wijklabels"
-author: "Balázs Dukai, Ravi Peters"
+author: 
+  - name: "Balázs Dukai"
+    email: "balazs.dukai@3dgi.nl"
+    affiliation:
+      - name: "3DGI"
+        url: "https://3dgi.nl"
+  - name: "Ravi Peters"
+    email: "ravi.peters@3dgi.nl"
+    affiliation:
+      - name: "3DGI"
+        url: "https://3dgi.nl"
 date: last-modified
 bibliography: references.bib
+license: "CC BY"
+copyright: 
+  holder: "3DGI"
+  year: "2024"
+lang: "nl"
 ---
 
 ```{python}
@@ -249,6 +264,14 @@ Door de gaten in de energielabelspreidingen van de @RVO_Voorbeeldwoningen_2022 s
 Als we onze validatie beperken tot die woningen waar het juiste label wel bestaat in de data Voorbeeldwoningen 2022, krijgen we inzicht in de invloed van de gaten in de energielabelspreidingen van de @RVO_Voorbeeldwoningen_2022 studie op onze resultaten.
 
 Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons geschatte labels ten opzichte van de @_EP_2023 labels **-0,6**, met een standaardafwijking van **1,6**. Dit is ongeveer twee keer zo laag als de labelafwijking voor de gehele dataset.
+
+### Buurten
+
+Kies een gemeente en een buurt om de geschatte energielabels te bekijken.
+
+```{=html}
+<iframe width="780" height="600" src="https://dev.3dgi.xyz/wijklabels/"></iframe>
+```
 
 # Conclusies
 

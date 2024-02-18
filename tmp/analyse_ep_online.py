@@ -5,6 +5,7 @@ import logging
 import pandas as pd
 import psycopg
 import matplotlib.pyplot as plt
+import numpy as np
 
 from wijklabels.load import EPLoader
 from wijklabels.woningtype import Bouwperiode, WoningtypePreNTA8800
@@ -29,6 +30,14 @@ log.addHandler(ch)
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    # args = parser.parse_args([
+    #     "/data/energylabel-ep-online/v20231101_v2_csv_subset.csv",
+    #     "-d", "postgres",
+    #     "--host", "localhost",
+    #     "-p", "8001",
+    #     "-u", "postgres",
+    #     "--password", "password"
+    # ])
     bouwperiode = True
     woningtype = True
     coverage = True
@@ -95,31 +104,29 @@ if __name__ == '__main__':
             periods_sorted_pretty
         ]
 
+
+
         fig = plt.figure(figsize=(9, 7))
-        plt.barh(
-            y=bag_df_bouwperiode_dist.index,
-            width=bag_df_bouwperiode_dist.bouwperiode.values * -100,
+        x = np.arange(len(bag_df_bouwperiode_dist.index))
+        plt.bar(
+            x=x,
+            height=bag_df_bouwperiode_dist.bouwperiode.values * 100,
             label="BAG",
-            zorder=3
+            zorder=3,
+            width=0.25
         )
-        plt.barh(
-            y=ep_online_bouwperiode_dist.index,
-            width=ep_online_bouwperiode_dist.bouwperiode.values * 100,
+        plt.bar(
+            x=x + 0.25,
+            height=ep_online_bouwperiode_dist.bouwperiode.values * 100,
             label="EP-Online",
-            zorder=3
+            zorder=3,
+            width=0.25
         )
         plt.legend(loc="best")
         plt.grid(which="major", axis="x", zorder=0)
-        plt.xticks(
-            ticks=range(-50, 60, 10),
-            labels=[str(i) for i in range(-50, 60, 10)]
-        )
-        plt.xticks(
-            ticks=range(-55, 60, 10),
-            minor=True,
-        )
-        plt.xlabel("Percentage (%) van het hele dataset")
-        plt.ylabel("Bouwperiode")
+        plt.ylabel("Percentage (%) van het hele dataset")
+        plt.xticks(x+0.125, bag_df_bouwperiode_dist.index)
+        plt.xlabel("Bouwperiode")
         plt.suptitle("Spreiding van woningen per bouwperiode", fontsize=14)
         plt.savefig("bouwperiode_dist.png")
         plt.close()
@@ -142,31 +149,27 @@ if __name__ == '__main__':
             normalize=True
         )
 
-        fig = plt.figure(figsize=(12, 7))
-        plt.barh(
-            y=bag_df_woningtype_dist.index,
-            width=bag_df_woningtype_dist.woningtype.values * -100,
+        fig = plt.figure(figsize=(9, 7))
+        x = np.arange(len(bag_df_woningtype_dist.index))
+        plt.bar(
+            x=x,
+            height=bag_df_woningtype_dist.woningtype.values * 100,
             label="BAG",
-            zorder=3
+            zorder=3,
+            width=0.25
         )
-        plt.barh(
-            y=ep_online_woningtype_dist.index,
-            width=ep_online_woningtype_dist.woningtype.values * 100,
+        plt.bar(
+            x=x+0.25,
+            height=ep_online_woningtype_dist.woningtype.values * 100,
             label="EP-Online",
-            zorder=3
+            zorder=3,
+            width=0.25
         )
         plt.legend(loc="best")
         plt.grid(which="major", axis="x", zorder=0)
-        plt.xticks(
-            ticks=range(-60, 70, 10),
-            labels=[str(i) for i in range(-60, 70, 10)],
-        )
-        plt.xticks(
-            ticks=range(-65, 70, 5),
-            minor=True,
-        )
-        plt.xlabel("Percentage (%) van het hele dataset")
-        plt.ylabel("woningtype")
+        plt.ylabel("Percentage (%) van het hele dataset")
+        plt.xticks(x + 0.125, bag_df_woningtype_dist.index)
+        plt.xlabel("woningtype")
         plt.suptitle("Spreiding van woningen per woningtype", fontsize=14)
         plt.savefig("woningtype_dist.png")
         plt.close()

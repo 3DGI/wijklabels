@@ -66,7 +66,7 @@ app.layout = html.Div([
     html.Div([
         html.Div(
             children=[
-                html.H5(children="Municipality:"),
+                html.H5(children="Gemeente"),
                 dcc.Dropdown(
                     id="municipalities-dropdown",
                     options=neighborhoods.index.get_level_values(0).unique(),
@@ -77,7 +77,7 @@ app.layout = html.Div([
         ),
         html.Div(
             children=[
-                html.H5(children="Neighborhood:"),
+                html.H5(children="Buurt"),
                 dcc.Dropdown(
                     id="neighborhoods-dropdown",
                     value="Bezuidenhout-Midden",
