@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wijklabels"
-version = "1.0-alpha"
+version = "2024.02.19"
 description = "Estimate the energy label distributions per negihbourhood in the Netherlands"
 readme = "README.md"
 requires-python = ">=3.11"

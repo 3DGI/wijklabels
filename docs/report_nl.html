@@ -9,7 +9,7 @@
 <meta name="author" content="Balázs Dukai">
 <meta name="author" content="Ravi Peters">
 
-<title>Wijklabels</title>
+<title>Energielabel schatting voor buurten op basis van Voorbeeldwoningen 2022</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -70,7 +70,10 @@ div.csl-indent {
     <h2 id="toc-title">Inhoudsopgave</h2>
    
   <ul>
-  <li><a href="#samenvatting" id="toc-samenvatting" class="nav-link active" data-scroll-target="#samenvatting"><span class="header-section-number">1</span> Samenvatting</a></li>
+  <li><a href="#samenvatting" id="toc-samenvatting" class="nav-link active" data-scroll-target="#samenvatting"><span class="header-section-number">1</span> Samenvatting</a>
+  <ul class="collapse">
+  <li><a href="#geleverte-documenten" id="toc-geleverte-documenten" class="nav-link" data-scroll-target="#geleverte-documenten"><span class="header-section-number">1.1</span> Geleverte documenten</a></li>
+  </ul></li>
   <li><a href="#gegevensbronnen" id="toc-gegevensbronnen" class="nav-link" data-scroll-target="#gegevensbronnen"><span class="header-section-number">2</span> Gegevensbronnen</a>
   <ul class="collapse">
   <li><a href="#sec-spreiding" id="toc-sec-spreiding" class="nav-link" data-scroll-target="#sec-spreiding"><span class="header-section-number">2.1</span> Spreiding van energielabels</a></li>
@@ -102,7 +105,7 @@ div.csl-indent {
   </ul></li>
   </ul></li>
   <li><a href="#conclusies" id="toc-conclusies" class="nav-link" data-scroll-target="#conclusies"><span class="header-section-number">6</span> Conclusies</a></li>
-  <li><a href="#bijlage" id="toc-bijlage" class="nav-link" data-scroll-target="#bijlage"><span class="header-section-number">7</span> Bijlage</a></li>
+  <li><a href="#sec-data" id="toc-sec-data" class="nav-link" data-scroll-target="#sec-data"><span class="header-section-number">7</span> Omschrijving opgeleverde data</a></li>
   <li><a href="#referenties" id="toc-referenties" class="nav-link" data-scroll-target="#referenties"><span class="header-section-number">8</span> Referenties</a></li>
   </ul>
 <div class="quarto-alternate-formats"><h2>Andere formaten</h2><ul><li><a href="report_nl.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></nav>
@@ -111,7 +114,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Wijklabels</h1>
+<h1 class="title">Energielabel schatting voor buurten op basis van Voorbeeldwoningen 2022</h1>
 </div>
 
 
@@ -147,7 +150,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Publicatiedatum</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">18 februari 2024</p>
+      <p class="date">19 februari 2024</p>
     </div>
   </div>
   
@@ -161,9 +164,19 @@ div.csl-indent {
 
 <section id="samenvatting" class="level1" data-number="1">
 <h1 data-number="1"><span class="header-section-number">1</span> Samenvatting</h1>
-<p>De studie Voorbeeldwoningen 2022 beschrijft de spreiding van energielabels per vormfactorbereik voor elk woningtype uit de WoON 2018 studie. De laatste release van de 3DBAG dataset (<code>2023.10.08</code>) levert de oppervlakten die nodig zijn om de vormfactor voor een Pand te berekenen. Dit werk onderzoekt de mogelijkheid om de vormfactor voor elke woning binnen een Pand te berekenen, daarop de energielabelverdelingen van de Voorbeeldwoningen 2022 studie toe te passen om vervolgens de energielabelverdeling van elke buurt van Nederland te schatten.</p>
-<p>We valideren onze geschatte energielabels met de labels die zijn geregistreerd in de EP-Online database. De validatie toont een variërende afwijking tussen de geschatte en EP-Online labels. De labels <em>A</em> en <em>B</em> hebben een mediane afwijking van 0, de labels <em>A+</em>, <em>A++</em> hebben een afwijking van +1, en de labels <em>C</em>, <em>D</em> een afwijking van -1. De rest van de labels heeft een afwijking van twee labels of meer van de EP-Online labels.</p>
-<p>Er zijn twee belangrijke beperkingen die de betrouwbaarheid van onze resultaten beïnvloeden. Ten eerste is er geen brondata beschikbaar voor de driedimensionale opsplitsing van appartementen binnen een meergezinswoning. Er moeten daarom (sterke) aannames gedaan worden om toch tot de benodigde opsplitsing voor de subtypes van de appartementen te komen. De onzekerheid in deze schatting van deze subtypes heeft invloed op de schatting van de vormfactor en daarmee ook op het geschatte energielabel van appartementen. Ten tweede zijn de spreidingen van de energielabels in de studie Voorbeeldwoningen 2022 onvolledig. Hierdoor kan het voorkomen dat voor bepaalde woningen, afhankelijk van het woningtype, de bouwperiode, en de berekende vormfactor, geen energielabel kan worden toegekend. Dit blijkt in onze landelijke studie het geval te zijn voor 14% van de woningen. Als we daarnaast kijken naar de EP-Online database, dan blijkt dat 32% van de EP-online woningen in werkelijkheid een energielabel heeft dat op basis van de studie Voorbeeldwoningen 2022 niet zou kunnen worden toegekend.</p>
+<p>De studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) beschrijft de spreiding van energielabels per vormfactorbereik voor elk woningtype uit de WoON 2018 (<span class="citation" data-cites="Rijksoverheid_Woononderzoek_2018">Rijksoverheid (<a href="#ref-Rijksoverheid_Woononderzoek_2018" role="doc-biblioref">2018</a>)</span>) studie. De laatste release van de 3DBAG dataset (<code>2023.10.08</code>) levert de oppervlakten die nodig zijn om de vormfactor voor een Pand te berekenen. Dit werk onderzoekt de mogelijkheid om de vormfactor voor elke woning binnen een Pand te berekenen, daarop de energielabelverdelingen van de Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) studie toe te passen om vervolgens de energielabelverdeling van elke buurt van Nederland te schatten.</p>
+<p>We valideren onze geschatte energielabels met de labels die zijn geregistreerd in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database. De validatie toont een variërende afwijking tussen de geschatte en EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) labels. De labels <em>A</em> en <em>B</em> hebben een mediane afwijking van 0, de labels <em>A+</em>, <em>A++</em> hebben een afwijking van +1, en de labels <em>C</em>, <em>D</em> een afwijking van -1. De rest van de labels heeft een afwijking van twee labels of meer van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) labels.</p>
+<p>Er zijn twee belangrijke beperkingen die de betrouwbaarheid van onze resultaten beïnvloeden. Ten eerste is er geen brondata beschikbaar voor de driedimensionale opsplitsing van appartementen binnen een meergezinswoning. Er moeten daarom (sterke) aannames gedaan worden om toch tot de benodigde opsplitsing voor de subtypes van de appartementen te komen. De onzekerheid in deze schatting van deze subtypes heeft invloed op de schatting van de vormfactor en daarmee ook op het geschatte energielabel van appartementen. Ten tweede zijn de spreidingen van de energielabels in de studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) onvolledig. Hierdoor kan het voorkomen dat voor bepaalde woningen, afhankelijk van het woningtype, de bouwperiode, en de berekende vormfactor, geen energielabel kan worden toegekend. Dit blijkt in onze landelijke studie het geval te zijn voor 14% van de woningen. Als we daarnaast kijken naar de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database, dan blijkt dat 32% van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) woningen in werkelijkheid een energielabel heeft dat op basis van de studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) niet zou kunnen worden toegekend.</p>
+<p>Dit project werd uitgevoerd door <a href="https://3dgi.nl">3DGI</a> en gefinancierd door de <a href="https://rvo.nl">Rijksdienst voor Ondernemend Nederland</a>.</p>
+<p>Dit rapport en de geleverde data zijn vrij te kopiëren, te verspreiden en te veranderen onder naamsvermelding aan 3DGI, volgens de licentie <a href="https://creativecommons.org/licenses/by/4.0/deed.nl">CC-BY</a>.</p>
+<section id="geleverte-documenten" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="geleverte-documenten"><span class="header-section-number">1.1</span> Geleverte documenten</h2>
+<ul>
+<li>Dit rapport online, interactief: <a href="https://3dgi.github.io/wijklabels/report_nl.html">https://3dgi.github.io/wijklabels/report_nl.html</a></li>
+<li>Geproduceerde bestanden (zie omschrijving in <a href="#sec-data" class="quarto-xref">Paragraaf&nbsp;7</a>): <a href="https://data.3dgi.xyz/wijklabels">https://data.3dgi.xyz/wijklabels</a></li>
+<li>Broncode van de software voor het berekenen van de vormfactor en energielabels: <a href="https://github.com/3DGI/wijklabels">https://github.com/3DGI/wijklabels</a></li>
+</ul>
+</section>
 </section>
 <section id="gegevensbronnen" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> Gegevensbronnen</h1>
@@ -185,20 +198,19 @@ Figuur&nbsp;1: Energielabel spreiding flatwoningen, <span class="citation" data-
 </section>
 <section id="bag-en-3dbag" class="level2" data-number="2.2">
 <h2 data-number="2.2" class="anchored" data-anchor-id="bag-en-3dbag"><span class="header-section-number">2.2</span> BAG en 3DBAG</h2>
-<p>De <a href="https://www.kadaster.nl/zakelijk/registraties/basisregistraties/bag">BAG</a> dataset is de officiële registratie van adressen en gebouwen in Nederland. De BAG bevat twee objecttypes die relevant zijn voor dit onderzoek, <em>Pand</em> en <em>Verblijfsobject (VBO)</em>. Elk VBO bevat informatie over het gebruik ervan in het <code>gebruiksdoel</code> attribuut. Voor deze studie worden alleen die VBO’s gebruikt waarvan het gebruik <code>woonfunctie</code> bevat. Daarnaast bevat ieder BAG Pand een bouwjaar (attribuut <code>oorspronkelijk bouwjaar</code>). We gebruiken het BAG 2.0 extract met een releasedatum van <em>08.09.2023</em>. De [3DBAG] (https://3dbag.nl) is een uitbreiding van de BAG dataset en bevat de buitenste 3D schil van de Pand objecten. De 3D schil is bepaald met behulp van het Actueel Hoogtebestand Nederland (AHN). Daarnaast bevat de 3DBAG sinds het door RVO gefinancierde project “Levering databestand 3D-BAG”, ook gedetailleerde oppervlakte-informatie voor vloeren, daken, woningscheidende muren en buitenmuren. We gebruiken 3DBAG versie <code>2023.10.08</code>.</p>
+<p>De BAG (<span class="citation" data-cites="Kadaster_Basisregistratie_2023">Kadaster (<a href="#ref-Kadaster_Basisregistratie_2023" role="doc-biblioref">2023</a>)</span>) dataset is de officiële registratie van adressen en gebouwen in Nederland. De BAG bevat twee objecttypes die relevant zijn voor dit onderzoek, <em>Pand</em> en <em>Verblijfsobject (VBO)</em>. Elk VBO bevat informatie over het gebruik ervan in het <code>gebruiksdoel</code> attribuut. Voor deze studie worden alleen die VBO’s gebruikt waarvan het gebruik <code>woonfunctie</code> bevat. Daarnaast bevat ieder BAG Pand een bouwjaar (attribuut <code>oorspronkelijk bouwjaar</code>). We gebruiken het BAG 2.0 extract met een releasedatum van <em>08.09.2023</em>. De [3DBAG] (https://3dbag.nl) is een uitbreiding van de BAG dataset en bevat de buitenste 3D schil van de Pand objecten. De 3D schil is bepaald met behulp van het Actueel Hoogtebestand Nederland (AHN). Daarnaast bevat de 3DBAG sinds het door RVO gefinancierde project “Levering databestand 3D-BAG”, ook gedetailleerde oppervlakte-informatie voor vloeren, daken, woningscheidende muren en buitenmuren. We gebruiken 3DBAG versie <code>2023.10.08</code>.</p>
 <p>Het BAG extract van <code>08.09.2023</code> bevat <em>10.877.129</em> Pand objecten en <em>10.144.833</em> Verblijfsobjecten. De 3DBAG versie <code>2023.10.08</code> die gebaseerd is op het genoemde BAG extract, bevat <em>10.363.460</em> Pand objecten. De scheidingsmuren dataset, die gebaseerd is op de 3DBAG, bevat eveneens <em>10.363.460</em> Pand objecten. We gebruik hiervoor het CSV-bestand (<code>3dbag_v20231008_rvo_export.csv</code>) dat rechtstreeks aan RVO werd geleverd. De reden voor het gebruik van het CSV-bestand is puur om het voorbereiden van de gegevens te vereenvoudigen.</p>
 <p>Er zijn <em>5.646.848</em> Panden en <em>8.721.692</em> VBO’s met een gebruiksdoel dat <code>woonfunctie</code> bevat.</p>
 </section>
 <section id="cbs-buurten" class="level2" data-number="2.3">
 <h2 data-number="2.3" class="anchored" data-anchor-id="cbs-buurten"><span class="header-section-number">2.3</span> CBS buurten</h2>
-<p>De buurten worden gebruikt voor het aggregeren van de energielabels van de woningen. De buurtgrenzen komen van het Centraal Bureau voor de Statistiek. De BAG Pand objecten worden toegewezen aan een buurt op basis van een intersectie test. Elk BAG Pand wordt slechts aan één buurt toegewezen.</p>
-<p>Versie van CBS Wijken en Buurten: 2022 v1, <a href="https://service.pdok.nl/cbs/wijkenbuurten/2022/atom/downloads/wijkenbuurten_2022_v1.gpkg">link naar data</a></p>
+<p>De buurten worden gebruikt voor het aggregeren van de energielabels van de woningen. De buurtgrenzen komen van het Centraal Bureau voor de Statistiek (<span class="citation" data-cites="CBS_Wijken_2022">CBS (<a href="#ref-CBS_Wijken_2022" role="doc-biblioref">2022</a>)</span>). De BAG Pand objecten worden toegewezen aan een buurt op basis van een intersectie test. Elk BAG Pand wordt slechts aan één buurt toegewezen.</p>
 </section>
 <section id="ep-online-voor-validatie" class="level2" data-number="2.4">
 <h2 data-number="2.4" class="anchored" data-anchor-id="ep-online-voor-validatie"><span class="header-section-number">2.4</span> EP-Online voor validatie</h2>
-<p><em>“EP-Online is de officiële landelijke database waarin energielabels en energieprestatie-indicatoren van gebouwen zijn opgenomen.” <span class="citation" data-cites="_EP_2023"><span>‘<span>EP-Online</span>’</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span></em> We gebruiken de energielabels van EP-Online als referentie voor de validatie van de door ons geschatte labels. Om te bepalen of we EP-Online inderdaad als een betrouwbare referentie voor de validatie kunnen beschouwen, hebben we eerst een aantal analyses uitgevoerd op de EP-Online woningen met een geregistreerd label.</p>
-<p>De EP-Online database bevat energielabels die met verschillende methoden zijn bepaald. We gebruiken alleen de labels die zijn bepaald met de NTA8800 methode. Dat wil zeggen dat de <code>Pand_berekeningstype</code> <code>NTA 8800</code> bevat. In totaal zijn dit <em>1.284.241</em> VBO’s.</p>
-<p><a href="#fig-dist-bag-ep-online-bp" class="quarto-xref">Figuur&nbsp;2</a> laat zien dat zowel de BAG als de EP-Online dataset een vergelijkbare spreiding van woningen hebben over alle bouwjaarperioden. Dit geeft aan dat de geregistreerde energielabels in EP-Online goed de complete set woningen in Nederland vertegenwoordigen, als we kijken naar de bouwperiode.</p>
+<p><em>“EP-Online is de officiële landelijke database waarin energielabels en energieprestatie-indicatoren van gebouwen zijn opgenomen.” <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span></em> We gebruiken de energielabels van EP-Online als referentie voor de validatie van de door ons geschatte labels. Om te bepalen of we EP-Online inderdaad als een betrouwbare referentie voor de validatie kunnen beschouwen, hebben we eerst een aantal analyses uitgevoerd op de EP-Online woningen met een geregistreerd label.</p>
+<p>De EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database bevat energielabels die met verschillende methoden zijn bepaald. We gebruiken alleen de labels die zijn bepaald met de NTA8800 methode. Dat wil zeggen dat de <code>Pand_berekeningstype</code> <code>NTA 8800</code> bevat. In totaal zijn dit <em>1.284.241</em> VBO’s.</p>
+<p><a href="#fig-dist-bag-ep-online-bp" class="quarto-xref">Figuur&nbsp;2</a> laat zien dat zowel de BAG als de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) dataset een vergelijkbare spreiding van woningen hebben over alle bouwjaarperioden. Dit geeft aan dat de geregistreerde energielabels in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) goed de complete set woningen in Nederland vertegenwoordigen, als we kijken naar de bouwperiode.</p>
 <div id="fig-dist-bag-ep-online-bp" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dist-bag-ep-online-bp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -209,7 +221,7 @@ Figuur&nbsp;2: Spreiding van woningen per bouwperiode in de BAG en in EP-Online
 </figcaption>
 </figure>
 </div>
-<p><a href="#fig-dist-bag-ep-online-wt" class="quarto-xref">Figuur&nbsp;3</a> laat daarnaast zien dat zowel de BAG als de EP-Online dataset een vergelijkbare spreiding van woningen over alle woningtypes hebben. Dit geeft aan dat de geregistreerde energielabels in EP-Online de complete set woningen in Nederland goed vertegenwoordigen, als we kijken naar de woningtypes. Er zijn echter twee kanttekeningen die hierbij moeten worden geplaatst. Ten eerste omvat de vergelijking niet de subtypes voor de appartementen, maar alleen het hoofdtype <em>appartement</em>. Dit komt doordat er geen betrouwbare methode is voor het bepalen van de appartement-subtypes voor de volledige BAG-dataset. Ten tweede zijn de woningtypes van de BAG door onszelf geschat, omdat we anders geen woningtype-informatie hebben voor de hele BAG-dataset (zie <a href="#sec-woningtype" class="quarto-xref">Paragraaf&nbsp;3.2</a>).</p>
+<p><a href="#fig-dist-bag-ep-online-wt" class="quarto-xref">Figuur&nbsp;3</a> laat daarnaast zien dat zowel de BAG als de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) dataset een vergelijkbare spreiding van woningen over alle woningtypes hebben. Dit geeft aan dat de geregistreerde energielabels in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) de complete set woningen in Nederland goed vertegenwoordigen, als we kijken naar de woningtypes. Er zijn echter twee kanttekeningen die hierbij moeten worden geplaatst. Ten eerste omvat de vergelijking niet de subtypes voor de appartementen, maar alleen het hoofdtype <em>appartement</em>. Dit komt doordat er geen betrouwbare methode is voor het bepalen van de appartement-subtypes voor de volledige BAG-dataset. Ten tweede zijn de woningtypes van de BAG door onszelf geschat, omdat we anders geen woningtype-informatie hebben voor de hele BAG-dataset (zie <a href="#sec-woningtype" class="quarto-xref">Paragraaf&nbsp;3.2</a>).</p>
 <div id="fig-dist-bag-ep-online-wt" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dist-bag-ep-online-wt-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -220,7 +232,7 @@ Figuur&nbsp;3: Spreiding van woningen per woningtype in de BAG en in de EP-Onlin
 </figcaption>
 </figure>
 </div>
-<p>Al met al concluderen we dat de EP-Online data representatief is en daarmee ook een betrouwbare referentie is voor het valideren van de de ons geschatte energielabels.</p>
+<p>Al met al concluderen we dat de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data representatief is en daarmee ook een betrouwbare referentie is voor het valideren van de de ons geschatte energielabels.</p>
 </section>
 </section>
 <section id="methode" class="level1" data-number="3">
@@ -232,7 +244,7 @@ Figuur&nbsp;3: Spreiding van woningen per woningtype in de BAG en in de EP-Onlin
 <li>Het schatten van het woningtype, zowel voor eengezinswoningen als voor meergezinswoningen.</li>
 <li>Het omrekenen van de NTA8800 appartement-types (bijv. <em>appartement - hoekdak</em>) naar pre-NTA8800 appartement-types (bijv. <em>galerij</em>).</li>
 <li>Het bepalen van de vormfactor voor iedere woning, met name voor de appartement-types moeten hierbij sterke aannames worden gemaakt.</li>
-<li>Het energielabel van een individuele woning schatten op basis van de waarschijnlijkheid van energielabels die zijn gedocumenteerd in de studie Voorbeeldwoningen 2022.</li>
+<li>Het energielabel van een individuele woning schatten op basis van de waarschijnlijkheid van energielabels die zijn gedocumenteerd in de studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>).</li>
 </ol>
 <p>Hieronder wordt elke stap verder toegelicht.</p>
 <section id="sec-floors" class="level2" data-number="3.1">
@@ -330,7 +342,7 @@ Tabel&nbsp;2: Woningtypes gebruikt in <span class="citation" data-cites="RVO_Voo
 </figure>
 </div>
 <p>De types van een eengezinswoningen zijn gelijkwaardig voor en na NTA8800. Aan de andere kant is er geen duidelijke relatie tussen de types van meergezinswoningen voor en na NTA8800.</p>
-<p>Dit werk vereist dat we zowel het <em>NTA8800</em> als het <em>pre-NTA8800</em> type van elke woning kennen. Het <em>pre-NTA8800</em> type is nodig, want dat wordt gebruikt door <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>, en het <em>NTA8800</em> type is nodig voor de validatie fase, omdat dit gebruikt wordt in de EP-Online database.</p>
+<p>Dit werk vereist dat we zowel het <em>NTA8800</em> als het <em>pre-NTA8800</em> type van elke woning kennen. Het <em>pre-NTA8800</em> type is nodig, want dat wordt gebruikt door <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>, en het <em>NTA8800</em> type is nodig voor de validatie fase, omdat dit gebruikt wordt in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database.</p>
 <p>We schatten eerst het <em>NTA8800</em> type en converteren dat vervolgens naar een <em>pre-NTA8800</em> type. De classificatie van eengezinswoningen is vrij eenvoudig en kan worden gedaan met behulp van een conventionele GIS-analyse op de BAG-polygonen. Het classificeren van de meergezinswoningen is veel moeilijker omdat dit afhangt van de binnenarchitectuur van een Pand, en daar hebben we geen geen informatie over in onze inputdata.</p>
 <section id="classificatie-van-een-pand" class="level3" data-number="3.2.1">
 <h3 data-number="3.2.1" class="anchored" data-anchor-id="classificatie-van-een-pand"><span class="header-section-number">3.2.1</span> Classificatie van een Pand</h3>
@@ -350,15 +362,15 @@ Tabel&nbsp;2: Woningtypes gebruikt in <span class="citation" data-cites="RVO_Voo
 </section>
 <section id="conversie-van-appartement-types-van-de-nta8800-naar-de-pre-nta8800-classificatie" class="level2" data-number="3.3">
 <h2 data-number="3.3" class="anchored" data-anchor-id="conversie-van-appartement-types-van-de-nta8800-naar-de-pre-nta8800-classificatie"><span class="header-section-number">3.3</span> Conversie van appartement-types van de NTA8800 naar de pre-NTA8800 classificatie</h2>
-<p>De <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie gebruikt de pre-NTA8800 woningtypes, terwijl de EP-Online database de NTA8800 woningtypes gebruikt voor de energielabels die zijn berekend met de NTA8800 methode. Dit werk gebruikt de resultaten van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie om het energielabel van woningen te schatten, daarom rekenen we de eerder bepaalde NTA8800 woningtypes om naar pre-NTA8800 types.</p>
-<p>Omdat er geen directe relatie is tussen de twee classificaties, wijzen we het pre-NTA8800 type toe aan het appartement op basis van de spreiding van pre-NTA8800 types in de EP-Online database en de bouwdatum van de woning, zie <a href="#fig-woningtype-bouwjaar" class="quarto-xref">Figuur&nbsp;4</a>. Als de woning bijvoorbeeld is gebouwd in de periode 1965-1974, is er een kans van 84% dat de woning het <em>flatwoning (overig)</em> pre-NTA8800 type krijgt.</p>
+<p>De <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie gebruikt de pre-NTA8800 woningtypes, terwijl de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database de NTA8800 woningtypes gebruikt voor de energielabels die zijn berekend met de NTA8800 methode. Dit werk gebruikt de resultaten van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie om het energielabel van woningen te schatten, daarom rekenen we de eerder bepaalde NTA8800 woningtypes om naar pre-NTA8800 types.</p>
+<p>Omdat er geen directe relatie is tussen de twee classificaties, wijzen we het pre-NTA8800 type toe aan het appartement op basis van de spreiding van pre-NTA8800 types in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database en de bouwdatum van de woning, zie <a href="#fig-woningtype-bouwjaar" class="quarto-xref">Figuur&nbsp;4</a>. Als de woning bijvoorbeeld is gebouwd in de periode 1965-1974, is er een kans van 84% dat de woning het <em>flatwoning (overig)</em> pre-NTA8800 type krijgt.</p>
 <div id="fig-woningtype-bouwjaar" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-woningtype-bouwjaar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/pre_nta8800_apartement_bouwjaar.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-woningtype-bouwjaar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figuur&nbsp;4: Spreiding van pre-NTA8800 meergezinswoningtypes in de EP-Online database, <span class="citation" data-cites="_EP_2023"><span>‘<span>EP-Online</span>’</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span>
+Figuur&nbsp;4: Spreiding van pre-NTA8800 meergezinswoningtypes in de EP-Online database, <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>
 </figcaption>
 </figure>
 </div>
@@ -378,7 +390,7 @@ Figuur&nbsp;4: Spreiding van pre-NTA8800 meergezinswoningtypes in de EP-Online d
 </section>
 <section id="validatie" class="level1" data-number="4">
 <h1 data-number="4"><span class="header-section-number">4</span> Validatie</h1>
-<p>We valideren onze energielabelschatting aan de hand van de energielabels in de <span class="citation" data-cites="_EP_2023"><span>‘<span>EP-Online</span>’</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span> database. Daarvoor vergelijken we de door ons geschatte labels met de EP-Online labels in termen van <em>labelafwijking</em>. De <em>labelafwijking</em> wordt berekend als de numerieke afstand van een label tot het referentielabel. Hierbij is de labelafwijking van een hoger label tot een lager label negatief. Bijvoorbeeld, de afwijking van <em>A++++</em> tot <em>G</em> is <em>-10</em>, en de afwijking van <em>G</em> tot <em>A++++</em> is <em>10</em>.</p>
+<p>We valideren onze energielabelschatting aan de hand van de energielabels in de <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span> database. Daarvoor vergelijken we de door ons geschatte labels met de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) labels in termen van <em>labelafwijking</em>. De <em>labelafwijking</em> wordt berekend als de numerieke afstand van een label tot het referentielabel. Hierbij is de labelafwijking van een hoger label tot een lager label negatief. Bijvoorbeeld, de afwijking van <em>A++++</em> tot <em>G</em> is <em>-10</em>, en de afwijking van <em>G</em> tot <em>A++++</em> is <em>10</em>.</p>
 <p>Voor de validatie bekijken we de volgende aspecten.</p>
 <ul>
 <li><p>Het aantal VBO’s dat geen energielabel heeft ontvangen (label <em>onmogelijk</em>, door de gaten in de spreiding van energielabels, zie <a href="#sec-spreiding" class="quarto-xref">Paragraaf&nbsp;2.1</a>).</p></li>
@@ -392,8 +404,8 @@ Figuur&nbsp;4: Spreiding van pre-NTA8800 meergezinswoningtypes in de EP-Online d
 <section id="woningtypes" class="level2" data-number="5.1">
 <h2 data-number="5.1" class="anchored" data-anchor-id="woningtypes"><span class="header-section-number">5.1</span> Woningtypes</h2>
 <p>Voor iedere woning hebben we een woningtype bepaald. <a href="#tbl-count-period-type" class="quarto-xref">Tabel&nbsp;3</a> laat de verdeling van deze woningtypes zien, opgesplitst in de zeven bouwjaarperioden uit de studie <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>.</p>
-<div class="cell" data-execution_count="2">
-<div id="tbl-count-period-type" class="cell quarto-float anchored" data-execution_count="2">
+<div class="cell" data-execution_count="3">
+<div id="tbl-count-period-type" class="cell quarto-float anchored" data-execution_count="3">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-count-period-type-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabel&nbsp;3: Aantal (en percentage) van woningen per bouwperiode en woningtype
@@ -560,25 +572,25 @@ Tabel&nbsp;3: Aantal (en percentage) van woningen per bouwperiode en woningtype
 </figure>
 </div>
 </div>
-<p>Wanneer we voor iedere woning een vergelijking maken met de EP-Online data, laat onze woningclassificatie een overeenkomst van 87% zien voor de eengezinswoningen, en een overeenkomst van 26% voor de meergezinswoningen.</p>
+<p>Wanneer we voor iedere woning een vergelijking maken met de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data, laat onze woningclassificatie een overeenkomst van 87% zien voor de eengezinswoningen, en een overeenkomst van 26% voor de meergezinswoningen.</p>
 </section>
 <section id="schatting-van-energielabels" class="level2" data-number="5.2">
 <h2 data-number="5.2" class="anchored" data-anchor-id="schatting-van-energielabels"><span class="header-section-number">5.2</span> Schatting van energielabels</h2>
 <p>Van de beschikbare <em>5.385.950</em> Pandobjecten die in onze input data, hebben <em>4.847.298</em> een energielabel ontvangen. De overige <em>13%</em> van de objecten heeft geen label ontvangen, dit komt door de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> .</p>
-<p>We hebben onze energielabelschattingen vergeleken met de labels die beschikbaar zijn in <span class="citation" data-cites="_EP_2023"><span>‘<span>EP-Online</span>’</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span>. De <a href="#fig-dist-bar" class="quarto-xref">Figuur&nbsp;5</a> toont de spreiding van de geschatte labels naast de ep-online labels voor de woningen die geregistreerd zijn in EP-Online. Het meest voorkomende geschatte energielabel is <em>C</em>, toegekend aan meer dan 25% van de woningen. In de ep-online dataset zijn de meest voorkomende labels <em>A</em> en <em>C</em>, elk aan ongeveer 25% van de woningen toegekend.</p>
+<p>We hebben onze energielabelschattingen vergeleken met de labels die beschikbaar zijn in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>). De <a href="#fig-dist-bar" class="quarto-xref">Figuur&nbsp;5</a> toont de spreiding van de geschatte labels naast de EP-Online labels voor de woningen die geregistreerd zijn in EP-Online. Het meest voorkomende geschatte energielabel is <em>C</em>, toegekend aan meer dan 25% van de woningen. In de EP-Online dataset zijn de meest voorkomende labels <em>A</em> en <em>C</em>, elk aan ongeveer 25% van de woningen toegekend.</p>
 <div id="fig-dist-bar" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dist-bar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="images/nl_NL.png" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dist-bar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figuur&nbsp;5: Spreiding van geschatte en ep-online energielabels voor de woningen die geregistreerd zijn op ep-online
+Figuur&nbsp;5: Spreiding van geschatte en EP-Online energielabels voor de woningen die geregistreerd zijn op EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>)
 </figcaption>
 </figure>
 </div>
-<p>De gemiddelde afwijking van de <span class="citation" data-cites="_EP_2023"><span>‘<span>EP-Online</span>’</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span> labels is <strong>-1,2</strong>, met een standaardafwijking van <strong>2,1</strong>.<br>
-Met andere woorden, gemiddeld liggen onze geschatte labels ongeveer één label onder de EP-Online labels, met een standaardafwijking van twee labels.</p>
-<p>Als we kijken naar de afwijkingen per label, krijgen we een gedetailleerder beeld. <a href="#fig-nl-dist" class="quarto-xref">Figuur&nbsp;6</a> laat zien dat onze <em>A++, A++++</em> labels gemiddeld 3-5 labels te hoog geschat zijn, terwijl onze <em>E, F, G</em> labels gemiddeld 2-4 labels te laag zijn ten opzichte van de EP-Online data.</p>
+<p>De gemiddelde afwijking van de <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span> labels is <strong>-1,2</strong>, met een standaardafwijking van <strong>2,1</strong>.<br>
+Met andere woorden, gemiddeld liggen onze geschatte labels ongeveer één label onder de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) labels, met een standaardafwijking van twee labels.</p>
+<p>Als we kijken naar de afwijkingen per label, krijgen we een gedetailleerder beeld. <a href="#fig-nl-dist" class="quarto-xref">Figuur&nbsp;6</a> laat zien dat onze <em>A++, A++++</em> labels gemiddeld 3-5 labels te hoog geschat zijn, terwijl onze <em>E, F, G</em> labels gemiddeld 2-4 labels te laag zijn ten opzichte van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data.</p>
 <div id="fig-nl-dist" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-nl-dist-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -591,29 +603,33 @@ Figuur&nbsp;6: Afwijking van de geschatte labels van de EP-Online labels
 </div>
 <section id="sec-only-possible" class="level3" data-number="5.2.1">
 <h3 data-number="5.2.1" class="anchored" data-anchor-id="sec-only-possible"><span class="header-section-number">5.2.1</span> Alleen rekening houdend met mogelijke labels</h3>
-<p>Door de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie heeft <em>32%</em> van de woningen een label in EP-Online dat niet mogelijk is op basis van de data Voorbeeldwoningen 2022 (zie <a href="#sec-spreiding" class="quarto-xref">Paragraaf&nbsp;2.1</a>). Als we onze validatie beperken tot die woningen waar het juiste label wel bestaat in de data Voorbeeldwoningen 2022, krijgen we inzicht in de invloed van de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie op onze resultaten.</p>
-<p>Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons geschatte labels ten opzichte van de <span class="citation" data-cites="_EP_2023"><span>‘<span>EP-Online</span>’</span> (<a href="#ref-_EP_2023" role="doc-biblioref">2023</a>)</span> labels <strong>-0,6</strong>, met een standaardafwijking van <strong>1,6</strong>. Dit is ongeveer twee keer zo laag als de labelafwijking voor de gehele dataset.</p>
+<p>Door de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie heeft <em>32%</em> van de woningen een label in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) dat niet mogelijk is op basis van de data Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) (zie <a href="#sec-spreiding" class="quarto-xref">Paragraaf&nbsp;2.1</a>). Als we onze validatie beperken tot die woningen waar het juiste label wel bestaat in de data Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>), krijgen we inzicht in de invloed van de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie op onze resultaten.</p>
+<p>Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons geschatte labels ten opzichte van de <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span> labels <strong>-0,6</strong>, met een standaardafwijking van <strong>1,6</strong>. Dit is ongeveer twee keer zo laag als de labelafwijking voor de gehele dataset.</p>
 </section>
 <section id="buurten" class="level3" data-number="5.2.2">
 <h3 data-number="5.2.2" class="anchored" data-anchor-id="buurten"><span class="header-section-number">5.2.2</span> Buurten</h3>
-<p>Kies een gemeente en een buurt om de geschatte energielabels te bekijken.</p>
+<p>Kies een gemeente en een buurt om de geschatte energielabels te bekijken. Let op: deze functie werkt niet in het PDF-rapport.</p>
 <iframe width="780" height="600" src="https://dev.3dgi.xyz/wijklabels/"></iframe>
 </section>
 </section>
 </section>
 <section id="conclusies" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Conclusies</h1>
-<p>Gemiddeld liggen de door ons geschatte labels één label onder het echte label, met een standaardafwijking van twee labels. Het meest nauwkeurige label is <em>B</em>, met de laagste mediane afwijking van de ep-online labels, gevolgd door het label <em>A</em>. Het meest voorkomende geschatte energielabel <em>C</em> is, ongeveer X% van de woningen hebben dit label.</p>
-<p>De NTA8800 energielabels in de EP-Online database zijn voldoende representatief om gebruikt te worden als validatieset voor de ontwikkeling van landelijke methoden voor het schatten van energielabels.</p>
-<p>Bij onze bevindingen moeten de volgende 2 kanttekeningen gemaakt worden over het schatten van energielabels voor appartementen: 1. Er is er geen brondata beschikbaar voor de driedimensionale opsplitsing van appartementen binnen een meergezinswoning voor de bepaling van de NTA8800 woningtypes. Er moeten daarom (sterke) aannames gedaan worden om toch tot de benodigde opsplitsing voor de subtypes van de appartementen te komen. De onzekerheid in deze schatting van deze subtypes heeft invloed op de schatting van de vormfactor en daarmee ook op het geschatte energielabel van appartementen. 2. De conversie van de geschatte NTA8800 appartement-types naar de pre-NTA8800 appartement-types is gebaseerd op de statistische spreiding van appartement-types in de EP-Online dataset, omdat er voor zover wij weten geen andere logische methode is om deze conversie te doen. Deze methode voegt echter nog meer onzekerheid toe aan de schatting van het energielabel van appartementen.</p>
+<p>Gemiddeld liggen de door ons geschatte labels één label onder het echte label, met een standaardafwijking van twee labels. Het meest nauwkeurige label is <em>B</em>, met de laagste mediane afwijking van de EP-Online labels, gevolgd door het label <em>A</em>. Het meest voorkomende geschatte energielabel <em>C</em> is, ongeveer 29% van de woningen hebben dit label.</p>
+<p>De NTA8800 energielabels in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database zijn voldoende representatief om gebruikt te worden als validatieset voor de ontwikkeling van landelijke methoden voor het schatten van energielabels.</p>
+<p>Bij onze bevindingen moeten de volgende 2 kanttekeningen gemaakt worden over het schatten van energielabels voor appartementen:</p>
+<ol type="1">
+<li><p>Er is er geen brondata beschikbaar voor de driedimensionale opsplitsing van appartementen binnen een meergezinswoning voor de bepaling van de NTA8800 woningtypes. Er moeten daarom (sterke) aannames gedaan worden om toch tot de benodigde opsplitsing voor de subtypes van de appartementen te komen. De onzekerheid in deze schatting van deze subtypes heeft invloed op de schatting van de vormfactor en daarmee ook op het geschatte energielabel van appartementen.</p></li>
+<li><p>De conversie van de geschatte NTA8800 appartement-types naar de pre-NTA8800 appartement-types is gebaseerd op de statistische spreiding van appartement-types in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) dataset, omdat er voor zover wij weten geen andere logische methode is om deze conversie te doen. Deze methode voegt echter nog meer onzekerheid toe aan de schatting van het energielabel van appartementen.</p></li>
+</ol>
 <p>In onze studie is 44% van de woningen een appartement.</p>
-<p>Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie <a href="#sec-only-possible" class="quarto-xref">Paragraaf&nbsp;5.2.1</a>). Op basis van de Ep-Online data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022. Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten. Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.</p>
+<p>Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie <a href="#sec-only-possible" class="quarto-xref">Paragraaf&nbsp;5.2.1</a>). Op basis van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>). Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten. Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.</p>
 </section>
-<section id="bijlage" class="level1" data-number="7">
-<h1 data-number="7"><span class="header-section-number">7</span> Bijlage</h1>
+<section id="sec-data" class="level1" data-number="7">
+<h1 data-number="7"><span class="header-section-number">7</span> Omschrijving opgeleverde data</h1>
 <p><a href="#tbl-individual-head" class="quarto-xref">Tabel&nbsp;4</a> bevat een voorbeeld van alle attributen die we voor elke woning hebben berekend. Deze gegevens staan in het bestand <code>labels_individual.csv</code>. Daarnaast bevat <a href="#tbl-attributes" class="quarto-xref">Tabel&nbsp;5</a> een beschrijving van elk attribuut. Tot slot, <a href="#tbl-neighborhood-head" class="quarto-xref">Tabel&nbsp;6</a> bevat een voorbeeld van de spreiding van de geleverde energielabels in het bestand <code>labels_neighborhood.csv</code>.</p>
-<div class="cell" data-execution_count="3">
-<div id="tbl-individual-head" class="cell quarto-float anchored" data-execution_count="3">
+<div class="cell" data-execution_count="4">
+<div id="tbl-individual-head" class="cell quarto-float anchored" data-execution_count="4">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-individual-head-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabel&nbsp;4: Overzicht van de berekende attributen
@@ -788,10 +804,6 @@ Tabel&nbsp;5: Beschrijving van de berekende attributen
 </figcaption>
 <div aria-describedby="tbl-attributes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table">
-<colgroup>
-<col style="width: 16%">
-<col style="width: 83%">
-</colgroup>
 <thead>
 <tr class="header">
 <th>Attribute</th>
@@ -845,23 +857,23 @@ Tabel&nbsp;5: Beschrijving van de berekende attributen
 </tr>
 <tr class="even">
 <td>b3_opp_buitenmuur</td>
-<td>3DBAG totale oppervlakte van de buitenmuren, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_buitenmuur</td>
+<td>3DBAG totale oppervlakte van de buitenmuren, <a href="https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_buitenmuur" class="uri">https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_buitenmuur</a></td>
 </tr>
 <tr class="odd">
 <td>b3_opp_dak_plat</td>
-<td>3DBAG totale oppervlakte van de platte delen van het dak, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_plat</td>
+<td>3DBAG totale oppervlakte van de platte delen van het dak, <a href="https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_plat" class="uri">https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_plat</a></td>
 </tr>
 <tr class="even">
 <td>b3_opp_dak_schuin</td>
-<td>3DBAG totale oppervlakte van de schuine delen van het dak, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_schuin</td>
+<td>3DBAG totale oppervlakte van de schuine delen van het dak, <a href="https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_schuin" class="uri">https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_dak_schuin</a></td>
 </tr>
 <tr class="odd">
 <td>b3_opp_grond</td>
-<td>3DBAG totale oppervlakte begane grond, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond</td>
+<td>3DBAG totale oppervlakte begane grond, <a href="https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond" class="uri">https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_grond</a></td>
 </tr>
 <tr class="even">
 <td>b3_opp_scheidingsmuur</td>
-<td>3DBAG totale oppervlakte van de pandscheidende muren, https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_scheidingsmuur</td>
+<td>3DBAG totale oppervlakte van de pandscheidende muren, <a href="https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_scheidingsmuur" class="uri">https://docs.3dbag.nl/nl/schema/attributes/#b3_opp_scheidingsmuur</a></td>
 </tr>
 <tr class="odd">
 <td>woningtype_pre_nta8800</td>
@@ -888,8 +900,8 @@ Tabel&nbsp;5: Beschrijving van de berekende attributen
 </div>
 </figure>
 </div>
-<div class="cell" data-execution_count="4">
-<div id="tbl-neighborhood-head" class="cell quarto-float anchored" data-execution_count="4">
+<div class="cell" data-execution_count="5">
+<div id="tbl-neighborhood-head" class="cell quarto-float anchored" data-execution_count="5">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-neighborhood-head-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Tabel&nbsp;6: Voorbeeld van de spreiding van de geleverde energielabels.
@@ -1006,16 +1018,25 @@ Tabel&nbsp;6: Voorbeeld van de spreiding van de geleverde energielabels.
 <section id="referenties" class="level1" data-number="8">
 <h1 data-number="8"><span class="header-section-number">8</span> Referenties</h1>
 <div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
-<div id="ref-_EP_2023" class="csl-entry" role="listitem">
-<span>‘<span>EP-Online</span>’</span>. 2023. <a href="https://www.ep-online.nl/" class="uri">https://www.ep-online.nl/</a>.
+<div id="ref-CBS_Wijken_2022" class="csl-entry" role="listitem">
+CBS. 2022. <span>‘<span>Wijken en Buurten v1</span>’</span>. <a href="https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/6da29d3a-0e42-4b74-81ef-da707991ae07">https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/6da29d3a-0e42-4b74-81ef-da707991ae07</a>.
+</div>
+<div id="ref-Kadaster_Basisregistratie_2023" class="csl-entry" role="listitem">
+Kadaster. 2023. <span>‘<span>Basisregistratie Adressen en Gebwouen (BAG)</span>’</span>. <a href="https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/6da29d3a-0e42-4b74-81ef-da707991ae07">https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/6da29d3a-0e42-4b74-81ef-da707991ae07</a>.
+</div>
+<div id="ref-Rijksoverheid_Woononderzoek_2018" class="csl-entry" role="listitem">
+Rijksoverheid. 2018. <span>‘<span>Woononderzoek Nederland (WoON) 2018</span>’</span>. <a href="https://www.woononderzoek.nl/">https://www.woononderzoek.nl/</a>.
+</div>
+<div id="ref-Rijksoverheid_EP_2023" class="csl-entry" role="listitem">
+———. 2023. <span>‘<span>EP-Online</span>’</span>. <a href="https://www.ep-online.nl/" class="uri">https://www.ep-online.nl/</a>.
 </div>
 <div id="ref-RVO_Voorbeeldwoningen_2022" class="csl-entry" role="listitem">
-RVO. 2022. <span>‘Voorbeeldwoningen 2022 - bestaande bouw’</span>. Techreport RVO-231-2022/BR-DUZA. Rijksdienst voor Ondernemend Nederland.
+RVO. 2022. <span>‘Voorbeeldwoningen 2022 - bestaande bouw’</span>. Techreport RVO-231-2022/BR-DUZA. Rijksdienst voor Ondernemend Nederland. <a href="https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/voorbeeldwoningen-bestaande-bouw">https://www.rvo.nl/onderwerpen/wetten-en-regels-gebouwen/voorbeeldwoningen-bestaande-bouw</a>.
 </div>
 </div>
 </section>
 
-<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-reuse"><h2 class="anchored quarto-appendix-heading">Hergebruik</h2><div class="quarto-appendix-contents"><div><a rel="license" href="https://creativecommons.org/licenses/by/4.0/deed.nl">CC BY 4.0</a></div></div></section></div></main>
+</main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {

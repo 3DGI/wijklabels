@@ -8,11 +8,11 @@ lang: en
 format:
   html:
     echo: false
-  pdf: default
+  pdf:
+    echo: false
 
 jupyter: python3
 
 execute:
-  eval: true
   freeze: true
   cache: true
