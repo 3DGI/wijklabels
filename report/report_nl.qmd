@@ -44,7 +44,7 @@ Dit project werd uitgevoerd door [3DGI](https://3dgi.nl) en gefinancierd door de
 
 Dit rapport en de geleverde data zijn vrij te kopiëren, te verspreiden en te veranderen onder naamsvermelding aan 3DGI, volgens de licentie [CC-BY](https://creativecommons.org/licenses/by/4.0/deed.nl).
 
-## Geleverte documenten
+## Geleverde documenten
 
 - Dit rapport online, interactief: [https://3dgi.github.io/wijklabels/report_nl.html](https://3dgi.github.io/wijklabels/report_nl.html) 
 - Geproduceerde bestanden (zie omschrijving in @sec-data): [https://data.3dgi.xyz/wijklabels](https://data.3dgi.xyz/wijklabels)
