@@ -46,7 +46,7 @@ Dit rapport en de geleverde data zijn vrij te kopiëren, te verspreiden en te ve
 
 ## Geleverde documenten
 
-- Dit rapport online, interactief: [https://3dgi.github.io/wijklabels/report_nl.html](https://3dgi.github.io/wijklabels/report_nl.html) 
+- Dit rapport online, interactief: [https://dev.3dgi.xyz/wijklabels/report/report_nl.html](https://dev.3dgi.xyz/wijklabels/report/report_nl.html) 
 - Geproduceerde bestanden (zie omschrijving in @sec-data): [https://data.3dgi.xyz/wijklabels](https://data.3dgi.xyz/wijklabels)
 - Broncode van de software voor het berekenen van de vormfactor en energielabels: [https://github.com/3DGI/wijklabels](https://github.com/3DGI/wijklabels)
 

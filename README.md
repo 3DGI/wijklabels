@@ -6,7 +6,7 @@ This work explores the possibility of calculating the vormfactor for each dwelli
 
 This repository contains the code for estimating the energy labels and report on the results.
 
-The report can be viewed at: https://3dgi.github.io/wijklabels/report_nl.html
+The report can be viewed at: https://dev.3dgi.xyz/wijklabels/report/report_nl.html
 
 The estimated labels can be downloaded from: https://data.3dgi.xyz/wijklabels. The files with `.fgb` are in the [FlatGeobuf](https://flatgeobuf.org/) format, which can be viewed without download in several GIS applications (e.g. QGIS). For example, to view the neighborhood labels in QGIS, open the file URL (`https://data.3dgi.xyz/wijklabels/labels_neighborhood_geom.fgb`) as a vector data source.
 
