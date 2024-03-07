@@ -9,7 +9,7 @@ server = flask.Flask(__name__) # define flask app.server
 
 app = Dash(__name__, external_stylesheets=external_stylesheets,
            server=server,
-           url_base_pathname='/wijklabels/') # call flask server
+           url_base_pathname='/wijklabels/dashboard/') # call flask server
 
 # run following in command
 # gunicorn graph:server -b :8050

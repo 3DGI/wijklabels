@@ -277,7 +277,7 @@ Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons ges
 Kies een gemeente en een buurt om de geschatte energielabels te bekijken. Let op: deze functie werkt niet in het PDF-rapport.
 
 ```{=html}
-<iframe width="780" height="600" src="https://dev.3dgi.xyz/wijklabels/"></iframe>
+<iframe width="780" height="600" src="https://dev.3dgi.xyz/wijklabels/dashboard"></iframe>
 ```
 
 # Conclusies
