@@ -97,7 +97,7 @@ Al met al concluderen we dat de EP-Online (@Rijksoverheid_EP_2023) data represen
 
 # Methode
 
-In dit werk bepalen we de vormfactor voor individuele woningen op basis van de 3DBAG en de spreiding van energielabels per buurt.
+In dit werk bepalen we de vormfactor voor individuele woningen op basis van de 3DBAG en zo de spreiding van energielabels per buurt.
 Naast de vormfactor zijn voor ieder pand echter nog een aantal andere gegevens nodig. 
 Omdat er geen landelijke datasets zijn met al deze gegevens, hebben we hiervoor schattingen moeten doen op basis van (sterke) aannames.
 
@@ -298,6 +298,9 @@ In onze studie is 44% van de woningen een appartement.
 
 Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie @sec-only-possible). Op basis van de EP-Online (@Rijksoverheid_EP_2023) data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022). Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten.
 Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.
+
+## Aanbevelingen voor eventueel vervolgonderzoek
+- Gebruik van een betrouwbare brond voor de sub-woningtypes
 
 # Omschrijving opgeleverde data {#sec-data}
 
