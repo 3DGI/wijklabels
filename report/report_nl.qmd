@@ -272,6 +272,8 @@ Als we onze validatie beperken tot die woningen waar het juiste label wel bestaa
 
 Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons geschatte labels ten opzichte van de @Rijksoverheid_EP_2023 labels **-0,6**, met een standaardafwijking van **1,6**. Dit is ongeveer twee keer zo laag als de labelafwijking voor de gehele dataset.
 
+![Afwijking van de geschatte labels van de EP-Online labels (alleen mogelijke labels)](images/nl_NL_dist_est_ep_possible.png){#fig-nl-dist-possible}
+
 ### Buurten
 
 Kies een gemeente en een buurt om de geschatte energielabels te bekijken. Let op: deze functie werkt niet in het PDF-rapport.
