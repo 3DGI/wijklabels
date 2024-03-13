@@ -104,7 +104,10 @@ div.csl-indent {
   <li><a href="#buurten" id="toc-buurten" class="nav-link" data-scroll-target="#buurten"><span class="header-section-number">5.2.2</span> Buurten</a></li>
   </ul></li>
   </ul></li>
-  <li><a href="#conclusies" id="toc-conclusies" class="nav-link" data-scroll-target="#conclusies"><span class="header-section-number">6</span> Conclusies</a></li>
+  <li><a href="#conclusies" id="toc-conclusies" class="nav-link" data-scroll-target="#conclusies"><span class="header-section-number">6</span> Conclusies</a>
+  <ul class="collapse">
+  <li><a href="#aanbevelingen-voor-eventueel-vervolgonderzoek" id="toc-aanbevelingen-voor-eventueel-vervolgonderzoek" class="nav-link" data-scroll-target="#aanbevelingen-voor-eventueel-vervolgonderzoek"><span class="header-section-number">6.1</span> Aanbevelingen voor eventueel vervolgonderzoek</a></li>
+  </ul></li>
   <li><a href="#sec-data" id="toc-sec-data" class="nav-link" data-scroll-target="#sec-data"><span class="header-section-number">7</span> Omschrijving opgeleverde data</a></li>
   <li><a href="#referenties" id="toc-referenties" class="nav-link" data-scroll-target="#referenties"><span class="header-section-number">8</span> Referenties</a></li>
   </ul>
@@ -150,7 +153,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Publicatiedatum</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">7 maart 2024</p>
+      <p class="date">12 maart 2024</p>
     </div>
   </div>
   
@@ -237,7 +240,7 @@ Figuur&nbsp;3: Spreiding van woningen per woningtype in de BAG en in de EP-Onlin
 </section>
 <section id="methode" class="level1" data-number="3">
 <h1 data-number="3"><span class="header-section-number">3</span> Methode</h1>
-<p>In dit werk bepalen we de vormfactor voor individuele woningen op basis van de 3DBAG en de spreiding van energielabels per buurt. Naast de vormfactor zijn voor ieder pand echter nog een aantal andere gegevens nodig. Omdat er geen landelijke datasets zijn met al deze gegevens, hebben we hiervoor schattingen moeten doen op basis van (sterke) aannames.</p>
+<p>In dit werk bepalen we de vormfactor voor individuele woningen op basis van de 3DBAG en zo de spreiding van energielabels per buurt. Naast de vormfactor zijn voor ieder pand echter nog een aantal andere gegevens nodig. Omdat er geen landelijke datasets zijn met al deze gegevens, hebben we hiervoor schattingen moeten doen op basis van (sterke) aannames.</p>
 <p>Ons proces voor het schatten van de energielabels kan samengevat worden in 5 stappen.</p>
 <ol type="1">
 <li>Bepalen van het aantal verdiepingen van een Pand.</li>
@@ -605,6 +608,16 @@ Figuur&nbsp;6: Afwijking van de geschatte labels van de EP-Online labels
 <h3 data-number="5.2.1" class="anchored" data-anchor-id="sec-only-possible"><span class="header-section-number">5.2.1</span> Alleen rekening houdend met mogelijke labels</h3>
 <p>Door de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie heeft <em>32%</em> van de woningen een label in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) dat niet mogelijk is op basis van de data Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) (zie <a href="#sec-spreiding" class="quarto-xref">Paragraaf&nbsp;2.1</a>). Als we onze validatie beperken tot die woningen waar het juiste label wel bestaat in de data Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>), krijgen we inzicht in de invloed van de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie op onze resultaten.</p>
 <p>Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons geschatte labels ten opzichte van de <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span> labels <strong>-0,6</strong>, met een standaardafwijking van <strong>1,6</strong>. Dit is ongeveer twee keer zo laag als de labelafwijking voor de gehele dataset.</p>
+<div id="fig-nl-dist-possible" class="quarto-figure quarto-figure-center quarto-float anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-nl-dist-possible-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/nl_NL_dist_est_ep_possible.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nl-dist-possible-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figuur&nbsp;7: Afwijking van de geschatte labels van de EP-Online labels (alleen mogelijke labels)
+</figcaption>
+</figure>
+</div>
 </section>
 <section id="buurten" class="level3" data-number="5.2.2">
 <h3 data-number="5.2.2" class="anchored" data-anchor-id="buurten"><span class="header-section-number">5.2.2</span> Buurten</h3>
@@ -624,6 +637,12 @@ Figuur&nbsp;6: Afwijking van de geschatte labels van de EP-Online labels
 </ol>
 <p>In onze studie is 44% van de woningen een appartement.</p>
 <p>Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie <a href="#sec-only-possible" class="quarto-xref">Paragraaf&nbsp;5.2.1</a>). Op basis van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>). Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten. Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.</p>
+<section id="aanbevelingen-voor-eventueel-vervolgonderzoek" class="level2" data-number="6.1">
+<h2 data-number="6.1" class="anchored" data-anchor-id="aanbevelingen-voor-eventueel-vervolgonderzoek"><span class="header-section-number">6.1</span> Aanbevelingen voor eventueel vervolgonderzoek</h2>
+<ul>
+<li>Gebruik van een betrouwbare brond voor de sub-woningtypes</li>
+</ul>
+</section>
 </section>
 <section id="sec-data" class="level1" data-number="7">
 <h1 data-number="7"><span class="header-section-number">7</span> Omschrijving opgeleverde data</h1>

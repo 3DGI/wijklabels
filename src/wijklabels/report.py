@@ -136,11 +136,12 @@ def plot_aggregate(validated: pd.DataFrame, dir_plots: Path,
 
 
 def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
-                    aggregate_level: AggregateUnit):
+                    aggregate_level: AggregateUnit, woningtype=None):
     # Compare estimated to groundtruth in plots
     dir_plots.mkdir(exist_ok=True)
     aggregate_id_column = aggregate_column_name(aggregate_level)
     plt.style.use('seaborn-v0_8-muted')
+    woningtype_subtitle = "Alle woningtypen" if woningtype is None else f"{woningtype.capitalize()} woningtypen"
     for aggregate_id in validated[aggregate_id_column].unique():
         # Plot both distributions side by side
         b = validated.loc[
@@ -162,8 +163,8 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
         ax.set_yticks([10, 20, 30, 40, 50, 60, 70, 80])
         plt.style.use('seaborn-v0_8-muted')
         plt.grid(visible=True, which="major", axis="y", zorder=0)
-        plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
-        plt.suptitle("Spreiding van energielabels", fontsize=14)
+        plt.title(f"{woningtype_subtitle}\n{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
+        plt.suptitle(f"Spreiding van energielabels", fontsize=14)
         plt.tight_layout()
         filename = ''.join(e for e in aggregate_id if e.isalnum())
         plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}.png")
@@ -181,9 +182,9 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
             ax.set_xlim(12, 0)
             if t == "_ep_est":
                 ax.set_xlabel("Energielabel in EP-Online")
-                ax.set_ylabel("Afwijking geschatt energielabel")
+                ax.set_ylabel("Afwijking geschat energielabel")
             else:
-                ax.set_xlabel("Geschatt energielabel")
+                ax.set_xlabel("Geschat energielabel")
                 ax.set_ylabel("Afwijking EP-Online")
             ax.set_yticks(range(-10, 11, 1))
             # Assign colors to each box in the boxplot
@@ -191,8 +192,8 @@ def plot_comparison(validated: pd.DataFrame, dir_plots: Path,
                 box.set_facecolor(color)
             plt.axhline(y=0.0, color='#154273', linestyle='-')
             plt.grid(visible=True, which="major", axis="y", zorder=0)
-            plt.title(f"{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
-            plt.suptitle("Afwijking van de geschatte labels van de EP-Online labels", fontsize=14)
+            plt.title(f"{woningtype_subtitle}\n{aggregate_id_column.title()}: {aggregate_id}\nNr. woningen: {len(b)}", fontsize=10)
+            plt.suptitle(f"Afwijking van de geschatte labels van de EP-Online labels", fontsize=14)
             plt.tight_layout()
             plt.savefig(f"{dir_plots}/{aggregate_level}_{filename}_dist{t}.png")
             plt.close()
