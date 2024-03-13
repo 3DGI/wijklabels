@@ -83,10 +83,10 @@ def accuracy_per_type_and_range(df, accuracies, only_possible_labels):
 
 
 parser_validate = argparse.ArgumentParser(prog='wijklabels-validate')
-parser_validate.add_argument('path_estimated_labels_csv')
-parser_validate.add_argument('path_ep_online_csv')
-parser_validate.add_argument('path_label_distributions_xlsx')
-parser_validate.add_argument('path_output_dir')
+parser_validate.add_argument("--labels", help="Path to the estimated energy labels CSV file")
+parser_validate.add_argument("--ep-online", help="Path to the EP-Online labels CSV file")
+parser_validate.add_argument("--distributions", help="Path to the energy label distributions Excel file of the Voorbeeldwooningen 2022 study")
+parser_validate.add_argument("--output", help="Path to the output directory")
 parser_validate.add_argument('-e', '--energylabel', default="energylabel",
                              help="Name of the column that contains the energy labels.")
 parser_validate.add_argument('--plot-nl', action='store_true',
@@ -104,10 +104,10 @@ parser_validate.add_argument("--woningtype", choices=["eengezins", "meergezins"]
 
 def validate_cli():
     args = parser_validate.parse_args()
-    p_ep = Path(args.path_ep_online_csv).resolve()
-    p_el = Path(args.path_estimated_labels_csv).resolve()
-    p_dist = Path(args.path_label_distributions_xlsx).resolve()
-    PATH_OUTPUT_DIR = Path(args.path_output_dir).resolve()
+    p_ep = Path(args.ep_online).resolve()
+    p_el = Path(args.labels).resolve()
+    p_dist = Path(args.distributions).resolve()
+    PATH_OUTPUT_DIR = Path(args.output).resolve()
     PATH_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     log.info("Loading data")
