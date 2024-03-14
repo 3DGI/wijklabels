@@ -196,6 +196,8 @@ def validate_cli():
     else:
         log.info("Selecting all woningtype")
         df_with_truth_subset = df_with_truth_all
+    possible_labels = df_with_truth_subset[
+        df_with_truth_subset["ep_online_label_in_distributions"] == True]
 
     # Aggregate per buurt
     log.info("Aggregating the neigbourhoods")
