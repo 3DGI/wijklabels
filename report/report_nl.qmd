@@ -93,7 +93,7 @@ De EP-Online (@Rijksoverheid_EP_2023) database bevat energielabels die met versc
 
 ![Spreiding van woningen per woningtype in de BAG en in de EP-Online gegevens](images/woningtype_dist.png){#fig-dist-bag-ep-online-wt}
 
-Al met al concluderen we dat de EP-Online (@Rijksoverheid_EP_2023) data representatief is en daarmee ook een betrouwbare referentie is voor het valideren van de de ons geschatte energielabels.
+We concluderen dat de geregistreerde gebouwen in de EP-Online (@Rijksoverheid_EP_2023) de spreiding van de BAG volgen wat betreft bouwjaar en woningtype. De datapunten in de EP-Online representeren de BAG dicht genoeg, zodat we de resultaten van onze validatie, die we berekenen op basis van alleen de gebouwen die in de EP-Online staan, kunnen generaliseren.
 
 # Methode
 
