@@ -297,7 +297,7 @@ Kies een gemeente en een buurt om de geschatte energielabels te bekijken. Let op
 Gemiddeld liggen de door ons geschatte labels één label onder het echte label, met een standaardafwijking van twee labels.
 Het meest nauwkeurige label is *B*, met de laagste mediane afwijking van de EP-Online labels, gevolgd door het label *A*.
 Het meest voorkomende geschatte energielabel *C* is, ongeveer 29% van de woningen hebben dit label.
-Zowel de hele set geschatte labels (@fig-dist-bar) als de mogelijke set labels (@fig-dist-bar-eengezins-mogelijk) laten zien dat onze methode de labels B en beter onderschat, en de labels C en slechter overschat. Dezelfde trend kan worden gezien in @fig-nl-dist. Een plausibele verklaring zijn de pas gerenoveerde woningen, die energetische verbeteringen hebben waar onze methode geen rekening mee kan houden.
+Zowel de hele set geschatte labels (@fig-dist-bar) als de mogelijke set labels (@fig-dist-bar-eengezins-possible) laten zien dat onze methode de labels B en beter onderschat, en de labels C en slechter overschat. Dezelfde trend kan worden gezien in @fig-nl-dist. Een plausibele verklaring zijn de pas gerenoveerde woningen, die energetische verbeteringen hebben waar onze methode geen rekening mee kan houden.
 De NTA8800 energielabels in de EP-Online (@Rijksoverheid_EP_2023) database zijn voldoende representatief om gebruikt te worden als validatieset voor de ontwikkeling van landelijke methoden voor het schatten van energielabels. 
 
 Bij onze bevindingen moeten de volgende 2 kanttekeningen gemaakt worden over het schatten van energielabels voor appartementen:
