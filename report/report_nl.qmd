@@ -313,7 +313,10 @@ Door de validatiecriteria te versoepelen en één labelafwijking in de schatting
 Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.
 
 ## Aanbevelingen voor eventueel vervolgonderzoek
-- Gebruik van een betrouwbare brond voor de sub-woningtypes
+- De onvolledige energielabelverdelingen van Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) hebben de grootste invloed op de labelschatting. Daarom raden we aan om de volledigheid van de energielabelverdelingen te verbeteren.
+- De subwoningtypes hebben ook een significante invloed op de resultaten en appartementen maken ongeveer 44% van de woningen uit. Daarom bevelen we twee verbeterpunten aan:
+  - Gebruik de nieuwe, NTA8800 appartamenttypen voor de energielabelverdelingen van de Voorbeeldwoningen studie. Hiermee zou het omzetten van woningtypen vermeden kunnen worden.
+  - Verbeter de methode voor de classificatie van het subtype appartement.
 
 # Omschrijving opgeleverde data {#sec-data}
 
