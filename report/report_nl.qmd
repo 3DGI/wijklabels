@@ -93,7 +93,7 @@ De EP-Online (@Rijksoverheid_EP_2023) database bevat energielabels die met versc
 
 ![Spreiding van woningen per woningtype in de BAG en in de EP-Online gegevens](images/woningtype_dist.png){#fig-dist-bag-ep-online-wt}
 
-We concluderen dat de geregistreerde gebouwen in de EP-Online (@Rijksoverheid_EP_2023) de spreiding van de BAG volgen wat betreft bouwjaar en woningtype. De datapunten in de EP-Online representeren de BAG dicht genoeg, zodat we de resultaten van onze validatie, die we berekenen op basis van alleen de gebouwen die in de EP-Online staan, kunnen generaliseren.
+We concluderen dat de geregistreerde gebouwen in de EP-Online (@Rijksoverheid_EP_2023) de spreiding van de BAG volgen wat betreft bouwjaar en woningtype. Dit bewijst niet direct dat dit ook geld voor de spreiding van energielabels. Echter, volgens de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) zijn bouwjaar en woningtype wel in belangrijke mate bepalend zijn voor het energielabel. Dit maakt het aannemelijk dat de EP-Online ook representatief is wat betreft de spreiding van energielabels, ondanks het gebrek aan data over de vormfactor. Daarom gaan we er van uit dat de EP-Online data een geschikte referentie is om onze resultaten voor de schatting van energielabels te valideren.
 
 # Methode
 
@@ -264,7 +264,7 @@ De gemiddelde afwijking van de @Rijksoverheid_EP_2023 labels is **-1,2**, met ee
 Met andere woorden, gemiddeld liggen onze geschatte labels ongeveer één label onder de EP-Online (@Rijksoverheid_EP_2023) labels, met een standaardafwijking van twee labels.
 
 De nauwkeurigheid van de schatting voor exacte overeenkomsten is **21%**. De nauwkeurigheid van de schatting voor exacte overeenkomsten voor eengezinswoningen is **25%**.
-De nauwkeurigheid van de schatting in met één labelafwijking is **51%**. De nauwkeurigheid van de schatting met één labelafwijking voor eengezinswoningen is **58%**.
+De nauwkeurigheid van de schatting in met één labelafwijking is **51%**. De nauwkeurigheid van de schatting met afwijking van maximaal 1 label voor eengezinswoningen is **58%**.
 
 Als we kijken naar de afwijkingen per label, krijgen we een gedetailleerder beeld. @fig-nl-dist laat zien dat onze *A++, A++++* labels gemiddeld 3-5 labels te hoog geschat zijn, terwijl onze *E, F, G* labels gemiddeld 2-4 labels te laag zijn ten opzichte van de EP-Online (@Rijksoverheid_EP_2023) data.
 
@@ -278,9 +278,9 @@ Als we onze validatie beperken tot die woningen waar het juiste label wel bestaa
 Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons geschatte labels ten opzichte van de @Rijksoverheid_EP_2023 labels **-0,6**, met een standaardafwijking van **1,6**. Dit is ongeveer twee keer zo laag als de labelafwijking voor de gehele dataset.
 
 De nauwkeurigheid van de schatting voor exacte overeenkomsten is **32%**. De nauwkeurigheid van de schatting voor exacte overeenkomsten voor eengezinswoningen is **33%**.
-De nauwkeurigheid van de schatting in met één labelafwijking is **65%**. De nauwkeurigheid van de schatting met één labelafwijking voor eengezinswoningen is **70%**.
+De nauwkeurigheid van de schatting in met één labelafwijking is **65%**. De nauwkeurigheid van de schatting met afwijking van maximaal 1 label voor eengezinswoningen is **70%**.
 
-Verder laat de @fig-dist-bar-eengezins-possible zien dat de labels van B en beter worden onderschat en die van C en slechter worden overschat.
+Verder laat de @fig-dist-bar-eengezins-possible wederom zien dat de labels van B en beter worden onderschat en die van C en slechter worden overschat.
 
 ![Spreiding van geschatte en EP-Online energielabels, alleen mogelijke labels, voor de eengezinswoningen die geregistreerd zijn op EP-Online (@Rijksoverheid_EP_2023)](images/nl_NL_eengezins_possible.png){#fig-dist-bar-eengezins-possible}
 
@@ -297,26 +297,27 @@ Kies een gemeente en een buurt om de geschatte energielabels te bekijken. Let op
 Gemiddeld liggen de door ons geschatte labels één label onder het echte label, met een standaardafwijking van twee labels.
 Het meest nauwkeurige label is *B*, met de laagste mediane afwijking van de EP-Online labels, gevolgd door het label *A*.
 Het meest voorkomende geschatte energielabel *C* is, ongeveer 29% van de woningen hebben dit label.
-Zowel de hele set geschatte labels (@fig-dist-bar) als de mogelijke set labels (@fig-dist-bar-eengezins-possible) laten zien dat onze methode de labels B en beter onderschat, en de labels C en slechter overschat. Dezelfde trend kan worden gezien in @fig-nl-dist. Een plausibele verklaring zijn de pas gerenoveerde woningen, die energetische verbeteringen hebben waar onze methode geen rekening mee kan houden.
-De NTA8800 energielabels in de EP-Online (@Rijksoverheid_EP_2023) database zijn voldoende representatief om gebruikt te worden als validatieset voor de ontwikkeling van landelijke methoden voor het schatten van energielabels. 
+Zowel de hele set geschatte labels (@fig-dist-bar) als de mogelijke set labels (@fig-dist-bar-eengezins-possible) laten zien dat onze methode de labels B en beter onderschat, en de labels C en slechter overschat. Dezelfde trend kan worden gezien in @fig-nl-dist. Een mogelijke verklaring is dit gerenoveerde woningen betreft, die energetische verbeteringen hebben waar onze methode geen rekening mee houdt.
 
-Bij onze bevindingen moeten de volgende 2 kanttekeningen gemaakt worden over het schatten van energielabels voor appartementen:
+Bij onze bevindingen moeten de volgende 2 kanttekeningen gemaakt worden over het schatten van energielabels voor meergezinswoningen:
 
 1. Er is er geen brondata beschikbaar voor de driedimensionale opsplitsing van appartementen binnen een meergezinswoning voor de bepaling van de NTA8800 woningtypes. Er moeten daarom (sterke) aannames gedaan worden om toch tot de benodigde opsplitsing voor de subtypes van de appartementen te komen. De onzekerheid in deze schatting van deze subtypes heeft invloed op de schatting van de vormfactor en daarmee ook op het geschatte energielabel van appartementen. 
 
 2. De conversie van de geschatte NTA8800 appartement-types naar de pre-NTA8800 appartement-types is gebaseerd op de statistische spreiding van appartement-types in de EP-Online (@Rijksoverheid_EP_2023) dataset, omdat er voor zover wij weten geen andere logische methode is om deze conversie te doen. Deze methode voegt echter nog meer onzekerheid toe aan de schatting van het energielabel van appartementen.
 
-Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022), en de onjuiste schatting van woningsubtypen een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie @sec-only-possible). Op basis van de EP-Online (@Rijksoverheid_EP_2023) data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022). Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten.
-De mogelijke labels {#sec-only-possible} laten een 10% hogere nauwkeurigheid zien met een volledige energielabelspreiding, van 21% naar 32%.
-De eengezinswoningen hebben een significant hogere classificatienauwkeurigheid (87%) dan de meergezinswoningen (26%). Een correcte classificatie van woningen verbetert de nauwkeurigheid dus nog verder, met ongeveer één procent. De meergezinswoningen vormen 44% van onze resultaten.
-Door de validatiecriteria te versoepelen en één labelafwijking in de schattingen toe te staan, met volledige energielabelverdelingen en correcte woningtypen, lijkt een nauwkeurigheid van 70% mogelijk. We beschouwen deze nauwkeurigheid als de bovengrens van onze methode.
-Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.
+Onze woningtypeclassificatie is dan ook significant nauwkeuriger voor eengezinswoningen (87%) dan voor meergezinswoningen (26%). De nauwkeurigheid voor de energielabelschatting verbetert  met 1% tot 7% als we de meergezinswoningen weglaten.
+
+Onze resultaten laten daarnaast zien dat de gaten in de energielabel spreidingen uit de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie @sec-only-possible). Op basis van EP-Online (@Rijksoverheid_EP_2023) data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022). Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze energielabelschattingen.
+Als deze 32% aan 'onmogelijke' labels worden weggelaten {#sec-only-possible} behalen we een 8% tot 14% hogere nauwkeurigheid. Daarnaast zorgt dit voor een halvering van de standaardafwijking in de energielabelschatting.
+
+Als we alleen kijken naar eengezinswoningen en de woningen in de gaten van de spreidingen uit de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) weglaten, komen we tot een energielabelnauwkeurigheid van 70% met een maximale afwijking van 1 label.
+
 
 ## Aanbevelingen voor eventueel vervolgonderzoek
-- De onvolledige energielabelverdelingen van Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) hebben de grootste invloed op de labelschatting. Daarom raden we aan om de volledigheid van de energielabelverdelingen te verbeteren.
-- De subwoningtypes hebben ook een significante invloed op de resultaten en appartementen maken ongeveer 44% van de woningen uit. Daarom bevelen we twee verbeterpunten aan:
-  - Gebruik de nieuwe, NTA8800 appartamenttypen voor de energielabelverdelingen van de Voorbeeldwoningen studie. Hiermee zou het omzetten van woningtypen vermeden kunnen worden.
-  - Verbeter de methode voor de classificatie van het subtype appartement.
+- De onvolledige energielabelverdelingen van Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) hebben een zeer grote invloed op de labelschatting. Daarom raden we aan om de volledigheid van de energielabelverdelingen te verbeteren.
+- Het schatten van subwoningtypes voor meergezinswoningen heeft ook een significante impact op onze resultaten. De meergezinswoningen maken ongeveer 44% van het totaal aantal woningen uit. Daarom bevelen we twee verbeterpunten aan:
+  - Gebruik de nieuwe, NTA8800 appartement subtypes voor de energielabelverdelingen van de Voorbeeldwoningen studie. Hiermee zou het omzetten van de oude naar nieuwe woningtypes niet meer nodig zijn.
+  - Verbeter de methode voor de classificatie van de appartement subtypes of gebruik een alternatieve databron voor de woningtypes.
 
 # Omschrijving opgeleverde data {#sec-data}
 
