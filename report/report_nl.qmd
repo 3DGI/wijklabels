@@ -357,7 +357,7 @@ df
 | bouwperiode            | BAG Pand bouwjaar, gegroepeerd volgens Voorbeeldwoningen 2022                                                            |
 | energylabel            | Geschat energielabel                                                                                                     |
 
-: Beschrijving van de berekende attributen {#tbl-attributes}
+: Beschrijving van de geleverde attributen {#tbl-attributes}
 
 ```{python}
 #| label: tbl-neighborhood-head
