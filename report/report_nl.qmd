@@ -93,7 +93,7 @@ De EP-Online (@Rijksoverheid_EP_2023) database bevat energielabels die met versc
 
 ![Spreiding van woningen per woningtype in de BAG en in de EP-Online gegevens](images/woningtype_dist.png){#fig-dist-bag-ep-online-wt}
 
-We concluderen dat de geregistreerde gebouwen in de EP-Online (@Rijksoverheid_EP_2023) de spreiding van de BAG volgen wat betreft bouwjaar en woningtype. Dit bewijst niet direct dat dit ook geld voor de spreiding van energielabels. Echter, volgens de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) zijn bouwjaar en woningtype wel in belangrijke mate bepalend zijn voor het energielabel. Dit maakt het aannemelijk dat de EP-Online ook representatief is wat betreft de spreiding van energielabels, ondanks het gebrek aan data over de vormfactor. Daarom gaan we er van uit dat de EP-Online data een geschikte referentie is om onze resultaten voor de schatting van energielabels te valideren.
+We concluderen dat de geregistreerde gebouwen in de EP-Online (@Rijksoverheid_EP_2023) de spreiding van de BAG volgen wat betreft bouwjaar en woningtype. Dit bewijst niet direct dat dit ook geldt voor de spreiding van energielabels. Echter, volgens de studie Voorbeeldwoningen 2022 (@RVO_Voorbeeldwoningen_2022) zijn bouwjaar en woningtype wel in belangrijke mate bepalend zijn voor het energielabel. Dit maakt het aannemelijk dat de EP-Online ook representatief is wat betreft de spreiding van energielabels, ondanks het gebrek aan data over de vormfactor. Daarom gaan we er van uit dat de EP-Online data een geschikte referentie is om onze resultaten voor de schatting van energielabels te valideren.
 
 # Methode
 
