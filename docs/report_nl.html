@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="nl" xml:lang="nl"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.549">
+<meta name="generator" content="quarto-1.4.551">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -153,7 +153,7 @@ div.csl-indent {
     <div>
     <div class="quarto-title-meta-heading">Publicatiedatum</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">12 maart 2024</p>
+      <p class="date">18 maart 2024</p>
     </div>
   </div>
   
@@ -235,7 +235,7 @@ Figuur&nbsp;3: Spreiding van woningen per woningtype in de BAG en in de EP-Onlin
 </figcaption>
 </figure>
 </div>
-<p>Al met al concluderen we dat de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data representatief is en daarmee ook een betrouwbare referentie is voor het valideren van de de ons geschatte energielabels.</p>
+<p>We concluderen dat de geregistreerde gebouwen in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) de spreiding van de BAG volgen wat betreft bouwjaar en woningtype. De datapunten in de EP-Online representeren de BAG dicht genoeg, zodat we de resultaten van onze validatie, die we berekenen op basis van alleen de gebouwen die in de EP-Online staan, kunnen generaliseren.</p>
 </section>
 </section>
 <section id="methode" class="level1" data-number="3">
@@ -400,6 +400,7 @@ Figuur&nbsp;4: Spreiding van pre-NTA8800 meergezinswoningtypes in de EP-Online d
 <li><p>Percentage labels dat exact overeenkomt met de EP-Online labels.</p></li>
 <li><p>Percentage labels dat overeenkomt met de EP-Online labels met één labelafwijking. Bijvoorbeeld het geschatte label is <em>A</em>, dan kan de EP-Online een van <em>A+</em>, <em>A</em>, <em>B</em> zijn.</p></li>
 <li><p>De mediaan, het gemiddelde, de standaardafwijking, het minimum en maximum van de <em>labelafwijking</em> per buurt en voor de volledige dataset.</p></li>
+<li><p>Nauwkeurigheid van de labels voor exacte labelmatch (bijv. B = B) en match binnen één label (bijv. voor label B zijn de labels A, B, C een match).</p></li>
 </ul>
 </section>
 <section id="resultaten" class="level1" data-number="5">
@@ -415,6 +416,7 @@ Tabel&nbsp;3: Aantal (en percentage) van woningen per bouwperiode en woningtype
 </figcaption>
 <div aria-describedby="tbl-count-period-type-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-display" data-execution_count="13">
+<div>
 <div>
 
 
@@ -572,6 +574,7 @@ Tabel&nbsp;3: Aantal (en percentage) van woningen per bouwperiode en woningtype
 </div>
 </div>
 </div>
+</div>
 </figure>
 </div>
 </div>
@@ -580,7 +583,7 @@ Tabel&nbsp;3: Aantal (en percentage) van woningen per bouwperiode en woningtype
 <section id="schatting-van-energielabels" class="level2" data-number="5.2">
 <h2 data-number="5.2" class="anchored" data-anchor-id="schatting-van-energielabels"><span class="header-section-number">5.2</span> Schatting van energielabels</h2>
 <p>Van de beschikbare <em>5.385.950</em> Pandobjecten die in onze input data, hebben <em>4.847.298</em> een energielabel ontvangen. De overige <em>13%</em> van de objecten heeft geen label ontvangen, dit komt door de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> .</p>
-<p>We hebben onze energielabelschattingen vergeleken met de labels die beschikbaar zijn in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>). De <a href="#fig-dist-bar" class="quarto-xref">Figuur&nbsp;5</a> toont de spreiding van de geschatte labels naast de EP-Online labels voor de woningen die geregistreerd zijn in EP-Online. Het meest voorkomende geschatte energielabel is <em>C</em>, toegekend aan meer dan 25% van de woningen. In de EP-Online dataset zijn de meest voorkomende labels <em>A</em> en <em>C</em>, elk aan ongeveer 25% van de woningen toegekend.</p>
+<p>We hebben onze energielabelschattingen vergeleken met de labels die beschikbaar zijn in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>). De <a href="#fig-dist-bar" class="quarto-xref">Figuur&nbsp;5</a> toont de spreiding van de geschatte labels naast de EP-Online labels voor de woningen die geregistreerd zijn in EP-Online. Het meest voorkomende geschatte energielabel is <em>C</em>, toegekend aan meer dan 25% van de woningen. In de EP-Online dataset zijn de meest voorkomende labels <em>A</em> en <em>C</em>, elk aan ongeveer 25% van de woningen toegekend. Verder laat de figuur zien dat de labels van B en beter worden onderschat en die van C en slechter worden overschat.</p>
 <div id="fig-dist-bar" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
 <div aria-describedby="fig-dist-bar-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -593,6 +596,7 @@ Figuur&nbsp;5: Spreiding van geschatte en EP-Online energielabels voor de woning
 </div>
 <p>De gemiddelde afwijking van de <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span> labels is <strong>-1,2</strong>, met een standaardafwijking van <strong>2,1</strong>.<br>
 Met andere woorden, gemiddeld liggen onze geschatte labels ongeveer één label onder de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) labels, met een standaardafwijking van twee labels.</p>
+<p>De nauwkeurigheid van de schatting voor exacte overeenkomsten is <strong>21%</strong>. De nauwkeurigheid van de schatting voor exacte overeenkomsten voor eengezinswoningen is <strong>25%</strong>. De nauwkeurigheid van de schatting in met één labelafwijking is <strong>51%</strong>. De nauwkeurigheid van de schatting met één labelafwijking voor eengezinswoningen is <strong>58%</strong>.</p>
 <p>Als we kijken naar de afwijkingen per label, krijgen we een gedetailleerder beeld. <a href="#fig-nl-dist" class="quarto-xref">Figuur&nbsp;6</a> laat zien dat onze <em>A++, A++++</em> labels gemiddeld 3-5 labels te hoog geschat zijn, terwijl onze <em>E, F, G</em> labels gemiddeld 2-4 labels te laag zijn ten opzichte van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data.</p>
 <div id="fig-nl-dist" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -608,13 +612,15 @@ Figuur&nbsp;6: Afwijking van de geschatte labels van de EP-Online labels
 <h3 data-number="5.2.1" class="anchored" data-anchor-id="sec-only-possible"><span class="header-section-number">5.2.1</span> Alleen rekening houdend met mogelijke labels</h3>
 <p>Door de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie heeft <em>32%</em> van de woningen een label in EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) dat niet mogelijk is op basis van de data Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) (zie <a href="#sec-spreiding" class="quarto-xref">Paragraaf&nbsp;2.1</a>). Als we onze validatie beperken tot die woningen waar het juiste label wel bestaat in de data Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>), krijgen we inzicht in de invloed van de gaten in de energielabelspreidingen van de <span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span> studie op onze resultaten.</p>
 <p>Voor deze subset van de data, is de gemiddelde labelafwijking in de door ons geschatte labels ten opzichte van de <span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span> labels <strong>-0,6</strong>, met een standaardafwijking van <strong>1,6</strong>. Dit is ongeveer twee keer zo laag als de labelafwijking voor de gehele dataset.</p>
-<div id="fig-nl-dist-possible" class="quarto-figure quarto-figure-center quarto-float anchored">
+<p>De nauwkeurigheid van de schatting voor exacte overeenkomsten is <strong>32%</strong>. De nauwkeurigheid van de schatting voor exacte overeenkomsten voor eengezinswoningen is <strong>33%</strong>. De nauwkeurigheid van de schatting in met één labelafwijking is <strong>65%</strong>. De nauwkeurigheid van de schatting met één labelafwijking voor eengezinswoningen is <strong>70%</strong>.</p>
+<p>Verder laat de <a href="#fig-dist-bar-eengezins-possible" class="quarto-xref">Figuur&nbsp;7</a> zien dat de labels van B en beter worden onderschat en die van C en slechter worden overschat.</p>
+<div id="fig-dist-bar-eengezins-possible" class="quarto-figure quarto-figure-center quarto-float anchored">
 <figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-nl-dist-possible-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="images/nl_NL_dist_est_ep_possible.png" class="img-fluid figure-img">
+<div aria-describedby="fig-dist-bar-eengezins-possible-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="images/nl_NL_eengezins_possible.png" class="img-fluid figure-img">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-nl-dist-possible-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figuur&nbsp;7: Afwijking van de geschatte labels van de EP-Online labels (alleen mogelijke labels)
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dist-bar-eengezins-possible-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figuur&nbsp;7: Spreiding van geschatte en EP-Online energielabels, alleen mogelijke labels, voor de eengezinswoningen die geregistreerd zijn op EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>)
 </figcaption>
 </figure>
 </div>
@@ -628,19 +634,22 @@ Figuur&nbsp;7: Afwijking van de geschatte labels van de EP-Online labels (alleen
 </section>
 <section id="conclusies" class="level1" data-number="6">
 <h1 data-number="6"><span class="header-section-number">6</span> Conclusies</h1>
-<p>Gemiddeld liggen de door ons geschatte labels één label onder het echte label, met een standaardafwijking van twee labels. Het meest nauwkeurige label is <em>B</em>, met de laagste mediane afwijking van de EP-Online labels, gevolgd door het label <em>A</em>. Het meest voorkomende geschatte energielabel <em>C</em> is, ongeveer 29% van de woningen hebben dit label.</p>
-<p>De NTA8800 energielabels in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database zijn voldoende representatief om gebruikt te worden als validatieset voor de ontwikkeling van landelijke methoden voor het schatten van energielabels.</p>
+<p>Gemiddeld liggen de door ons geschatte labels één label onder het echte label, met een standaardafwijking van twee labels. Het meest nauwkeurige label is <em>B</em>, met de laagste mediane afwijking van de EP-Online labels, gevolgd door het label <em>A</em>. Het meest voorkomende geschatte energielabel <em>C</em> is, ongeveer 29% van de woningen hebben dit label. Zowel de hele set geschatte labels (<a href="#fig-dist-bar" class="quarto-xref">Figuur&nbsp;5</a>) als de mogelijke set labels (<a href="#fig-dist-bar-eengezins-possible" class="quarto-xref">Figuur&nbsp;7</a>) laten zien dat onze methode de labels B en beter onderschat, en de labels C en slechter overschat. Dezelfde trend kan worden gezien in <a href="#fig-nl-dist" class="quarto-xref">Figuur&nbsp;6</a>. Een plausibele verklaring zijn de pas gerenoveerde woningen, die energetische verbeteringen hebben waar onze methode geen rekening mee kan houden. De NTA8800 energielabels in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) database zijn voldoende representatief om gebruikt te worden als validatieset voor de ontwikkeling van landelijke methoden voor het schatten van energielabels.</p>
 <p>Bij onze bevindingen moeten de volgende 2 kanttekeningen gemaakt worden over het schatten van energielabels voor appartementen:</p>
 <ol type="1">
 <li><p>Er is er geen brondata beschikbaar voor de driedimensionale opsplitsing van appartementen binnen een meergezinswoning voor de bepaling van de NTA8800 woningtypes. Er moeten daarom (sterke) aannames gedaan worden om toch tot de benodigde opsplitsing voor de subtypes van de appartementen te komen. De onzekerheid in deze schatting van deze subtypes heeft invloed op de schatting van de vormfactor en daarmee ook op het geschatte energielabel van appartementen.</p></li>
 <li><p>De conversie van de geschatte NTA8800 appartement-types naar de pre-NTA8800 appartement-types is gebaseerd op de statistische spreiding van appartement-types in de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) dataset, omdat er voor zover wij weten geen andere logische methode is om deze conversie te doen. Deze methode voegt echter nog meer onzekerheid toe aan de schatting van het energielabel van appartementen.</p></li>
 </ol>
-<p>In onze studie is 44% van de woningen een appartement.</p>
-<p>Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie <a href="#sec-only-possible" class="quarto-xref">Paragraaf&nbsp;5.2.1</a>). Op basis van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>). Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten. Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.</p>
+<p>Tot slot laten onze resultaten zien dat de gaten in de energielabel spreidingen van de Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>), en de onjuiste schatting van woningsubtypen een significante invloed hebben op de nauwkeurigheid van de geschatte labels (zie <a href="#sec-only-possible" class="quarto-xref">Paragraaf&nbsp;5.2.1</a>). Op basis van de EP-Online (<span class="citation" data-cites="Rijksoverheid_EP_2023">Rijksoverheid (<a href="#ref-Rijksoverheid_EP_2023" role="doc-biblioref">2023</a>)</span>) data kunnen we stellen dat 32% van de geschatte labels fout is door onvolledige spreidingen in de studie Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>). Dit zorgt bovendien voor een verdubbeling van de gemiddelde labelafwijking in onze resultaten. De mogelijke labels {#sec-only-possible} laten een 10% hogere nauwkeurigheid zien met een volledige energielabelspreiding, van 21% naar 32%. De eengezinswoningen hebben een significant hogere classificatienauwkeurigheid (87%) dan de meergezinswoningen (26%). Een correcte classificatie van woningen verbetert de nauwkeurigheid dus nog verder, met ongeveer één procent. De meergezinswoningen vormen 44% van onze resultaten. Door de validatiecriteria te versoepelen en één labelafwijking in de schattingen toe te staan, met volledige energielabelverdelingen en correcte woningtypen, lijkt een nauwkeurigheid van 70% mogelijk. We beschouwen deze nauwkeurigheid als de bovengrens van onze methode. Voor eventuele vervolgstudies zou het daarom raadzaam zijn om de studie van Voorbeeldwoningen bij te werken zodat de spreidingen van energielabels zo volledig mogelijk zijn.</p>
 <section id="aanbevelingen-voor-eventueel-vervolgonderzoek" class="level2" data-number="6.1">
 <h2 data-number="6.1" class="anchored" data-anchor-id="aanbevelingen-voor-eventueel-vervolgonderzoek"><span class="header-section-number">6.1</span> Aanbevelingen voor eventueel vervolgonderzoek</h2>
 <ul>
-<li>Gebruik van een betrouwbare brond voor de sub-woningtypes</li>
+<li>De onvolledige energielabelverdelingen van Voorbeeldwoningen 2022 (<span class="citation" data-cites="RVO_Voorbeeldwoningen_2022">RVO (<a href="#ref-RVO_Voorbeeldwoningen_2022" role="doc-biblioref">2022</a>)</span>) hebben de grootste invloed op de labelschatting. Daarom raden we aan om de volledigheid van de energielabelverdelingen te verbeteren.</li>
+<li>De subwoningtypes hebben ook een significante invloed op de resultaten en appartementen maken ongeveer 44% van de woningen uit. Daarom bevelen we twee verbeterpunten aan:
+<ul>
+<li>Gebruik de nieuwe, NTA8800 appartamenttypen voor de energielabelverdelingen van de Voorbeeldwoningen studie. Hiermee zou het omzetten van woningtypen vermeden kunnen worden.</li>
+<li>Verbeter de methode voor de classificatie van het subtype appartement.</li>
+</ul></li>
 </ul>
 </section>
 </section>
@@ -655,6 +664,7 @@ Tabel&nbsp;4: Overzicht van de berekende attributen
 </figcaption>
 <div aria-describedby="tbl-individual-head-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-display" data-execution_count="14">
+<div>
 <div>
 
 
@@ -813,6 +823,7 @@ Tabel&nbsp;4: Overzicht van de berekende attributen
 </div>
 </div>
 </div>
+</div>
 </figure>
 </div>
 </div>
@@ -928,6 +939,7 @@ Tabel&nbsp;6: Voorbeeld van de spreiding van de geleverde energielabels.
 <div aria-describedby="tbl-neighborhood-head-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output cell-output-display" data-execution_count="15">
 <div>
+<div>
 
 
 <table class="dataframe do-not-create-environment cell table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
@@ -1027,6 +1039,7 @@ Tabel&nbsp;6: Voorbeeld van de spreiding van de geleverde energielabels.
 </tbody>
 </table>
 
+</div>
 </div>
 </div>
 </div>
@@ -1136,6 +1149,24 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     // clear code selection
     e.clearSelection();
   });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
   function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
@@ -1170,7 +1201,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
   const xrefs = window.document.querySelectorAll('a.quarto-xref');
